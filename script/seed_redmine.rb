@@ -175,7 +175,6 @@ end
 def create_issues_for(project_record, seed)
   nouns = NOUN_BANK.fetch(seed[:theme])
   target = 100
-
   existing = list_existing_issues(seed[:identifier])
   existing_matching = existing.select { |i| i['subject'].to_s =~ /\A4\.\s*Testing\s*-\s*#/i }
                               .sort_by { |i| i['id'] }
@@ -183,27 +182,26 @@ def create_issues_for(project_record, seed)
     puts "  [skip] đã có #{existing_matching.size} issue khớp pattern, không tạo thêm"
     return existing_matching.first(target).map { |i| { 'id' => i['id'], 'subject' => i['subject'] } }
   end
-
   created = existing_matching.map { |i| { 'id' => i['id'], 'subject' => i['subject'] } }
-  start_seq = existing_matching.size + 1
-
-  (start_seq..target).each do |seq|
-    subject = build_subject(seed[:theme], seq, nouns)
-    payload = {
-      issue: {
-        project_id: seed[:identifier],
-        subject: subject,
-        description: build_description(seed[:theme], seq, nouns[(seq - 1) % nouns.size]),
-        tracker_id: 1
-      }
-    }
-    data = post_json('/issues.json', payload)
-    created << { 'id' => data['issue']['id'], 'subject' => subject }
-    print "\r  [issues] #{seq}/#{target}"
-    $stdout.flush
-  end
+  (existing_matching.size + 1..target).each { |seq| create_single_issue(seed, nouns, seq, created, target) }
   puts ''
   created
+end
+
+def create_single_issue(seed, nouns, seq, created, target)
+  subject = build_subject(seed[:theme], seq, nouns)
+  payload = {
+    issue: {
+      project_id: seed[:identifier],
+      subject: subject,
+      description: build_description(seed[:theme], seq, nouns[(seq - 1) % nouns.size]),
+      tracker_id: 1
+    }
+  }
+  data = post_json('/issues.json', payload)
+  created << { 'id' => data['issue']['id'], 'subject' => subject }
+  print "\r  [issues] #{seq}/#{target}"
+  $stdout.flush
 end
 
 puts "Seed Redmine - base=#{BASE_URL}"
@@ -223,7 +221,7 @@ SEED_PROJECTS.each do |seed|
   }
 end
 
-out_path = File.expand_path('../tmp/redmine_seed_output.json', __dir__)
+out_path = File.expand_path('../tmp/redmine_seed_output.json', _dir_)
 FileUtils.mkdir_p(File.dirname(out_path))
 File.write(out_path, JSON.pretty_generate(output))
 puts "Đã ghi #{out_path}"

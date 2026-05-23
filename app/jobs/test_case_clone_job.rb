@@ -9,23 +9,8 @@ class TestCaseCloneJob < ApplicationJob
 
     run.update!(status: 'running', started_at: Time.current)
     run.broadcast_progress(event: 'import_started')
-
-    params = run.params
-    source_task = Task.find(params['source_task_id'])
-    destination_task = Task.find(params['destination_task_id'])
-    user = run.triggered_by
-    Current.user = user if user
-
-    sources = source_task.test_cases.active.where(id: params['source_ids'])
-
-    result = TestCaseClone::CloneService.new(
-      source_test_cases: sources,
-      destination_task: destination_task,
-      options: (params['options'] || {}).to_h,
-      user: user,
-      import_run: run
-    ).call
-
+    destination_task = setup_clone_context(run)
+    result = execute_clone(run, destination_task)
     if result.success?
       finalize_success(run, result, destination_task)
     else
@@ -41,6 +26,25 @@ class TestCaseCloneJob < ApplicationJob
   end
 
   private
+
+  def setup_clone_context(run)
+    user = run.triggered_by
+    Current.user = user if user
+    Task.find(run.params['destination_task_id'])
+  end
+
+  def execute_clone(run, destination_task)
+    params = run.params
+    source_task = Task.find(params['source_task_id'])
+    sources = source_task.test_cases.active.where(id: params['source_ids'])
+    TestCaseClone::CloneService.new(
+      source_test_cases: sources,
+      destination_task: destination_task,
+      options: (params['options'] || {}).to_h,
+      user: run.triggered_by,
+      import_run: run
+    ).call
+  end
 
   def finalize_success(run, result, destination_task)
     run.update!(
