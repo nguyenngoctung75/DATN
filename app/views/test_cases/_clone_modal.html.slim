@@ -1,0 +1,66 @@
+/ Clone Test Cases Modal
+/ Local: task (source), candidate_tasks (Project tasks list)
+- candidate_tasks ||= task.project.tasks.where(deleted_at: nil).where.not(id: task.id).order(:title)
+- source_count_label = task.test_cases.active.count
+
+.modal.fade#cloneTestCasesModal tabindex="-1" aria-hidden="true" data-controller="clone-test-cases" data-clone-test-cases-task-label-value=task.title data-clone-test-cases-task-id-value=task.id
+  .modal-dialog
+    .modal-content
+      .modal-header.bg-info.text-white
+        h5.modal-title
+          i.bi.bi-files.me-2
+          | Clone Test Cases
+        button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+      = form_with url: clone_bulk_project_task_test_cases_path(task.project, task), method: :post, local: true, html: { id: 'clone-test-cases-form', data: { clone_test_cases_target: 'form' } } do |f|
+        .modal-body
+          / Source summary
+          .alert.alert-light.border.d-flex.align-items-center
+            i.bi.bi-info-circle.me-2.text-info
+            div
+              | Source:
+              strong.ms-1= task.title
+              span.text-muted.ms-2
+                span data-clone-test-cases-target="sourceCountLabel"
+                  | All #{source_count_label} active test case(s)
+
+          / Hidden: source_ids[] populated by Stimulus
+          div data-clone-test-cases-target="hiddenIds"
+
+          / Destination task picker
+          .mb-3
+            label.form-label.fw-bold for="destination_task_id"
+              | Destination Task *
+            select.form-select required=true name="destination_task_id" id="destination_task_id"
+              option value="" disabled=true selected=true Select a task in this project…
+              - candidate_tasks.each do |t|
+                option value=t.id
+                  = t.title.truncate(80)
+                  - if t.id == task.id
+                    | (this task)
+            .form-text Only tasks in the same project (#{task.project.name}) are listed.
+
+          / Options
+          .mb-3
+            .form-check
+              input.form-check-input type="checkbox" name="options[append_copy_suffix]" value="1" id="opt-append-copy"
+              label.form-check-label for="opt-append-copy"
+                | Append "(copy)" suffix to titles
+              .form-text.small Auto-applied when destination is the same as source task.
+            .form-check
+              input.form-check-input type="checkbox" name="options[place_at_top]" value="1" id="opt-place-top"
+              label.form-check-label for="opt-place-top"
+                | Insert at the top of destination task
+
+          / Notes
+          .alert.alert-info.small.mb-0
+            strong What gets copied:
+            ul.mb-0.mt-1
+              li Test case fields, all test steps and step contents (actions + expected results)
+            strong.d-block.mt-2 What does NOT get copied:
+            ul.mb-0.mt-1
+              li Device test results (status will be reset)
+              li Bug reports linked to original test results
+
+        .modal-footer
+          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+          = f.submit 'Clone Test Cases', class: 'btn btn-info text-white', data: { clone_test_cases_target: 'submitButton' }

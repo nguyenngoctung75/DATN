@@ -1,0 +1,176 @@
+.container-fluid.px-4.py-4
+  / Breadcrumbs
+  nav aria-label="breadcrumb"
+    ol.breadcrumb.mb-4
+      li.breadcrumb-item
+        = link_to 'Projects', projects_path, class: 'text-decoration-none'
+      li.breadcrumb-item.breadcrumb-truncate-sm
+        = link_to @project.name, project_path(@project), class: 'text-decoration-none', title: @project.name
+      li.breadcrumb-item.breadcrumb-truncate-md
+        = link_to @task.title, project_task_path(@project, @task), class: 'text-decoration-none border-bottom-0', title: @task.title
+      li.breadcrumb-item.active aria-current="page" Bugs
+
+  / Header
+  .d-flex.justify-content-between.align-items-center.mb-2
+    .min-width-0
+      h3.fw-bold.mb-1
+        i.bi.bi-bug.text-danger.me-2
+        | 🐛 Bugs list
+        span.badge.bg-danger.ms-2 = @total_bugs
+      p.text-muted.mb-0.text-truncate.breadcrumb-truncate-lg title=@task.title
+        = "Associated with: #{@task.title}"
+
+    .d-flex.gap-2.flex-shrink-0
+      - if @task.bug_link.present?
+        button.btn.btn-outline-primary.btn-sm.text-nowrap data-bs-toggle="modal" data-bs-target="#importBugsModal"
+          i.bi.bi-arrow-repeat.me-1
+          | Sync from Sheet
+        a.btn.btn-outline-secondary.btn-sm.text-nowrap href=@task.bug_link target="_blank" rel="noopener noreferrer"
+          i.bi.bi-google.me-1
+          | Open Sheet
+      - if @archived_bugs.any?
+        button.btn.btn-outline-secondary.btn-sm.text-nowrap.d-inline-flex.align-items-center data-bs-toggle="modal" data-bs-target="#archivedBugsModal"
+          i.bi.bi-archive.me-2
+          | Archived (#{@archived_bugs.count})
+
+  / Spreadsheet View
+  div data-controller="media-preview spreadsheet-toolbar context-menu undo-redo"
+    / Persistent Toolbar + Formula Bar (Google Sheets style)
+    .spreadsheet-toolbar-sticky.sticky-top.mb-2 data-action="mousedown->spreadsheet-toolbar#preventFocusLoss"
+      .spreadsheet-toolbar.d-flex
+        = render 'shared/spreadsheet_toolbar'
+      = render 'shared/formula_bar'
+
+    / Modal for Media Preview
+    = render 'shared/media_preview_modal'
+
+    / Bugs Spreadsheet Table
+    .table-responsive.border.rounded
+      table.spreadsheet-table.spreadsheet-list-table.bug-spreadsheet-table data-controller="column-resize"
+        thead
+          tr
+            th.text-center.bug-id-col ID
+            th.bug-content-col Content
+            th.text-center.bug-app-col App
+            th.text-center.bug-category-col Category
+            th.text-center.bug-type-col Bug Type
+            th.text-center.bug-priority-col Priority
+            th.bug-dev-col Dev
+            th.bug-test-col Test
+            th.text-center.bug-status-col Status
+            th.bug-media-col Image/Video
+            th.bug-note-col Note
+            th.text-center.bug-actions-col.d-none Actions
+        tbody#bugs-spreadsheet-list
+          - offset = (@page - 1) * @per_page
+          - @bugs.each_with_index do |bug, index|
+            = render partial: 'bugs/spreadsheet_row', locals: { bug: bug, index: offset + index + 1 }
+
+    / Inline Create Button
+    .d-flex.justify-content-center.mt-3
+      = button_to project_task_bugs_path(@project, @task), params: { bug: { title: '-', content: '-', category: 'stg_vn', priority: 'normal', status: 'new', application: 'sp_pc', bug_type: 'new_bug' } }, class: "btn btn-outline-primary btn-sm px-4", method: :post, data: { turbo_stream: true } do
+        i.bi.bi-plus-lg.me-1
+        | Create New Bug
+
+    / Pagination
+    = render 'shared/pagination', page: @page, total_pages: @total_pages
+
+  / Empty State
+  - if @bugs.empty?
+    .text-center.py-5
+      .h1.mb-3 🐛
+      h4.text-secondary No Bugs Found
+      p.text-muted This task has no bugs recorded yet. You can create manually or import from sheet.
+
+/ Import Bugs Modal
+- if @task.bug_link.present?
+  .modal.fade#importBugsModal tabindex="-1" aria-hidden="true" data-controller="import-progress"
+    .modal-dialog
+      .modal-content
+        .modal-header.bg-primary.text-white
+          h5.modal-title
+            i.bi.bi-arrow-repeat.me-2
+            | Sync Bugs from Google Sheet
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        = form_with url: import_from_sheet_project_task_bugs_path(@project, @task), method: :post, local: true, data: { import_progress_target: "form", action: "submit->import-progress#showProgress" } do |f|
+          .modal-body
+            .mb-3
+              label.form-label.fw-bold Google Sheet URL (From Task)
+              input.form-control type="text" value=@task.bug_link disabled=true
+              .form-text This sheet link has been configured in the Task.
+            
+            - if @bugs.exists?
+              .alert.alert-warning.mt-3
+                .d-flex.align-items-center.mb-2
+                  i.bi.bi-exclamation-triangle-fill.me-2.fs-4
+                  strong Data Replacement Warning
+                p.small.mb-2 You are performing a data re-sync. If you select "Replace", all current Bugs for this task will be deleted and reloaded from the Sheet.
+                .form-check
+                  = check_box_tag :wipe_existing, '1', false, class: 'form-check-input', id: 'checkWipeExisting'
+                  label.form-check-label.fw-bold.text-danger for="checkWipeExisting"
+                    | Delete old data before importing new (Replace)
+
+            .alert.alert-info.d-flex.align-items-start.mt-3
+              i.bi.bi-info-circle.me-2.mt-1
+              div
+                strong Note:
+                ul.mb-0.mt-1.small
+                  li The system will find rows containing Bug content to import.
+                  li If "Replace" is not selected, the system will only add new Bugs based on their title.
+                  li The Bug Type column will be imported automatically (New Bug / Old Bug / Improve).
+            
+            / Progress Bar
+            .d-none data-import-progress-target="progress"
+              .mt-3
+                .d-flex.justify-content-between.align-items-center.mb-1
+                  strong.text-primary.small
+                    i.bi.bi-arrow-repeat.spin.me-1
+                    span.status-text Syncing bugs from Google Sheet...
+                  span.time-remaining.text-muted.small About 15 seconds remaining...
+                .progress style="height: 10px;"
+                  .progress-bar.progress-bar-striped.progress-bar-animated.bg-primary role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" 0%
+                p.text-muted.mt-2.x-small.mb-0 
+                  i.bi.bi-info-circle.me-1
+                  | Connecting to Google API and processing bug data...
+
+          .modal-footer.bg-light
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" data-import-progress-target="cancelButton" Cancel
+            = f.submit 'Start Sync', class: 'btn btn-primary', data: { import_progress_target: "submitButton" }
+
+/ Archived Bugs Modal
+.modal.fade#archivedBugsModal tabindex="-1" aria-hidden="true"
+  .modal-dialog.modal-lg.modal-dialog-centered
+    .modal-content
+      .modal-header.bg-secondary.text-white
+        h5.modal-title
+          i.bi.bi-archive.me-2
+          | Archived Bugs
+        button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+      .modal-body.p-0
+        .table-responsive
+          table.table.table-hover.align-middle.mb-0
+            thead.bg-light
+              tr
+                th.ps-3 ID
+                th Title
+                th Deleted At
+                th.text-end.pe-3 Actions
+            tbody
+              - if @archived_bugs.any?
+                - @archived_bugs.each do |bug|
+                  tr
+                    td.ps-3.fw-bold = "BUG-#{bug.id}"
+                    td = bug.title
+                    td.small.text-muted = bug.deleted_at&.strftime("%Y-%m-%d %H:%M")
+                    td.text-end.pe-3
+                      = button_to restore_project_task_bug_path(@project, @task, bug), method: :patch, class: "btn btn-sm btn-outline-success" do
+                        i.bi.bi-arrow-counterclockwise.me-1
+                        | Restore
+              - else
+                tr
+                  td.text-center.py-4 colspan="4" No archived bugs.
+      .modal-footer
+        button.btn.btn-secondary type="button" data-bs-dismiss="modal" Close
+
+
+

@@ -1,0 +1,87 @@
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+AllCops:
+  NewCops: enable
+
+  Exclude:
+    - 'db/**/*'
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'data/**/*'
+    - 'docker/**/*'
+    - 'spec/**/*'
+    - 'Guardfile'
+    - 'Dockerfile'
+    - 'Capfile'
+    - 'Gemfile'
+
+Bundler/OrderedGems:
+  Enabled: false
+
+Layout/LineLength:
+  Enabled: true
+  Max: 120
+
+# DailyImportJob và projects#show đã refactor; mục tiêu Max 25
+Metrics/MethodLength:
+  Enabled: true
+  Max: 25
+
+Style/Documentation:
+  Enabled: false
+
+Style/StringLiterals:
+  Description: 'Checks if uses of quotes match the configured preference.'
+  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#consistent-string-literals'
+  EnforcedStyle: single_quotes
+  SupportedStyles:
+    - single_quotes
+    - double_quotes
+  Enabled: true
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: no_comma
+  Enabled: true
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: no_comma
+  Enabled: true
+
+Style/RedundantFreeze:
+  Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Lint/EmptyBlock:
+  Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
+
+Naming/VariableNumber:
+  Enabled: false
+
+Metrics/ClassLength:
+  Enabled: false
+
+Metrics/AbcSize:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Description: "Avoid complex methods."
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Naming/AccessorMethodName:
+  Enabled: false
+
+# Disable Style/SafeNavigation temporarily due to RuboCop 1.76.0 bug
+Style/SafeNavigation:
+  Enabled: false

@@ -1,0 +1,7 @@
+= turbo_stream.replace "bug-row-#{@bug.id}" do
+  = render 'bugs/spreadsheet_row', bug: BugPresenter.new(@bug), index: @bug_index
+
+= turbo_stream.prepend "flash-messages" do
+  .alert.alert-success.alert-dismissible.fade.show role="alert" data-controller="flash"
+    = flash[:notice]
+    button.btn-close type="button" data-bs-dismiss="alert" aria-label="Close"

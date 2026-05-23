@@ -1,0 +1,41 @@
+/ Pagination Partial - Reusable
+/ Usage: render 'shared/pagination', page: @tasks_page, total_pages: @total_pages, param_name: 'page', anchor: nil
+
+- page ||= 1
+- total_pages ||= 1
+- param_name ||= 'page'
+- anchor = local_assigns[:anchor]
+- anchor_suffix = anchor.present? ? "##{anchor}" : ""
+
+- if total_pages > 1
+  .pagination-wrapper.d-flex.justify-content-center.py-3
+    nav
+      ul.pagination.pagination-sm.mb-0
+        / Build base params (exclude current page param)
+        - base_params = request.query_parameters.except(param_name)
+
+        / Previous
+        li.page-item class=("disabled" if page <= 1)
+          - if page > 1
+            - url_params = base_params.merge(param_name => page - 1)
+            = link_to raw("&laquo;"), "?" + url_params.to_query + anchor_suffix, class: "page-link", aria: { label: "Previous" }
+          - else
+            span.page-link aria-hidden="true" &laquo;
+
+        / Page numbers
+        - (1..total_pages).each do |p|
+          - if total_pages <= 7 || (p <= 2) || (p >= total_pages - 1) || ((p - page).abs <= 1)
+            li.page-item class=("active" if p == page)
+              - url_params = base_params.merge(param_name => p)
+              = link_to p, "?" + url_params.to_query + anchor_suffix, class: "page-link"
+          - elsif (p == 3 && page > 4) || (p == total_pages - 2 && page < total_pages - 3)
+            li.page-item.disabled
+              span.page-link ...
+
+        / Next
+        li.page-item class=("disabled" if page >= total_pages)
+          - if page < total_pages
+            - url_params = base_params.merge(param_name => page + 1)
+            = link_to raw("&raquo;"), "?" + url_params.to_query + anchor_suffix, class: "page-link", aria: { label: "Next" }
+          - else
+            span.page-link aria-hidden="true" &raquo;

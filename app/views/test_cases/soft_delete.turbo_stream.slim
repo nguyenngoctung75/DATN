@@ -1,0 +1,48 @@
+= turbo_stream.update "test-cases-spreadsheet-container" do
+  - if @all_test_cases.any? || @show_archived
+    .card.border-0.shadow-sm.mb-4#test-cases
+      .card-header.bg-white.py-3
+        .d-flex.justify-content-between.align-items-center
+          h5.mb-0.fw-bold.text-primary
+            i.bi.bi-grid-3x3-gap.me-2
+            | Test Cases 
+            span.badge.bg-primary.bg-opacity-10.text-primary.ms-2= @total_test_cases
+          
+          - if @total_tc_pages > 1
+            .text-muted.small
+              | Trang #{@test_cases_page}/#{@total_tc_pages}
+
+          .d-flex.align-items-center.gap-2.ms-auto
+            - if @show_archived
+              = link_to project_task_path(@project, @task, show_archived: 0, tc_page: 1), class: "btn btn-primary btn-sm d-inline-flex align-items-center" do
+                i.bi.bi-eye-fill.me-1
+                | Viewing Archived (#{@total_test_cases})
+            - else
+              = link_to project_task_path(@project, @task, show_archived: 1, tc_page: 1), class: "btn btn-outline-secondary btn-sm d-inline-flex align-items-center" do
+                i.bi.bi-archive.me-1
+                | Show Archived
+                - if @task.test_cases.deleted.any?
+                  span.badge.bg-secondary.ms-2 = @task.test_cases.deleted.count
+
+      .card-body.p-0
+        - devices = @task.unique_devices
+        - tc_start_index = (@test_cases_page - 1) * @test_cases_per_page
+        = render 'test_cases/spreadsheet_table', test_cases: @paginated_test_cases, devices: devices, start_index: tc_start_index
+      
+      - if @total_tc_pages > 1
+        .card-footer.bg-white.border-top-0
+          .pagination-wrapper.d-flex.justify-content-center.py-2
+            nav
+              ul.pagination.pagination-sm.mb-0
+                li.page-item class=("disabled" if @test_cases_page <= 1)
+                  a.page-link href="?tc_page=#{@test_cases_page - 1}&show_archived=#{@show_archived ? 1 : 0}#test-cases" &laquo;
+                - (1..@total_tc_pages).each do |p|
+                  li.page-item class=("active" if p == @test_cases_page)
+                    a.page-link href="?tc_page=#{p}&show_archived=#{@show_archived ? 1 : 0}#test-cases"= p
+                li.page-item class=("disabled" if @test_cases_page >= @total_tc_pages)
+                  a.page-link href="?tc_page=#{@test_cases_page + 1}&show_archived=#{@show_archived ? 1 : 0}#test-cases" &raquo;
+
+= turbo_stream.prepend "flash-messages" do
+  .alert.alert-success.alert-dismissible.fade.show role="alert" data-controller="flash"
+    = flash[:notice] || "Action completed successfully."
+    button.btn-close type="button" data-bs-dismiss="alert" aria-label="Close"

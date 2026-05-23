@@ -1,0 +1,20 @@
+.dropdown.h-100 data-controller="device-status" id="test-case-#{test_case.id}-#{device.parameterize}-status"
+  - status_class = { 'pass' => 'bg-success', 'fail' => 'bg-danger', 'failed' => 'bg-danger', 'unknown' => 'bg-secondary' }[status] || 'bg-secondary'
+  
+  - aria_label = "#{device} status: #{status == 'not_run' ? 'not run' : status}"
+  button.status-trigger.w-100.h-100.border-0.text-white class=status_class type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label=aria_label data-bs-popper-config='{"strategy":"fixed"}'
+    = (status == 'not_run' ? '-' : status == 'unknown' ? '?' : status.upcase)
+  
+  ul.dropdown-menu.shadow-sm
+    li
+      button.dropdown-item type="button" data-action="click->device-status#update" data-status="pass" data-device=device data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id
+        i.bi.bi-check-circle-fill.text-success.me-2
+        | PASS
+    li
+      button.dropdown-item type="button" data-action="click->device-status#update" data-status="fail" data-device=device data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id
+        i.bi.bi-x-circle-fill.text-danger.me-2
+        | FAIL
+    li
+      button.dropdown-item type="button" data-action="click->device-status#update" data-status="not_run" data-device=device data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id
+        i.bi.bi-dash-circle.text-secondary.me-2
+        | NOT RUN

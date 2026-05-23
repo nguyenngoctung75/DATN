@@ -1,0 +1,2 @@
+= turbo_stream.replace "test-case-#{@test_case.id}-#{@test_result.device.parameterize}-status" do
+  = render 'test_cases/device_status_dropdown', test_case: @test_case, device: @test_result.device, status: @test_result.status

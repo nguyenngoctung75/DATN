@@ -1,0 +1,15 @@
+---
+description: Sau khi sửa code Ruby phải chạy RuboCop và sửa lỗi trước khi xong
+globs: "**/*.rb"
+alwaysApply: false
+---
+
+# RuboCop sau mỗi lần sửa code
+
+- **Mỗi lần sửa file Ruby** (.rb), đảm bảo **không phát sinh lỗi RuboCop**.
+- Sau khi chỉnh code:
+  1. Chạy RuboCop trên file đã sửa (hoặc toàn app nếu sửa nhiều file):
+     - Trong Docker: `docker exec -i tool_test-web-1 bash -lc "cd /rails && bundle exec rubocop <path>"`
+     - Tự sửa: `bundle exec rubocop -a <path>` (auto-correct khi có thể).
+  2. Sửa hết offense còn lại (LineLength, MethodLength, v.v.) bằng tay hoặc chỉnh config nếu cần.
+- **Không coi task là xong** nếu RuboCop vẫn báo lỗi trên file đã sửa.

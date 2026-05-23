@@ -1,0 +1,15 @@
+/ Toast Notification
+.toast.align-items-center.border-0.shadow-lg role="alert" aria-live="assertive" aria-atomic="true" data-controller="toast" class=(type == 'success' ? 'bg-success text-white' : type == 'error' ? 'bg-danger text-white' : type == 'warning' ? 'bg-warning text-dark' : 'bg-info text-white')
+  .d-flex
+    .toast-body.d-flex.align-items-center
+      - if type == 'success'
+        i.bi.bi-check-circle-fill.fs-5.me-2
+      - elsif type == 'error'
+        i.bi.bi-x-circle-fill.fs-5.me-2
+      - elsif type == 'warning'
+        i.bi.bi-exclamation-triangle-fill.fs-5.me-2
+      - else
+        i.bi.bi-info-circle-fill.fs-5.me-2
+      span= message
+    button.btn-close.me-2.m-auto type="button" data-bs-dismiss="toast" aria-label="Close" class=(type == 'success' || type == 'error' || type == 'info' ? 'btn-close-white' : '')
+

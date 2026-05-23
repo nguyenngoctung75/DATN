@@ -1,0 +1,36 @@
+- field_name = local_assigns[:field]
+- value = bug.send(field_name)
+
+- options = []
+- display_value = ''
+- badge_class = ''
+
+- if field_name == 'application'
+  - options = [['sp_pc', 'SP + PC'], ['app', 'APP'], ['sp', 'SP'], ['pc', 'PC'], ['all', 'All']]
+  - display_value = bug.application_display
+  - badge_class = 'bg-secondary bg-opacity-10 text-secondary'
+- elsif field_name == 'category'
+  - options = [['stg_vn', 'STG (VN)'], ['stg_jp', 'STG (JP)'], ['new_requirement', 'New Req'], ['prod', 'Prod']]
+  - display_value = bug.category_display
+  - badge_class = 'bg-secondary bg-opacity-10 text-secondary'
+- elsif field_name == 'bug_type'
+  - options = [['new_bug', 'New Bug'], ['old_bug', 'Old Bug'], ['improve', 'Improve']]
+  - display_value = bug.bug_type_display
+  - badge_class = "bg-#{bug.bug_type_color} bg-opacity-10 text-#{bug.bug_type_color}"
+- elsif field_name == 'priority'
+  - options = [['high', 'High'], ['normal', 'Normal'], ['low', 'Low']]
+  - display_value = bug.priority.to_s.titleize
+  - badge_class = "bg-#{bug.priority_color} bg-opacity-10 text-#{bug.priority_color}"
+- elsif field_name == 'status'
+  - options = [['new', 'New'], ['fixing', 'Fixing'], ['testing', 'Testing'], ['done', 'Done'], ['pending', 'Pending']]
+  - display_value = bug.status.to_s.titleize
+  - badge_class = "bg-#{bug.status_color} bg-opacity-10 text-#{bug.status_color}"
+
+.dropdown id="bug-#{bug.id}-#{field_name}-cell"
+  button.btn.btn-sm.badge.px-2.py-1.fw-semibold.text-nowrap class="#{badge_class}" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'
+    = display_value
+  ul.dropdown-menu.shadow-sm
+    - options.each do |val, label|
+      li
+        button.dropdown-item type="button" data-action="click->bug-field#update" data-bug-field-field-param=field_name data-bug-field-value-param=val class=(value == val ? 'active' : '')
+          = label

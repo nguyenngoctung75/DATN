@@ -1,0 +1,67 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-5.align-items-center
+    .col-md-8
+      nav aria-label="breadcrumb"
+        ol.breadcrumb.mb-2
+          li.breadcrumb-item = link_to "Projects", projects_path
+          li.breadcrumb-item.active Archived Projects
+      h1.display-5.fw-bold.text-dark.mb-2
+        i.bi.bi-archive-fill.me-3.text-secondary
+        | Archived Projects
+      p.lead.text-secondary.mb-0 Restore projects or permanently delete them from the system.
+    .col-md-4.text-md-end.mt-3.mt-md-0
+      = link_to projects_path, class: "btn btn-outline-primary btn-lg px-4" do
+        i.bi.bi-arrow-left.me-2
+        | Back to Projects
+
+  / Archived Projects List
+  .card.border-0.shadow-sm
+    .card-body.p-0
+      .table-responsive
+        table.table.table-hover.align-middle.mb-0
+          thead.bg-light
+            tr
+              th.ps-4 Project Name
+              th Deleted At
+              th.text-center Tasks
+              th.text-end.pe-4 Actions
+          tbody
+            - if @projects.any?
+              - @projects.each do |project|
+                tr
+                  td.ps-4
+                    .d-flex.align-items-center
+                      .bg-secondary.bg-opacity-10.rounded.p-2.me-3
+                        i.bi.bi-folder2.text-secondary.fs-5
+                      div
+                        .fw-bold.text-dark = project.name
+                        .small.text-muted = truncate(project.description, length: 50)
+                  td
+                    .text-dark
+                      i.bi.bi-clock.me-1
+                      span.me-1 = project.deleted_at.strftime("%d/%m/%Y %H:%M")
+                    .small.text-muted = "(#{time_ago_in_words(project.deleted_at)} ago)"
+                  td.text-center
+                    span.badge.bg-secondary.bg-opacity-10.text-secondary.px-3
+                      = project.task_count
+                  td.text-end.pe-4
+                    .d-flex.gap-2.justify-content-end
+                      = button_to restore_project_path(project), method: :patch, class: "btn btn-sm btn-outline-success d-flex align-items-center" do
+                        i.bi.bi-arrow-counterclockwise.me-1
+                        | Restore
+                      = button_to project_path(project), method: :delete, data: { turbo_confirm: "WARNING: This will permanently delete the project and all associated tasks/results. This action cannot be undone. Proceed?" }, class: "btn btn-sm btn-outline-danger d-flex align-items-center" do
+                        i.bi.bi-trash-fill.me-1
+                        | Delete Permanently
+            - else
+              tr
+                td.text-center.py-5 colspan="4"
+                  .text-muted
+                    i.bi.bi-inbox.display-4.d-block.mb-3
+                    h5 No archived projects found.
+
+  / Pagination
+  - if @total_pages > 1
+    .mt-4
+      = render 'shared/pagination', page: @current_page, total_pages: @total_pages, param_name: 'page'
+

@@ -1,0 +1,62 @@
+# Git
+.git
+.gitignore
+
+# CI / editor / deploy tooling (không cần trong image)
+.github
+.cursor
+.kamal
+
+# Logs
+log/*
+tmp/*
+*.log
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage
+
+# Environment
+.env
+.env.*
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules
+vendor/bundle
+
+# Storage
+storage/*
+!storage/.keep
+
+# Build files
+tmp/cache
+tmp/pids
+tmp/sockets
+public/assets
+
+# Test files
+test
+spec
+
+# Docker files (keep Dockerfile itself, exclude compose and config files)
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md

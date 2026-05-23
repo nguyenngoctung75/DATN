@@ -1,0 +1,11 @@
+#mediaPreviewModal.modal.fade tabindex="-1" aria-labelledby="mediaPreviewModalLabel" aria-hidden="true"
+  .modal-dialog.modal-dialog-centered.modal-xl
+    .modal-content
+      .modal-header
+        h5#mediaPreviewModalLabel.modal-title Media Preview
+        button.btn-close type="button" data-bs-dismiss="modal" aria-label="Close"
+      .modal-body.text-center.p-0.bg-light
+        img.d-none.media-preview-img alt="" data-media-preview-target="modalImage"
+        video.img-fluid.d-none.media-preview-video controls=true data-media-preview-target="modalVideo"
+          source data-media-preview-target="modalVideoSource"
+        div.d-none data-media-preview-target="modalLink"

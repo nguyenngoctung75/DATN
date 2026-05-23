@@ -1,0 +1,56 @@
+.container-fluid.px-4.py-4 data-controller="import-progress" data-import-progress-import-run-id-value=@import_run.id data-import-progress-status-url-value=status_import_run_path(@import_run)
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      li.breadcrumb-item
+        = link_to @import_run.project.name, project_path(@import_run.project)
+      li.breadcrumb-item.active aria-current="page"
+        | Import status
+
+  .card.border-0.shadow-sm.mb-4
+    .card-header.bg-light.text-dark.p-4
+      h1.h4.fw-bold.mb-2
+        i.bi.bi-cloud-arrow-down.me-2
+        | Import #{@import_run.import_type.humanize} \##{@import_run.id}
+      .row.mt-2.small
+        .col-md-3
+          strong Started:
+          = @import_run.started_at&.strftime('%d/%m/%Y %H:%M:%S') || '-'
+        .col-md-2
+          strong Status:
+          span.badge data-import-progress-target="statusBadge" class=status_badge_class(@import_run.status)
+            = @import_run.status
+        .col-md-2
+          strong Imported:
+          span data-import-progress-target="importedCount"
+            = @import_run.imported_count
+        .col-md-2
+          strong Processed:
+          span data-import-progress-target="processedCount"
+            = @import_run.processed_count
+          | /
+          span data-import-progress-target="totalCount"
+            = @import_run.total_count
+
+    .card-body
+      .progress style="height: 24px;"
+        .progress-bar.progress-bar-striped.progress-bar-animated.bg-info data-import-progress-target="progressBar" role="progressbar" style="width: #{@import_run.progress_percent}%;" aria-valuemin="0" aria-valuemax="100" aria-valuenow=@import_run.progress_percent
+          = "#{@import_run.progress_percent}%"
+      .small.text-muted.mt-2 data-import-progress-target="statusText"
+        - if @import_run.finished?
+          | Finished at #{@import_run.finished_at&.strftime('%H:%M:%S')}
+        - else
+          | Running… (live updates via WebSocket; falls back to 3s polling)
+
+      - if @import_run.error_message.present?
+        .alert.alert-danger.mt-3 data-import-progress-target="errorBox"
+          strong Error:
+          = ' '
+          = @import_run.error_message
+
+  .card.border-0.shadow-sm
+    .card-header.bg-dark.text-white
+      | Log
+    .card-body.p-0
+      = render 'shared/log_box', target: 'logBox', content: @import_run.log_output

@@ -1,0 +1,9 @@
+div.formula-bar data-controller="formula-bar"
+  div.formula-bar-ref data-formula-bar-target="ref"
+  div.formula-bar-fx
+    em fx
+  div.formula-bar-input(
+    contenteditable="false"
+    spellcheck="false"
+    data-formula-bar-target="input"
+    data-action="input->formula-bar#syncToCell")

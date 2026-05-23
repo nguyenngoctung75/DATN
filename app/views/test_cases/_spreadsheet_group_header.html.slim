@@ -1,0 +1,4 @@
+tr.test-case-group-header-row id="group-header-#{test_case.id}" data-controller="editable-cell" data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id data-history-url=cell_history_project_task_test_case_path(test_case.task.project, test_case.task, test_case) data-history-revert-url=revert_project_task_test_case_path(test_case.task.project, test_case.task, test_case)
+  td.spreadsheet-group-header-cell colspan=col_count data-cell-field="group_description"
+    .rich-content.group-description-display data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="group_description"
+      == format_content_with_media_links(group_description)

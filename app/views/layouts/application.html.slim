@@ -1,0 +1,59 @@
+doctype html
+html
+  head
+    title= content_for(:title) || "Tool Test"
+    meta name="viewport" content="width=device-width,initial-scale=1"
+    meta name="apple-mobile-web-app-capable" content="yes"
+    meta name="mobile-web-app-capable" content="yes"
+    = csrf_meta_tags
+    = csp_meta_tag
+    - if user_signed_in? && ENV["ACTION_CABLE_URL"].present?
+      meta name="action-cable-url" content=ENV["ACTION_CABLE_URL"]
+    = yield :head
+    / Enable PWA manifest if configured
+    / = tag.link rel: "manifest", href: pwa_manifest_path(format: :json)
+    link rel="icon" href="/icon.png" type="image/png"
+    link rel="icon" href="/icon.svg" type="image/svg+xml"
+    link rel="apple-touch-icon" href="/icon.png"
+    / Bootstrap Icons
+    link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+    = stylesheet_link_tag "application", "data-turbo-track": "reload"
+    = javascript_importmap_tags
+    script src="https://cdn.jsdelivr.net/npm/chart.js" data-turbo-track="reload"
+    script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" data-turbo-track="reload" defer=true
+    script
+      | document.addEventListener("turbo:before-cache", function() {
+      |   const dropdowns = document.querySelectorAll('.dropdown-menu.show');
+      |   dropdowns.forEach(dropdown => dropdown.classList.remove('show'));
+      |   const toggles = document.querySelectorAll('.dropdown-toggle.show');
+      |   toggles.forEach(toggle => {
+      |     toggle.classList.remove('show');
+      |     toggle.setAttribute('aria-expanded', 'false');
+      |   });
+      | });
+  body data-controller="layout notification-link"
+    / Toast Container (fixed position)
+    .toast-container.position-fixed.top-0.end-0.p-3 style="z-index: 9999;"
+      - if notice.present?
+        = render partial: 'shared/toast', locals: { message: notice, type: 'success' }
+      - if alert.present?
+        = render partial: 'shared/toast', locals: { message: alert, type: 'error' }
+
+    / CI/CD realtime toast container — subscribed to UserChannel by ci_toast_controller.
+    - if user_signed_in?
+      #ci-toast-container.position-fixed.top-0.end-0.p-3 data-controller="ci-toast" style="z-index: 9998; pointer-events: none;"
+
+    - if user_signed_in?
+      = render 'shared/header'
+      .container-fluid
+        .row.g-0.flex-nowrap
+          / === Sidebar ===
+          .sidebar.px-0.bg-white.border-end.min-vh-100 data-layout-target="sidebar" style="transition: all 0.3s ease-in-out; width: 260px; min-width: 260px; flex: 0 0 260px;"
+            = render "shared/sidebar"
+
+          / === Main content ===
+          .col.p-4 data-layout-target="content" style="transition: all 0.3s ease-in-out; min-width: 0; overflow-x: hidden;"
+            = yield
+    - else
+      / For login/signup pages
+      = yield

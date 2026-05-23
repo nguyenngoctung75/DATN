@@ -1,0 +1,57 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-4
+    .col
+      nav aria-label="breadcrumb"
+        ol.breadcrumb
+          li.breadcrumb-item
+            = link_to "Test Case", project_task_test_case_path(@test_case.task.project, @test_case.task, @test_case)
+          li.breadcrumb-item.active aria-current="page" Record Test Result
+
+      h1.display-6.fw-bold.text-dark
+        i.bi.bi-clipboard-check.me-2
+        | Record Test Result
+
+  / Form
+  .row.justify-content-center
+    .col-lg-8
+      / Test Case Info
+      .card.border-0.shadow-sm.mb-4
+        .card-body.bg-light
+          h5.fw-bold.text-dark= @test_case.title
+          p.text-muted.mb-0 Record test result for this test case
+
+      / Form
+      .card.border-0.shadow-sm
+        .card-body.p-4
+          = form_for [@test_case.task.project, @test_case.task, @test_case, @test_result], url: project_task_test_case_test_results_path(@test_case.task.project, @test_case.task, @test_case), html: { class: 'needs-validation' } do |f|
+            / Device/Environment
+            .mb-3
+              = f.label :device, "Device/Environment *", class: 'form-label fw-semibold'
+              = f.text_field :device, class: 'form-control form-control-lg', placeholder: 'e.g.: Chrome Desktop, iPhone 14 Pro', required: true, value: params[:device]
+              .form-text Browser, device, or test environment
+
+            / Status
+            .mb-3
+              = f.label :status, "Result *", class: 'form-label fw-semibold'
+              = f.select :status, options_for_select([['Pass', 'pass'], ['Fail', 'fail'], ['Not Run', 'not_run']]), {}, class: 'form-select form-select-lg', required: true
+
+            / Test Run (optional)
+            - if @test_case.task.test_runs.active.any?
+              .mb-3
+                = f.label :run_id, "Belongs to Test Run (optional)", class: 'form-label fw-semibold'
+                = f.collection_select :run_id, @test_case.task.test_runs.active.order(created_at: :desc), :id, :name, { include_blank: '-- No run --' }, class: 'form-select'
+
+            / Executed At
+            .mb-3
+              = f.label :executed_at, "Test Time", class: 'form-label fw-semibold'
+              = f.datetime_local_field :executed_at, class: 'form-control', value: Time.current.strftime('%Y-%m-%dT%H:%M')
+
+            / Buttons
+            .d-flex.gap-2.mt-4
+              = f.submit "Save Result", class: 'btn btn-primary btn-lg px-5'
+              = link_to "Cancel", project_task_test_case_path(@test_case.task.project, @test_case.task, @test_case), class: 'btn btn-outline-secondary btn-lg'
+
+
+
+

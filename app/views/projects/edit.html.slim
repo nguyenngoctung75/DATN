@@ -1,0 +1,43 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-4
+    .col
+      nav aria-label="breadcrumb"
+        ol.breadcrumb
+          li.breadcrumb-item
+            = link_to "Projects", projects_path
+          li.breadcrumb-item
+            = link_to @project.name, project_path(@project)
+          li.breadcrumb-item.active aria-current="page" Edit
+
+      h1.display-6.fw-bold.text-dark
+        i.bi.bi-pencil-square.me-2
+        | Edit Project
+
+  / Form
+  .row.justify-content-center
+    .col-lg-8
+      .card.border-0.shadow-sm
+        .card-body.p-4
+          = form_for @project, html: { class: 'needs-validation' } do |f|
+            / Name
+            .mb-3
+              = f.label :name, "Project Name *", class: 'form-label fw-semibold'
+              = f.text_field :name, class: 'form-control form-control-lg', placeholder: 'Example: Project Management System', required: true, maxlength: 50
+              - if @project.errors[:name].any?
+                .invalid-feedback.d-block = @project.errors[:name].join(', ')
+
+            / Description
+            .mb-4
+              = f.label :description, "Description", class: 'form-label fw-semibold'
+              = f.text_area :description, class: 'form-control', rows: 6, placeholder: 'Detailed project description...', style: 'resize: none;'
+              .form-text Description of project purpose and scope
+              - if @project.errors[:description].any?
+                .invalid-feedback.d-block = @project.errors[:description].join(', ')
+
+            / Buttons
+            .d-flex.gap-2
+              = f.submit "Update", class: 'btn btn-primary btn-lg px-5'
+              = link_to "Cancel", project_path(@project), class: 'btn btn-outline-secondary btn-lg'
+
+

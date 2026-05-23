@@ -1,0 +1,54 @@
+li.timeline-entry
+  .timeline-dot class=entry.dot_class
+
+  .timeline-content.bg-white.border.rounded.shadow-sm.p-3
+    .d-flex.gap-3
+      / Avatar
+      .flex-shrink-0
+        .rounded-circle.bg-primary.bg-opacity-10.d-flex.align-items-center.justify-content-center style="width: 40px; height: 40px;"
+          span.fw-bold.text-primary= (entry.user&.name || 'System')[0].upcase
+
+      / Content
+      .flex-grow-1
+        / Header row
+        .d-flex.justify-content-between.align-items-start.gap-2.mb-2
+          div
+            span.fw-bold.text-dark= entry.user&.name || 'System'
+            = ' '
+            span.text-muted
+              i class="bi #{entry.icon_class} me-1"
+              = entry.action_label
+              = entry.trackable_type == 'ActivityLog' ? '' : " #{entry.trackable_type}"
+            - if entry.grouped_count > 1
+              span.timeline-group-badge= "+#{entry.grouped_count - 1} more changes"
+
+          / Dual timestamp: relative + absolute
+          .timeline-timestamps.flex-shrink-0
+            span.ts-relative title=entry.created_at.strftime("%d/%m/%Y %H:%M:%S")
+              = "#{time_ago_in_words(entry.created_at)} ago"
+            span.ts-separator.mx-1 |
+            span.ts-absolute= entry.created_at.strftime("%d/%m %H:%M")
+
+        / Changes details
+        - if entry.changes.any?
+          .changes-details.mt-2.ps-3.border-start.border-2.border-primary.border-opacity-25
+            - entry.changes.each do |change|
+              .change-item.mb-2.small
+                .d-flex.align-items-start.gap-2
+                  i.bi.bi-arrow-right-circle.text-primary.mt-1
+                  div
+                    strong.text-secondary= "#{change.label}:"
+                    - if change.long_text
+                      .mt-1.d-flex.flex-column.gap-1
+                        span.badge.bg-danger.bg-opacity-10.text-danger.text-decoration-line-through.text-wrap title=change.old_display
+                          = change.old_display.truncate(200)
+                        i.bi.bi-arrow-down.text-muted.align-self-start.ms-1
+                        span.badge.bg-success.bg-opacity-10.text-success.text-wrap title=change.new_display
+                          = change.new_display.truncate(200)
+                    - else
+                      .d-flex.align-items-center.gap-2.mt-1.flex-wrap style="max-width: 100%; overflow: hidden;"
+                        span.badge.bg-danger.bg-opacity-10.text-danger.text-decoration-line-through.text-truncate title=change.old_display style="max-width: 350px;"
+                          = change.old_display.truncate(80)
+                        i.bi.bi-arrow-right.text-muted
+                        span.badge.bg-success.bg-opacity-10.text-success.text-truncate title=change.new_display style="max-width: 350px;"
+                          = change.new_display.truncate(80)

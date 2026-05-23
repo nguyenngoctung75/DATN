@@ -1,0 +1,85 @@
+# --- Ruby/Rails Defaults ---
+*.gem
+*.rbc
+.bundle
+.config
+.rspec
+/bin/*
+!/bin/bundle
+!/bin/rails
+!/bin/rake
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/log/*
+/tmp/*
+/public/assets/*
+/public/packs/*
+/public/packs-test/*
+/node_modules/*
+/vendor/bundle/*
+
+# --- Sensitive Information ---
+.env
+.env.*
+*.key
+*.pem
+credentials.yml.enc
+master.key
+config/master.key
+config/google_credentials.json
+/config/credentials/*.key
+
+# --- Lock Files ---
+Gemfile.lock
+package-lock.json
+yarn.lock
+
+# --- Storage & Uploads ---
+/storage/*
+!/storage/.keep
+/tmp/storage/*
+
+# --- Logs ---
+/log/*.log
+
+# --- Build Artifacts ---
+/app/assets/builds/*
+!/app/assets/builds/.keep
+/public/assets/
+/public/packs/
+/public/packs-test/
+
+# --- Database Files ---
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.sqlite3-journal
+*.sqlite3.fail
+/db/schema.rb
+
+# --- OS & Editor Files ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+*.iml
+
+# --- Docker ---
+.docker/
+
+# --- Test Coverage & Reports ---
+/coverage/
+/tmp/capybara/
+/tmp/screenshots/
+
+# --- Ruby LSP / Tools ---
+.ruby-lsp/
+.rubocop-*
+
+# --- CI / Misc ---
+.github/
+.cursor/
+.kamal/

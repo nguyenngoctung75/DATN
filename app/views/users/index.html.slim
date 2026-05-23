@@ -1,0 +1,67 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-4
+    .col
+      .d-flex.justify-content-between.align-items-center
+        div
+          h1.display-6.fw-bold.text-dark
+            i.bi.bi-people-fill.me-2
+            | User Management
+          p.text-muted List of all users in the system
+        = link_to new_user_path, class: "btn btn-primary btn-lg" do
+          i.bi.bi-person-plus-fill.me-2
+          | Create New User
+
+  / Users Table
+  .row
+    .col-12
+      .card.border-0.shadow-sm
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.table-light
+                tr
+                  th.px-4 #
+                  th Email
+                  th Name
+                  th Role
+                  th Provider
+                  th Created At
+                  th.text-center Actions
+              tbody
+                - if @users.any?
+                  - @users.each_with_index do |user, index|
+                    tr
+                      td.px-4 = index + 1
+                      td
+                        i.bi.bi-envelope.me-2.text-muted
+                        = user.email
+                      td = user.name || "-"
+                      td
+                        - case user.role
+                        - when "admin"
+                          span.badge.bg-danger Admin
+                        - else
+                          span.badge.bg-secondary User
+                      td
+                        - if user.provider == "local"
+                          span.badge.bg-info Local
+                        - else
+                          span.badge.bg-success = user.provider.capitalize
+                      td.text-muted = user.created_at.strftime("%d/%m/%Y %H:%M")
+                      td.text-center
+                        .btn-group role="group"
+                          = link_to user_path(user), class: "btn btn-sm btn-outline-primary", title: "View Details" do
+                            i.bi.bi-eye
+                          = link_to edit_user_path(user), class: "btn btn-sm btn-outline-warning", title: "Edit" do
+                            i.bi.bi-pencil
+                          = link_to user_path(user), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to delete this user?" }, class: "btn btn-sm btn-outline-danger", title: "Delete" do
+                            i.bi.bi-trash
+                - else
+                  tr
+                    td.text-center.py-5 colspan="7"
+                      .text-muted
+                        i.bi.bi-inbox.display-4.d-block.mb-3
+                        | No users in the system yet
+
+

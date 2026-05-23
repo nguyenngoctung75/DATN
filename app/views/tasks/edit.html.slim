@@ -1,0 +1,112 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-4
+    .col
+      nav aria-label="breadcrumb"
+        ol.breadcrumb
+          li.breadcrumb-item
+            = link_to "Projects", projects_path
+          li.breadcrumb-item
+            = link_to @task.project.name, project_path(@task.project)
+          li.breadcrumb-item
+            = link_to @task.title, project_task_path(@task.project, @task)
+          li.breadcrumb-item.active aria-current="page" Edit
+
+      h1.display-6.fw-bold.text-dark
+        i.bi.bi-pencil-square.me-2
+        | Edit Task
+
+  / Form
+  .row.justify-content-center
+    .col-lg-10
+      .card.border-0.shadow-sm
+        .card-body.p-4
+          = form_for [@task.project, @task], html: { class: 'needs-validation' } do |f|
+            .row
+              / Left Column
+              .col-md-6
+                / Title
+                .mb-3
+                  = f.label :title, "Task Title *", class: 'form-label fw-semibold'
+                  = f.text_field :title, class: 'form-control form-control-lg', required: true, maxlength: 100
+                  - if @task.errors[:title].any?
+                    .invalid-feedback.d-block = @task.errors[:title].join(', ')
+
+                / Description
+                .mb-3
+                  = f.label :description, "Description", class: 'form-label fw-semibold'
+                  = f.text_area :description, class: 'form-control', rows: 4
+
+                / Status
+                .mb-3
+                  = f.label :status, "Status", class: 'form-label fw-semibold'
+                  = f.select :status, options_for_select([['New', 'new'], ['Pending', 'pending'], ['In Progress', 'in progress'], ['Resolved', 'resolved'], ['Waiting Release', 'waiting release'], ['Closed', 'closed']], @task.status), {}, class: 'form-select'
+
+                / Assignee
+                .mb-3
+                  = f.label :assignee_id, "Assign To", class: 'form-label fw-semibold'
+                  = f.collection_select :assignee_id, User.active.order(:name), :id, :name, { include_blank: '-- Select user --' }, class: 'form-select'
+
+              / Right Column
+              .col-md-6
+                / Issue Link
+                .mb-3
+                  = f.label :issue_link, "Issue Link", class: 'form-label fw-semibold'
+                  = f.url_field :issue_link, class: 'form-control'
+                  .form-text Link to JIRA, GitHub Issue, Linear, etc.
+
+                / TestCase Link
+                .mb-3
+                  = f.label :testcase_link, "TestCase Link (Google Sheet)", class: 'form-label fw-semibold'
+                  = f.url_field :testcase_link, class: 'form-control'
+
+                / Bug Link
+                .mb-3
+                  = f.label :bug_link, "Bug Link", class: 'form-label fw-semibold'
+                  = f.url_field :bug_link, class: 'form-control'
+
+                / Time Fields
+                .row
+                  .col-6
+                    .mb-3
+                      = f.label :estimated_time, "Estimated (hours)", class: 'form-label fw-semibold'
+                      = f.number_field :estimated_time, class: 'form-control', step: 0.5, min: 0
+                      - if @task.errors[:estimated_time].any?
+                        .invalid-feedback.d-block = @task.errors[:estimated_time].join(', ')
+                  .col-6
+                    .mb-3
+                      = f.label :spent_time, "Spent (hours)", class: 'form-label fw-semibold'
+                      = f.number_field :spent_time, class: 'form-control', step: 0.5, min: 0
+                      - if @task.errors[:spent_time].any?
+                        .invalid-feedback.d-block = @task.errors[:spent_time].join(', ')
+
+                / Percent Done
+                .mb-3
+                  = f.label :percent_done, "Completed (%)", class: 'form-label fw-semibold'
+                  = f.number_field :percent_done, class: 'form-control', min: 0, max: 100, step: 10
+                  - if @task.errors[:percent_done].any?
+                    .invalid-feedback.d-block = @task.errors[:percent_done].join(', ')
+
+                / Dates
+                .row
+                  .col-6
+                    .mb-3
+                      = f.label :start_date, "Start Date", class: 'form-label fw-semibold'
+                      = f.date_field :start_date, class: 'form-control'
+                      - if @task.errors[:start_date].any?
+                        .invalid-feedback.d-block = @task.errors[:start_date].join(', ')
+                  .col-6
+                    .mb-3
+                      = f.label :due_date, "Deadline", class: 'form-label fw-semibold'
+                      = f.date_field :due_date, class: 'form-control'
+                      - if @task.errors[:due_date].any?
+                        .invalid-feedback.d-block = @task.errors[:due_date].join(', ')
+
+            / Buttons
+            .d-flex.gap-2.mt-4
+              = f.submit "Update", class: 'btn btn-primary btn-lg px-5'
+              = link_to "Cancel", project_task_path(@task.project, @task), class: 'btn btn-outline-secondary btn-lg'
+
+
+
+

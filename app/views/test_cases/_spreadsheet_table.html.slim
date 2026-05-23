@@ -1,0 +1,61 @@
+- devices = local_assigns[:devices].presence || ['pc', 'sp', 'app']
+- global_start_index = local_assigns[:start_index] || 0
+- presenter = SpreadsheetTablePresenter.new(test_cases)
+
+/ Group Description Modal
+#groupDescriptionModal.modal.fade tabindex="-1" aria-hidden="true"
+  .modal-dialog.modal-dialog-centered
+    .modal-content
+      .modal-header
+        h5.modal-title
+          i.bi.bi-collection.me-2
+          | Set Group Description
+        button.btn-close type="button" data-bs-dismiss="modal" aria-label="Close"
+      .modal-body
+        .mb-1
+          label.form-label.fw-semibold for="groupDescriptionInput" Group Description
+          textarea#groupDescriptionInput.form-control rows="4" placeholder="Mô tả chung cho cả nhóm TC này..."
+          .form-text.text-muted.mt-1 Thay đổi sẽ tự đồng bộ tới tất cả TC cùng nhóm. Để trống để xoá header.
+      .modal-footer
+        button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+        button#groupDescriptionSave.btn.btn-primary type="button" Save
+
+div data-controller="media-preview spreadsheet-toolbar context-menu undo-redo"
+  / Persistent Toolbar + Formula Bar (Google Sheets style)
+  .spreadsheet-toolbar-sticky.sticky-top.mb-2 data-action="mousedown->spreadsheet-toolbar#preventFocusLoss"
+    .spreadsheet-toolbar.d-flex
+      = render 'shared/spreadsheet_toolbar', show_link_button: true
+      .vr.mx-1
+      span.small.text-muted.me-1 Sort ID:
+      - current_sort = @tc_sort || 'asc'
+      = link_to project_task_path(@project, @task, tc_sort: 'asc'), class: "btn btn-sm #{current_sort == 'asc' ? 'btn-primary' : 'btn-light'}", title: "Sort ID Ascending" do
+        i.bi.bi-sort-numeric-down
+      = link_to project_task_path(@project, @task, tc_sort: 'desc'), class: "btn btn-sm #{current_sort == 'desc' ? 'btn-primary' : 'btn-light'}", title: "Sort ID Descending" do
+        i.bi.bi-sort-numeric-up-alt
+    = render 'shared/formula_bar'
+
+  / Modal for Media Preview
+  = render 'shared/media_preview_modal'
+  .table-responsive.border.rounded.mt-4
+    table.spreadsheet-table.spreadsheet-list-table data-controller="column-resize"
+      thead
+        tr
+          th.text-center.id-column ID
+          th.test-type-column Test Type
+          th.function-column Function
+          th.steps-column Test Steps (Actions)
+          th.expected-column Expected Results & Media
+          th.target-column Target
+          - devices.each do |device|
+            th.text-center.device-column = format_device_name(device)
+          th.note-column Note
+          th.actions-column.d-none Actions
+      tbody#test-cases-spreadsheet-list
+        - col_count = 8 + devices.size
+        - tc_counter = 0
+        - presenter.rows.each do |row|
+          - if row.kind == :group_header
+            = render 'test_cases/spreadsheet_group_header', test_case: row.test_case, group_description: row.group_description, col_count: col_count
+          - else
+            - tc_counter += 1
+            = render partial: 'test_cases/spreadsheet_row', locals: { test_case: row.test_case, index: global_start_index + tc_counter, devices: devices, row_info: row.row_info }

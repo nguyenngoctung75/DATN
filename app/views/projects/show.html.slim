@@ -1,0 +1,331 @@
+.container.py-4
+  / Breadcrumb
+  nav.mb-4
+    = link_to projects_path, class: "text-decoration-none text-primary fw-bold" do
+      i.bi.bi-arrow-left.me-2
+      | Back to Projects
+
+  / Project Header
+  .card.border-0.shadow-sm.mb-4
+    .card-body.p-4
+      .d-flex.justify-content-between.align-items-center.flex-wrap.gap-3.mb-3
+        h1.display-5.fw-bold.text-dark.mb-0= @project.name.truncate(50)
+        .d-flex.gap-2.flex-shrink-0
+          = link_to new_project_task_path(@project), class: "btn btn-primary text-nowrap d-inline-flex align-items-center" do
+            i.bi.bi-plus-lg.me-2
+            | Create New Task
+          - if current_user&.admin?
+            button.btn.btn-success.text-nowrap.d-inline-flex.align-items-center data-bs-toggle="modal" data-bs-target="#importRedmineModal"
+              i.bi.bi-cloud-download.me-2
+              | Import from Redmine
+            button.btn.btn-info.text-nowrap.d-inline-flex.align-items-center data-bs-toggle="modal" data-bs-target="#importRedmineUrlModal"
+              i.bi.bi-collection.me-2
+              | Bulk Import (4. Testing)
+          - if @archived_tasks.any?
+            button.btn.btn-outline-secondary.text-nowrap.d-inline-flex.align-items-center data-bs-toggle="modal" data-bs-target="#archivedTasksModal"
+              i.bi.bi-archive.me-2
+              | Archived Tasks (#{@archived_tasks.count})
+
+      - if @project.description.present?
+        .border-top.pt-3.pb-3.mt-3.text-muted style="white-space: pre-wrap; max-width: 1000px; font-size: 0.95rem; line-height: 1.6;"
+          = @project.description
+
+      / Unified Filter & Statistics Section
+      = form_with url: project_path(@project), method: :get, local: true, id: "task-filters-form" do |f|
+        .border-top.pt-3.mt-3
+          / 1. Date Presets (Simple buttons like Bulk Import)
+          .mb-3
+            label.form-label.fw-bold.small TIME FILTER:
+            .d-flex.flex-wrap.gap-2.mb-2
+              - presets = [['Today', 'today'], ['Yesterday', 'yesterday'], ['Last 7 days', 'last_7_days'], ['Last 30 days', 'last_30_days'], ['This month', 'this_month'], ['Last month', 'last_month'], ['This quarter', 'this_quarter'], ['This year', 'this_year']]
+              - presets.each do |label, preset|
+                = link_to label, project_path(@project, date_preset: preset, q: params[:q], status: params[:status]), class: "btn btn-sm #{@selected_preset == preset ? 'btn-primary' : 'btn-outline-secondary'}"
+            
+            / Custom Date Range
+            .row.g-2
+              .col-auto
+                = date_field_tag :start_date, params[:start_date], class: "form-control form-control-sm", placeholder: "From date", onchange: "this.form.submit()"
+              .col-auto
+                = date_field_tag :end_date, params[:end_date], class: "form-control form-control-sm", placeholder: "To date", onchange: "this.form.submit()"
+              .col-auto
+                - if params[:start_date].present? && params[:end_date].present?
+                  span.small.text-muted.align-self-center
+                    = "#{Date.parse(params[:start_date]).strftime('%d/%m/%Y')} - #{Date.parse(params[:end_date]).strftime('%d/%m/%Y')}"
+
+          / 2. Main Filters (Status + Search)
+          .row.g-2.mb-4
+            .col-md-3
+              .dropdown
+                button.btn.btn-outline-secondary.w-100.dropdown-toggle.text-start.d-flex.justify-content-between.align-items-center type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                  - if params[:status].present?
+                    span.badge class=status_badge_color(params[:status]).gsub('bg-', 'text-bg-') = params[:status].titleize
+                  - else
+                    span.text-muted
+                      i.bi.bi-funnel.me-2
+                      | Status
+                
+                ul.dropdown-menu.shadow.w-100
+                  li
+                    = link_to project_path(@project, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status].blank? ? 'active' : ''}" do
+                      span All statuses
+                      - if params[:status].blank?
+                        i.bi.bi-check-lg
+                  
+                  - @status_options.each do |status|
+                    li
+                      = link_to project_path(@project, status: status, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status] == status ? 'active' : ''}" do
+                        span.badge class=status_badge_color(status).gsub('bg-', 'text-bg-') = status.titleize
+                        - if params[:status] == status
+                          i.bi.bi-check-lg
+
+            .col-md-7
+              .input-group
+                span.input-group-text.bg-white.border-end-0
+                  i.bi.bi-search.text-muted
+                = text_field_tag :q, params[:q], 
+                    class: "form-control border-start-0 ps-0", 
+                    placeholder: "Search tasks by name or Redmine ID...", 
+                    autocomplete: "off"
+
+            .col-md-2
+              = button_tag type: "submit", class: "btn btn-primary w-100" do
+                | Search
+
+        / 3. Statistics Cards
+        .row.g-3
+          .col-md-3
+            .p-3.rounded.bg-primary.bg-opacity-10.text-center.border.border-primary.border-opacity-10
+              .h2.fw-bold.text-primary.mb-0= @total_tasks
+              .small.text-muted Parent Tasks
+          .col-md-3
+            .p-3.rounded.bg-success.bg-opacity-10.text-center.border.border-success.border-opacity-10
+              .h2.fw-bold.text-success.mb-0= @tasks.where(parent_id: nil).sum(:number_of_test_cases)
+              .small.text-muted Test Cases
+          .col-md-3
+            .p-3.rounded.bg-info.bg-opacity-10.text-center.border.border-info.border-opacity-10
+              .h2.fw-bold.text-info.mb-0= @subtasks_count
+              .small.text-muted Subtasks
+          .col-md-3
+            .p-3.rounded.bg-warning.bg-opacity-10.text-center.border.border-warning.border-opacity-10
+              .h2.fw-bold.text-warning.mb-0= @completed_tasks_count
+              .small.text-muted Completed
+      
+      - if params[:q].present? || params[:status].present? || (params[:date_preset].present? && params[:date_preset] != 'all')
+        .text-end.mt-3
+          = link_to project_path(@project), class: "small text-muted text-decoration-none" do
+            i.bi.bi-arrow-counterclockwise.me-1
+            | Reset filters
+
+
+
+  / Tasks List - Only Parent Tasks (Clickable to view details)
+  - if @root_tasks.any?
+    .d-flex.flex-column.gap-4.mb-4
+      - @root_tasks.each do |task|
+        = render 'tasks/task_card', task: task
+
+    / Pagination
+    - if @total_pages > 1
+      .card.border-0.shadow-sm.mb-4
+        .card-body.p-2
+          = render 'shared/pagination', page: @tasks_page, total_pages: @total_pages, param_name: 'page'
+  - else
+    / Empty State
+    .text-center.py-5
+      .h1.text-muted.mb-3 📭
+      h4.text-muted No tasks found
+      - if params[:q].present?
+        p.text-muted No tasks match "#{params[:q]}"
+        - clear_search_params = { date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date], status: params[:status] }.compact
+        = link_to project_path(@project, clear_search_params), class: "btn btn-outline-primary" do
+          i.bi.bi-arrow-clockwise.me-1
+          | Clear search filter
+      - else
+        p.text-muted Create a new task or import from Redmine to get started.
+
+
+/ Import Modal
+- if current_user&.admin?
+  .modal.fade#importRedmineModal tabindex="-1" aria-hidden="true" data-controller="import-progress"
+    .modal-dialog
+      .modal-content
+        .modal-header.bg-success.text-white
+          h5.modal-title
+            i.bi.bi-cloud-download.me-2
+            | Import Task from Redmine
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        = form_with url: project_redmine_issues_import_one_path(@project), method: :post, local: true, data: { import_progress_target: "form", action: "submit->import-progress#showProgress" } do |f|
+          .modal-body
+            .mb-3
+              = label_tag :issue_id, "Redmine Issue ID *", class: 'form-label fw-bold'
+              = text_field_tag :issue_id, nil, class: 'form-control', placeholder: '12345', required: true
+              .form-text Enter the issue ID from Redmine
+
+            / Progress Bar
+            .d-none.mt-3 data-import-progress-target="progress"
+              .alert.alert-success.mb-0
+                .d-flex.align-items-center.justify-content-between.mb-2
+                  .d-flex.align-items-center
+                    .spinner-border.spinner-border-sm.me-2 role="status"
+                      span.visually-hidden Loading...
+                    strong Importing task from Redmine...
+                  span.time-remaining.badge.bg-light.text-dark.px-3.py-2 Calculating...
+                .progress style="height: 28px;"
+                  .progress-bar.progress-bar-striped.progress-bar-animated.bg-success role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"
+                    | 0%
+                small.text-muted.mt-2.d-block
+                  i.bi.bi-info-circle.me-1
+                  | Fetching information from Redmine, importing subtasks and test cases. Please wait...
+
+          .modal-footer
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" data-import-progress-target="cancelButton" Cancel
+            = f.submit "Import", class: 'btn btn-success', data: { import_progress_target: "submitButton" }
+
+  / Bulk Import Modal (4. Testing only) - Tabs: Load list (filter by project + date) | Task list (imported/not imported, select to import)
+  .modal.fade#importRedmineUrlModal tabindex="-1" aria-hidden="true" data-controller="bulk-import import-progress" data-bulk-import-list-url-value=project_redmine_issues_path(@project) data-bulk-import-import-url-value=project_redmine_issues_import_selected_path(@project)
+    .modal-dialog.modal-lg
+      .modal-content
+        .modal-header.bg-info.text-white
+          h5.modal-title
+            i.bi.bi-collection.me-2
+            | Bulk Import - 4. Testing Only
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        .modal-body
+          / Tabs removed for single-screen view
+
+          / Tab 1: Load list (URL + Redmine Project + time filter)
+          .bulk-import-list-tab data-bulk-import-target="listPanel"
+            .mb-3
+              input#bulk_issues_url type="hidden" name="issues_url" value="#{ENV.fetch('REDMINE_BASE_URL', 'https://redmine.example.com')}/issues.json" data-bulk-import-target="urlInput"
+
+            .mb-3
+              label.form-label.fw-bold Redmine Project *
+              select.form-select name="redmine_project_id" data-bulk-import-target="redmineProjectIdInput" data-action="change->bulk-import#onRedmineProjectChange"
+                option value="" Select Redmine project (by name)...
+                - (@redmine_projects || []).each do |p|
+                  option value=p[:id]
+                    = "#{p[:name]} (#{p[:identifier]})"
+                option value="__custom__" Enter ID or identifier...
+              .form-text Select project by name (list preloaded from Redmine)
+              .mt-2.d-none data-bulk-import-target="redmineProjectFallbackWrap"
+                input.form-control type="text" placeholder="Example: 123 or usedcar-ex" data-bulk-import-target="redmineProjectFallbackInput"
+
+            .mb-3
+              label.form-label.fw-bold Time filter (created_on)
+              .d-flex.flex-wrap.gap-2.mb-2
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="today" data-action="click->bulk-import#selectPreset" Today
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="last_7_days" data-action="click->bulk-import#selectPreset" Last 7 days
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="last_30_days" data-action="click->bulk-import#selectPreset" Last 30 days
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="last_90_days" data-action="click->bulk-import#selectPreset" Last 90 days
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="this_month" data-action="click->bulk-import#selectPreset" This month
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="last_month" data-action="click->bulk-import#selectPreset" Last month
+                button.btn.btn-sm.btn-outline-secondary type="button" data-preset="this_year" data-action="click->bulk-import#selectPreset" This year
+              .row.g-2
+                .col-auto
+                  input.form-control.form-control-sm type="date" data-bulk-import-target="startDate" data-bulk-import-date-preset-target="start" data-action="change->bulk-import#loadList"
+                .col-auto
+                  input.form-control.form-control-sm type="date" data-bulk-import-target="endDate" data-bulk-import-date-preset-target="end" data-action="change->bulk-import#loadList"
+                .col-auto
+                  input type="hidden" data-bulk-import-target="datePreset" value="last_30_days"
+            .alert.alert-info.d-flex.align-items-start.small
+              i.bi.bi-info-circle.me-2.mt-1
+              div
+                strong Note:
+                ul.mb-0.mt-1
+                  li Select Redmine Project by name (or enter ID/identifier) to only fetch issues from that project
+                  li Only shows issues with subject starting with "4. Testing"
+                  li Status "Imported" = task already exists in project (by Redmine ID)
+
+            / Loading Indicator
+            .d-none.text-center.py-3 data-bulk-import-target="loadingIndicator"
+              .spinner-border.text-primary role="status"
+                span.visually-hidden Loading...
+              .mt-2.small.text-muted Loading task list...
+
+          / Tab 2: Task list (filter imported/not imported, select to import)
+          .mt-3.d-none data-bulk-import-target="tableContainer"
+            .d-flex.justify-content-between.align-items-center.mb-2.flex-wrap.gap-2
+              .d-flex.align-items-center.gap-2
+                label.mb-0 Show:
+                select.form-select.form-select-sm style="width: auto;" data-bulk-import-target="filterSelect" data-action="change->bulk-import#filterTable"
+                  option value="all" All
+                  option value="not_imported" Not imported
+                  option value="imported" Imported
+              span.small.text-muted
+                | Selected:
+                strong data-bulk-import-target="selectedCount" 0
+                |  tasks
+            .table-responsive style="max-height: 320px; overflow-y: auto;"
+              table.table.table-sm.table-hover
+                thead.sticky-top.bg-light
+                  tr
+                    th style="width: 40px;"
+                      input.form-check-input type="checkbox" data-action="change->bulk-import#toggleAll" title="Select all (not imported)"
+                    th style="width: 60px;" #
+                    th Subject
+                    th style="width: 100px;" Created
+                    th style="width: 120px;" Assignee
+                    th style="width: 100px;" Status
+                tbody data-bulk-import-target="tableBody"
+                  tr
+                    td.text-muted.text-center.py-4 colspan="6"
+                      | Click "Load list" above to view the list.
+
+            = form_with url: project_redmine_issues_import_selected_path(@project), method: :post, local: true, data: { import_progress_target: "form", action: "submit->import-progress#showProgress", bulk_import_target: "importForm" } do |f|
+              / Hidden issue_ids[] will be added by JS when user clicks Import
+              .d-none data-import-progress-target="progress"
+                .alert.alert-info.mb-0
+                  .d-flex.align-items-center.justify-content-between.mb-2
+                    .d-flex.align-items-center
+                      .spinner-border.spinner-border-sm.me-2 role="status"
+                        span.visually-hidden Loading...
+                      strong Importing tasks from Redmine...
+                    span.time-remaining.badge.bg-light.text-dark.px-3.py-2 Calculating...
+                  .progress style="height: 28px;"
+                    .progress-bar.progress-bar-striped.progress-bar-animated.bg-info role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"
+                      | 0%
+              .mt-3.d-flex.justify-content-between.align-items-center
+                button.btn.btn-secondary type="button" data-bs-dismiss="modal" data-import-progress-target="cancelButton" Cancel
+                button.btn.btn-info data-bulk-import-target="submitButton" data-action="click->bulk-import#submitImport" type="button"
+                  i.bi.bi-cloud-download.me-2
+                  | Import selected
+        .modal-footer.d-none
+          / Footer hidden - actions are inside modal-body for tab 2
+
+  / Archived Tasks Modal
+  .modal.fade#archivedTasksModal tabindex="-1" aria-hidden="true"
+    .modal-dialog.modal-lg.modal-dialog-centered
+      .modal-content
+        .modal-header.bg-secondary.text-white
+          h5.modal-title
+            i.bi.bi-archive.me-2
+            | Archived Tasks
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        .modal-body.p-0
+          .table-responsive
+            table.table.table-hover.align-middle.mb-0
+              thead.bg-light
+                tr
+                  th.ps-3 ID (Redmine)
+                  th Title
+                  th Deleted At
+                  th.text-end.pe-3 Actions
+              tbody
+                - if @archived_tasks.any?
+                  - @archived_tasks.each do |task|
+                    tr
+                      td.ps-3.fw-bold = "##{task.redmine_id}"
+                      td = task.title
+                      td.small.text-muted = task.deleted_at&.strftime("%Y-%m-%d %H:%M")
+                      td.text-end.pe-3
+                        = button_to restore_project_task_path(@project, task), method: :patch, class: "btn btn-sm btn-outline-success" do
+                          i.bi.bi-arrow-counterclockwise.me-1
+                          | Restore
+                - else
+                  tr
+                    td.text-center.py-4 colspan="4" No archived tasks.
+        .modal-footer
+          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Close
+
+
+

@@ -1,0 +1,84 @@
+div data-controller="dashboard" data-dashboard-test-stats-value=@test_results_stats.to_json data-dashboard-bug-priority-stats-value=@bugs_by_priority.to_json data-dashboard-bug-status-stats-value=@bugs_by_status.to_json
+
+  / Summary Cards
+  .row.g-3.mb-4
+    .col-md-3
+      .card.shadow-sm.border-0.h-100.border-start.border-4.border-primary
+        .card-body
+          .text-muted.small.fw-bold.mb-1 CLOSED TASKS
+          .d-flex.align-items-center
+            i.bi.bi-check-circle-fill.fs-3.text-primary.me-3
+            .h2.mb-0.fw-bold = @closed_tasks_count
+
+    .col-md-3
+      .card.shadow-sm.border-0.h-100.border-start.border-4.border-success
+        .card-body
+          .text-muted.small.fw-bold.mb-1 DEVICE TESTS RUN
+          .d-flex.align-items-center
+            i.bi.bi-play-circle-fill.fs-3.text-success.me-3
+            .h2.mb-0.fw-bold = @test_results_stats.values.sum - (@test_results_stats['not_run'] || 0)
+
+    .col-md-3
+      .card.shadow-sm.border-0.h-100.border-start.border-4 class=(@pass_rate >= 90 ? 'border-success' : (@pass_rate >= 75 ? 'border-warning' : 'border-danger'))
+        .card-body
+          .text-muted.small.fw-bold.mb-1 PASS RATE
+          .d-flex.align-items-center
+            i.bi.bi-percent.fs-3.me-3 class=(@pass_rate >= 90 ? 'text-success' : (@pass_rate >= 75 ? 'text-warning' : 'text-danger'))
+            .h2.mb-0.fw-bold class=(@pass_rate >= 90 ? 'text-success' : (@pass_rate >= 75 ? 'text-warning' : 'text-danger')) = "#{@pass_rate}%"
+
+    .col-md-3
+      .card.shadow-sm.border-0.h-100.border-start.border-4.border-danger
+        .card-body
+          .text-muted.small.fw-bold.mb-1 OPEN BUGS
+          .d-flex.align-items-center
+            i.bi.bi-bug-fill.fs-3.text-danger.me-3
+            div
+              .h2.mb-0.fw-bold = @open_bugs_count
+              small.text-muted = "/ #{@total_bugs_count} Total"
+
+  / Charts
+  .row.g-4
+    .col-md-4
+      .card.shadow-sm.border-0.h-100
+        .card-header.bg-white.py-3
+          h5.mb-0.fw-bold
+            i.bi.bi-pie-chart-fill.me-2.text-primary
+            | Test Execution Status
+        .card-body
+          - if @test_results_stats.values.sum > 0
+            .chart-container style="position: relative; height: 300px; width: 100%;"
+              canvas data-dashboard-target="testStatusChart"
+          - else
+            .text-center.text-muted.py-5
+              i.bi.bi-inbox.fs-1.mb-2
+              p No test results found
+
+    .col-md-4
+      .card.shadow-sm.border-0.h-100
+        .card-header.bg-white.py-3
+          h5.mb-0.fw-bold
+            i.bi.bi-bar-chart-fill.me-2.text-danger
+            | Bugs By Priority
+        .card-body
+          - if @total_bugs_count > 0
+            .chart-container style="position: relative; height: 300px; width: 100%;"
+              canvas data-dashboard-target="bugPriorityChart"
+          - else
+            .text-center.text-muted.py-5
+              i.bi.bi-emoji-smile.fs-1.mb-2
+              p No bugs recorded
+
+    .col-md-4
+      .card.shadow-sm.border-0.h-100
+        .card-header.bg-white.py-3
+          h5.mb-0.fw-bold
+            i.bi.bi-vinyl-fill.me-2.text-info
+            | Bugs By Status
+        .card-body
+          - if @total_bugs_count > 0
+            .chart-container style="position: relative; height: 300px; width: 100%;"
+              canvas data-dashboard-target="bugStatusChart"
+          - else
+            .text-center.text-muted.py-5
+              i.bi.bi-emoji-smile.fs-1.mb-2
+              p No bugs recorded

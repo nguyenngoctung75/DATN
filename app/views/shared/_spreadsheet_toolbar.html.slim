@@ -1,0 +1,168 @@
+- show_link_button = local_assigns.fetch(:show_link_button, false)
+
+/ ── Group 1: Undo / Redo ─────────────────────────────────────────────────
+button.toolbar-btn type="button" tabindex="-1" title="Undo (Ctrl+Z)" data-action="mousedown->spreadsheet-toolbar#undo"
+  i.bi.bi-arrow-counterclockwise
+button.toolbar-btn type="button" tabindex="-1" title="Redo (Ctrl+Y)" data-action="mousedown->spreadsheet-toolbar#redo"
+  i.bi.bi-arrow-clockwise
+.toolbar-sep
+
+/ ── Group 2: Font Family ─────────────────────────────────────────────────
+.dropdown
+  button.toolbar-btn.toolbar-font-btn.dropdown-toggle(type="button" tabindex="-1"
+      title="Font family"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss"
+      data-spreadsheet-toolbar-target="fontNameBtn"
+      style="min-width:82px;text-align:left;font-size:12px;")
+    | Inter
+  ul.dropdown-menu.shadow-sm.py-1
+    - [["Inter","Inter, sans-serif"], ["Arial","Arial, sans-serif"], ["Roboto","Roboto, sans-serif"], ["Georgia","Georgia, serif"], ["Times New Roman","'Times New Roman', serif"], ["Courier New","'Courier New', monospace"], ["Verdana","Verdana, sans-serif"]].each do |name, css|
+      li
+        a.dropdown-item.py-1(href="#"
+            style="font-family:#{css};font-size:13px;"
+            data-action="mousedown->spreadsheet-toolbar#fontName"
+            data-font=name)
+          = name
+
+.toolbar-sep
+
+/ ── Group 3: Font Size ───────────────────────────────────────────────────
+button.toolbar-btn type="button" tabindex="-1" title="Decrease font size" data-action="mousedown->spreadsheet-toolbar#fontSizeMinus"
+  i.bi.bi-dash
+input.toolbar-fontsize(type="number" min="6" max="96" value="13" tabindex="-1"
+    title="Font size" placeholder="13"
+    data-spreadsheet-toolbar-target="fontSizeInput"
+    data-action="change->spreadsheet-toolbar#fontSizeFromInput")
+button.toolbar-btn type="button" tabindex="-1" title="Increase font size" data-action="mousedown->spreadsheet-toolbar#fontSizePlus"
+  i.bi.bi-plus
+.toolbar-sep
+
+/ ── Group 4: Text Formatting ─────────────────────────────────────────────
+button.toolbar-btn type="button" tabindex="-1" title="Bold (Ctrl+B)" data-action="mousedown->spreadsheet-toolbar#format" data-command="bold"
+  b B
+button.toolbar-btn type="button" tabindex="-1" title="Italic (Ctrl+I)" data-action="mousedown->spreadsheet-toolbar#format" data-command="italic"
+  em I
+button.toolbar-btn type="button" tabindex="-1" title="Strikethrough" data-action="mousedown->spreadsheet-toolbar#format" data-command="strikeThrough"
+  s S
+.toolbar-sep
+
+/ ── Group 5: Text Color ──────────────────────────────────────────────────
+.dropdown
+  button.toolbar-btn.dropdown-toggle.toolbar-color-btn(type="button" tabindex="-1"
+      title="Text color"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss")
+    .toolbar-color-icon
+      span A
+      span.toolbar-color-bar data-spreadsheet-toolbar-target="textColorBar" style="background:#000000;"
+  ul.dropdown-menu.p-2.shadow-sm.toolbar-color-palette
+    p.text-muted.mb-1 style="font-size:10px;letter-spacing:.05em;" TEXT COLOR
+    .toolbar-color-grid
+      - %w[#000000 #434343 #666666 #999999 #ffffff #ff0000 #ff6d00 #ffff00 #00c800 #00bcd4 #1a73e8 #673ab7 #e91e63 #795548 #607d8b #f4cccc #fce5cd #d9ead3 #d0e0f3 #ead1dc].each do |c|
+        button.toolbar-swatch(type="button" tabindex="-1"
+            title=c style="background:#{c};"
+            data-action="mousedown->spreadsheet-toolbar#applyTextColor"
+            data-color=c)
+
+/ ── Group 5b: Fill (Background) Color ────────────────────────────────────
+.dropdown
+  button.toolbar-btn.dropdown-toggle.toolbar-color-btn(type="button" tabindex="-1"
+      title="Fill color"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss")
+    .toolbar-color-icon
+      i.bi.bi-paint-bucket
+      span.toolbar-color-bar data-spreadsheet-toolbar-target="fillColorBar" style="background:#ffff00;"
+  ul.dropdown-menu.p-2.shadow-sm.toolbar-color-palette
+    p.text-muted.mb-1 style="font-size:10px;letter-spacing:.05em;" FILL COLOR
+    .toolbar-color-grid
+      - %w[transparent #ffffff #f4cccc #fce5cd #fff2cc #d9ead3 #d0e0f3 #ead1dc #cccccc #b7b7b7 #ea9999 #f9cb9c #ffe599 #b6d7a8 #a4c2f4 #d5a6bd #666666 #ff0000 #ff9900 #ffff00].each do |c|
+        button.toolbar-swatch(type="button" tabindex="-1"
+            title=c style="background:#{c};"
+            data-action="mousedown->spreadsheet-toolbar#applyFillColor"
+            data-color=c)
+
+.toolbar-sep
+
+/ ── Group 6: Merge Rows ──────────────────────────────────────────────────
+.dropdown
+  button.toolbar-btn.dropdown-toggle(type="button" tabindex="-1"
+      title="Merge / Unmerge"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss")
+    i.bi.bi-table
+  ul.dropdown-menu.shadow-sm.py-1
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#mergeRows"
+        i.bi.bi-link-45deg.me-2
+        | Merge with above
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#unmergeRows"
+        i.bi.bi-scissors.me-2
+        | Unmerge (Split)
+
+.toolbar-sep
+
+/ ── Group 7: Horizontal Alignment ───────────────────────────────────────
+.dropdown
+  button.toolbar-btn.dropdown-toggle(type="button" tabindex="-1"
+      title="Horizontal alignment"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss"
+      data-spreadsheet-toolbar-target="hAlignBtn")
+    i.bi.bi-text-left
+  ul.dropdown-menu.shadow-sm.py-1
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignHorizontal" data-align="left"
+        i.bi.bi-text-left.me-2
+        | Left
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignHorizontal" data-align="center"
+        i.bi.bi-text-center.me-2
+        | Center
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignHorizontal" data-align="right"
+        i.bi.bi-text-right.me-2
+        | Right
+
+/ ── Group 8: Vertical Alignment ─────────────────────────────────────────
+.dropdown
+  button.toolbar-btn.dropdown-toggle(type="button" tabindex="-1"
+      title="Vertical alignment"
+      data-bs-toggle="dropdown"
+      data-action="mousedown->spreadsheet-toolbar#preventFocusLoss"
+      data-spreadsheet-toolbar-target="vAlignBtn")
+    i.bi.bi-distribute-vertical
+  ul.dropdown-menu.shadow-sm.py-1
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignVertical" data-align="top"
+        i.bi.bi-align-top.me-2
+        | Top
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignVertical" data-align="middle"
+        i.bi.bi-align-middle.me-2
+        | Middle
+    li
+      a.dropdown-item.py-1 href="#" data-action="mousedown->spreadsheet-toolbar#alignVertical" data-align="bottom"
+        i.bi.bi-align-bottom.me-2
+        | Bottom
+
+/ ── Group 9: Insert Link ─────────────────────────────────────────────────
+- if show_link_button
+  .toolbar-sep
+  .toolbar-link-wrapper.position-relative data-spreadsheet-toolbar-target="linkWrapper"
+    button.toolbar-btn type="button" tabindex="-1" title="Insert link" data-action="mousedown->spreadsheet-toolbar#toggleLinkPopover"
+      i.bi.bi-link-45deg
+    .toolbar-link-popover.d-none data-spreadsheet-toolbar-target="linkPopover"
+      input.toolbar-link-input(type="url" placeholder="https://…"
+          data-spreadsheet-toolbar-target="linkInput"
+          data-action="keydown->spreadsheet-toolbar#linkKeydown")
+      button.toolbar-link-ok type="button" data-action="mousedown->spreadsheet-toolbar#applyLink"
+        i.bi.bi-check2-circle
+
+.toolbar-sep
+
+/ ── Clear Formatting ─────────────────────────────────────────────────────
+button.toolbar-btn type="button" tabindex="-1" title="Clear Formatting" data-action="mousedown->spreadsheet-toolbar#format" data-command="removeFormat"
+  i.bi.bi-eraser

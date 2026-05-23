@@ -1,0 +1,31 @@
+.card.border.step-card.mb-3 id="test-step-#{step.id}"
+  .card-body
+    .d-flex.justify-content-between.align-items-start.mb-3
+      .d-flex.align-items-start
+        span.badge.bg-primary.rounded-circle.me-3.d-flex.align-items-center.justify-content-center.user-avatar-circle
+          = step.step_number
+        h6.fw-semibold.mb-0 = "Step #{step.step_number}"
+
+      / Step Actions (Delete only)
+      .d-flex.gap-2
+        = button_to project_task_test_case_test_step_path(test_case.task.project, test_case.task, test_case, step), method: :delete, class: "btn btn-sm btn-outline-danger", form: { data: { turbo_confirm: "Delete this step?" } } do
+          i.bi.bi-trash
+
+    .row.g-4
+      / Actions
+      .col-12
+        h6.fw-semibold.text-muted.mb-2
+          i.bi.bi-play-circle.me-2.text-primary
+          | Actions
+        - action_content = step.action_contents.first
+        .fs-spreadsheet.border.rounded.p-3.bg-light.cursor-pointer style="min-height: 100px;" data-controller="editable-cell" data-project-id=test_case.task.project.id data-task-id=test_case.task.id data-test-case-id=test_case.id data-content-id=action_content&.id data-field="content_value" data-action="click->editable-cell#edit"
+          = action_content&.content_value.presence&.html_safe || "Click to enter action..."
+
+      / Expected Results
+      .col-12
+        h6.fw-semibold.text-muted.mb-2
+          i.bi.bi-check2-square.me-2.text-success
+          | Expected Results
+        - expected_content = step.expected_contents.where(content_type: 'text').first
+        .fs-spreadsheet.border.rounded.p-3.bg-light.cursor-pointer style="min-height: 100px;" data-controller="editable-cell" data-project-id=test_case.task.project.id data-task-id=test_case.task.id data-test-case-id=test_case.id data-content-id=expected_content&.id data-field="content_value" data-action="click->editable-cell#edit"
+          = expected_content&.content_value.presence&.html_safe || "Click to enter expected result..."

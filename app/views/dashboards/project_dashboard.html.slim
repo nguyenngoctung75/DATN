@@ -1,0 +1,25 @@
+.container-fluid.px-4.py-4
+  h2.fw-bold.mb-4 
+    i.bi.bi-graph-up-arrow.me-2.text-primary
+    | Test Analytics Dashboard
+
+  / Filters Section
+  .card.border-0.shadow-sm.mb-4
+    .card-body.bg-light.rounded
+      = form_with url: dashboards_index_path, method: :get, class: "row g-3 align-items-end", data: { turbo_stream: true } do |f|
+        .col-md-5
+          label.form-label.fw-bold for="project_id" Select Project
+          = f.collection_select :project_id, @projects, :id, :name, { selected: @project&.id }, { class: "form-select", onchange: "this.form.requestSubmit()" }
+        .col-md-3
+          label.form-label.fw-bold for="time_filter" Time Range
+          = f.select :time_filter, [['All Time', 'all'], ['Today', 'today'], ['This Week', 'week'], ['This Month', 'month'], ['This Year', 'year']], { selected: @time_filter || 'all' }, { class: "form-select", onchange: "this.form.requestSubmit()" }
+        .col-md-4
+          small.text-muted.d-block.mt-4
+            i.bi.bi-info-circle.me-1
+            | Stats are calculated based on <strong>Closed Tasks</strong> only.
+
+  - if @project.nil?
+    .alert.alert-info No active projects found.
+  - else
+    div id="dashboard-content"
+      = render "project_dashboard_content"

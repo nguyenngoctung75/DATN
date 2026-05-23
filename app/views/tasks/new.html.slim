@@ -1,0 +1,193 @@
+.container-fluid.px-4.py-4 data-controller="form-toggle"
+  / Header
+  .row.mb-4
+    .col
+      nav aria-label="breadcrumb"
+        ol.breadcrumb
+          li.breadcrumb-item
+            = link_to "Projects", projects_path
+          li.breadcrumb-item
+            = link_to @project.name, project_path(@project)
+          li.breadcrumb-item.active aria-current="page" Create New Task
+
+      h1.display-6.fw-bold.text-dark
+        i.bi.bi-clipboard-plus.me-2
+        | Create New Task
+
+  / Toggle Buttons
+  .row.mb-4.justify-content-center
+    .col-lg-10
+      .btn-group.w-100 role="group" aria-label="Select task creation method"
+        input#btn-manual.btn-check type="radio" name="task-mode" autocomplete="off" checked=true data-action="change->form-toggle#toggle"
+        label.btn.btn-outline-primary.py-3 for="btn-manual"
+          i.bi.bi-pencil-square.me-2
+          | Create Manually
+        input#btn-redmine.btn-check type="radio" name="task-mode" autocomplete="off" data-action="change->form-toggle#toggle"
+        label.btn.btn-outline-success.py-3 for="btn-redmine"
+          i.bi.bi-cloud-download.me-2
+          | Import from Redmine
+
+  / Manual Form
+  #manual-form.row.justify-content-center data-form-toggle-target="manualForm" data-controller="import-progress"
+    .col-lg-10
+      .card.border-0.shadow-sm
+        .card-header.bg-primary.text-white
+          h5.mb-0
+            i.bi.bi-pencil-square.me-2
+            | Create Task Manually
+        .card-body.p-4
+          = form_for [@project, @task], html: { class: 'needs-validation', data: { import_progress_target: "form", action: "submit->import-progress#showProgress" } } do |f|
+            .row
+              / Left Column
+              .col-md-6
+                / Title
+                .mb-3
+                  = f.label :title, "Task Title *", class: 'form-label fw-semibold'
+                  = f.text_field :title, class: 'form-control form-control-lg', placeholder: 'Example: Implement login feature', required: true, maxlength: 100
+                  - if @task.errors[:title].any?
+                    .invalid-feedback.d-block = @task.errors[:title].join(', ')
+
+                / Description
+                .mb-3
+                  = f.label :description, "Description", class: 'form-label fw-semibold'
+                  = f.text_area :description, class: 'form-control', rows: 4, placeholder: 'Detailed description of the task...'
+
+                / Status
+                .mb-3
+                  = f.label :status, "Status", class: 'form-label fw-semibold'
+                  = f.select :status, options_for_select([['New', 'new'], ['Pending', 'pending'], ['In Progress', 'in progress'], ['Resolved', 'resolved'], ['Waiting Release', 'waiting release'], ['Closed', 'closed']], @task.status || 'new'), {}, class: 'form-select'
+
+                / Assignee
+                .mb-3
+                  = f.label :assignee_id, "Assign To", class: 'form-label fw-semibold'
+                  = f.collection_select :assignee_id, User.active.order(:name), :id, :name, { include_blank: '-- Select user --' }, class: 'form-select'
+
+              / Right Column
+              .col-md-6
+                / Issue Link
+                .mb-3
+                  = f.label :issue_link, "Issue Link", class: 'form-label fw-semibold'
+                  = f.url_field :issue_link, class: 'form-control', placeholder: 'https://jira.company.com/browse/PROJ-123'
+                  .form-text Link to JIRA, GitHub Issue, Linear, etc.
+
+                / TestCase Link
+                .mb-3
+                  = f.label :testcase_link, "TestCase Link (Google Sheet)", class: 'form-label fw-semibold'
+                  = f.url_field :testcase_link, class: 'form-control', placeholder: 'https://docs.google.com/spreadsheets/d/...'
+                  .form-text If provided, the system will automatically import test cases
+
+                / Bug Link
+                .mb-3
+                  = f.label :bug_link, "Bug Link", class: 'form-label fw-semibold'
+                  = f.url_field :bug_link, class: 'form-control', placeholder: 'https://...'
+
+                / Time Fields
+                .row
+                  .col-6
+                    .mb-3
+                      = f.label :estimated_time, "Estimate (hours)", class: 'form-label fw-semibold'
+                      = f.number_field :estimated_time, class: 'form-control', step: 0.5, placeholder: '0.0', min: 0
+                      - if @task.errors[:estimated_time].any?
+                        .invalid-feedback.d-block = @task.errors[:estimated_time].join(', ')
+                  .col-6
+                    .mb-3
+                      = f.label :spent_time, "Spent (hours)", class: 'form-label fw-semibold'
+                      = f.number_field :spent_time, class: 'form-control', step: 0.5, placeholder: '0.0', min: 0
+                      - if @task.errors[:spent_time].any?
+                        .invalid-feedback.d-block = @task.errors[:spent_time].join(', ')
+
+                / Dates
+                .row
+                  .col-6
+                    .mb-3
+                      = f.label :start_date, "Start Date", class: 'form-label fw-semibold'
+                      = f.date_field :start_date, class: 'form-control'
+                      - if @task.errors[:start_date].any?
+                        .invalid-feedback.d-block = @task.errors[:start_date].join(', ')
+                  .col-6
+                    .mb-3
+                      = f.label :due_date, "Deadline", class: 'form-label fw-semibold'
+                      = f.date_field :due_date, class: 'form-control'
+                      - if @task.errors[:due_date].any?
+                        .invalid-feedback.d-block = @task.errors[:due_date].join(', ')
+
+            / Progress Bar
+            .d-none.mt-4 data-import-progress-target="progress"
+              .alert.alert-primary
+                .d-flex.align-items-center.justify-content-between.mb-2
+                  .d-flex.align-items-center
+                    .spinner-border.spinner-border-sm.me-2 role="status"
+                      span.visually-hidden Loading...
+                    strong Creating task and importing data...
+                  span.time-remaining.badge.bg-light.text-dark.px-3.py-2 Calculating...
+                .progress.progress-lg
+                  .progress-bar.progress-bar-striped.progress-bar-animated.bg-primary role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"
+                    | 0%
+                small.text-muted.mt-2.d-block
+                  i.bi.bi-info-circle.me-1
+                  | The system is processing your request. Please do not close the browser...
+
+            / Buttons
+            .d-flex.gap-2.mt-4
+              = f.submit "Create Task", class: 'btn btn-primary btn-lg px-5', data: { import_progress_target: "submitButton" }
+              = link_to "Cancel", project_path(@project), class: 'btn btn-outline-secondary btn-lg', data: { import_progress_target: "cancelButton" }
+
+  / Redmine Import Form
+  #redmine-form.row.justify-content-center style="display: none;" data-form-toggle-target="redmineForm" data-controller="import-progress"
+    .col-lg-10
+      .card.border-0.shadow-sm
+        .card-header.bg-success.text-white
+          h5.mb-0
+            i.bi.bi-cloud-download.me-2
+            | Import from Redmine
+        .card-body.p-4
+          = form_with url: project_redmine_issues_import_one_path(@project), method: :post, local: true, data: { import_progress_target: "form", action: "submit->import-progress#showProgress" } do |f|
+            .text-center.mb-4
+              .display-1.text-success.mb-3
+                i.bi.bi-cloud-arrow-down
+              h4.text-muted Enter Redmine Issue ID to automatically import task
+              p.text-muted The system will automatically fetch information from Redmine and create task with subtasks and test cases
+
+            .row.justify-content-center
+              .col-md-6
+                .mb-4
+                  label.form-label.fw-bold.fs-5 Redmine Issue ID *
+                  .input-group.input-group-lg
+                    span.input-group-text
+                      i.bi.bi-hash
+                    = text_field_tag :issue_id, nil, class: 'form-control form-control-lg text-center', placeholder: 'Example: 12345', required: true, style: 'font-size: 1.5rem;'
+                  .form-text.text-center Enter the issue ID from Redmine (number only, no # symbol)
+
+            .alert.alert-info.d-flex.align-items-center.mt-3
+              i.bi.bi-info-circle-fill.me-2.fs-5
+              div
+                strong Note:
+                | The system will automatically import:
+                ul.mb-0.mt-1
+                  li Task information (title, description, status, time...)
+                  li Subtasks of the issue
+                  li Test cases from Google Sheet (if link is provided in issue)
+
+            / Progress Bar
+            .d-none.mt-4 data-import-progress-target="progress"
+              .alert.alert-success
+                .d-flex.align-items-center.justify-content-between.mb-2
+                  .d-flex.align-items-center
+                    .spinner-border.spinner-border-sm.me-2 role="status"
+                      span.visually-hidden Loading...
+                    strong Importing task from Redmine...
+                  span.time-remaining.badge.bg-light.text-dark.px-3.py-2 Calculating...
+                .progress.progress-lg
+                  .progress-bar.progress-bar-striped.progress-bar-animated.bg-success role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"
+                    | 0%
+                small.text-muted.mt-2.d-block
+                  i.bi.bi-info-circle.me-1
+                  | Fetching information from Redmine, importing subtasks and test cases. Please wait...
+
+            / Buttons
+            .d-flex.gap-2.mt-4.justify-content-center
+              = f.submit "Import from Redmine", class: 'btn btn-success btn-lg px-5', data: { import_progress_target: "submitButton" }
+              = link_to "Cancel", project_path(@project), class: 'btn btn-outline-secondary btn-lg', data: { import_progress_target: "cancelButton" }
+
+
+

@@ -1,0 +1,59 @@
+- presenter = ActivityTimelinePresenter.new(logs)
+- entries = presenter.entries
+- total_logs = presenter.total_count
+
+/ Pagination settings (paginate over grouped entries, badge shows raw log count)
+- page = (params[:history_page] || 1).to_i
+- per_page = 5
+- total_pages = (entries.size.to_f / per_page).ceil
+- paginated_entries = entries[(page - 1) * per_page, per_page] || []
+
+.activity-history.mt-4#history
+  / Header
+  .d-flex.justify-content-between.align-items-center.mb-3.pb-3.border-bottom
+    .d-flex.align-items-center
+      i.bi.bi-clock-history.me-2.text-primary.fs-5
+      h5.mb-0.fw-bold Activity History
+    - if total_logs > 0
+      span.badge.bg-primary.bg-opacity-10.text-primary.px-3.py-2= "#{total_logs} changes"
+
+  - if paginated_entries.any?
+    ol.timeline-rail.list-unstyled.mb-0
+      = render partial: 'shared/activity_timeline_entry', collection: paginated_entries, as: :entry
+
+    / Pagination
+    - if total_pages > 1
+      .pagination-wrapper.mt-4.d-flex.justify-content-center
+        nav
+          ul.pagination.pagination-sm
+            / Previous
+            li.page-item class=("disabled" if page <= 1)
+              - if page > 1
+                a.page-link href="?history_page=#{page - 1}#history" aria-label="Previous"
+                  span aria-hidden="true" &laquo;
+              - else
+                span.page-link
+                  span aria-hidden="true" &laquo;
+
+            / Page numbers
+            - (1..total_pages).each do |p|
+              - if total_pages <= 7 || (p <= 2) || (p >= total_pages - 1) || ((p - page).abs <= 1)
+                li.page-item class=("active" if p == page)
+                  a.page-link href="?history_page=#{p}#history"= p
+              - elsif (p == 3 && page > 4) || (p == total_pages - 2 && page < total_pages - 3)
+                li.page-item.disabled
+                  span.page-link ...
+
+            / Next
+            li.page-item class=("disabled" if page >= total_pages)
+              - if page < total_pages
+                a.page-link href="?history_page=#{page + 1}#history" aria-label="Next"
+                  span aria-hidden="true" &raquo;
+              - else
+                span.page-link
+                  span aria-hidden="true" &raquo;
+
+  - else
+    .text-center.py-5.bg-light.rounded
+      i.bi.bi-journals.text-muted.display-6
+      p.text-muted.mt-3.mb-0 No activity history yet.

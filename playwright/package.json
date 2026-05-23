@@ -1,0 +1,15 @@
+{
+  "name": "tool-test-playwright",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End-to-end Playwright tests for the tool_test Rails app",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1"
+  }
+}

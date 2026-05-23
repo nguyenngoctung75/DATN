@@ -1,0 +1,40 @@
+.sidebar {
+  transition: all 0.3s ease-in-out;
+  overflow-x: hidden;
+
+  &.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    flex: 0 0 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+/* Existing styles */
+.hover-bg-light:hover {
+  background-color: #f8f9fa;
+}
+.hover-bg-primary-light:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+.hover-bg-success-light:hover {
+  background-color: rgba(25, 135, 84, 0.1);
+}
+.nav-link {
+  transition: all 0.2s ease;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.nav-link:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+  transform: translateX(5px);
+}
+
+.nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white !important;
+}

@@ -1,0 +1,6 @@
+= turbo_stream.append "test-steps-carousel-container" do
+  = render 'test_steps/step_card', step: @test_step, test_case: @test_case
+
+= turbo_stream.update "test-steps-count-header" do
+  i.bi.bi-list-ol.me-2
+  | Test Steps (#{@test_case.test_steps.size})

@@ -1,0 +1,418 @@
+.container-fluid.px-4.py-4 data-controller="layout-toggle" data-layout-toggle-hidden-by-default-value="#{@total_test_cases.positive?}"
+  = turbo_stream_from @task
+  #flash-messages
+  / Breadcrumb
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      - if @task.project
+        li.breadcrumb-item
+          = link_to @task.project.name, project_path(@task.project)
+      li.breadcrumb-item.active aria-current="page"
+        = @task.title.truncate(50)
+
+  / Task Header
+  .card.border-0.shadow-sm.mb-4 data-layout-toggle-target="section"
+    .card-header.text-white.p-4.gradient-purple
+      / Layer 1: Title
+      h1.h3.fw-bold.mb-3.text-break= @task.title
+
+      / Layer 2: Actions & Status
+      .d-flex.align-items-center.gap-2.flex-wrap.mb-3
+        = button_to project_task_test_cases_path(@project, @task), params: { tc_page: @test_cases_page, show_archived: @show_archived ? 1 : 0, test_case: { title: '-', test_type: 'Feature', target: 'PC・SP・APP', note: '', test_step_attributes: { step_number: 1, test_step_contents_attributes: { "0" => {content_category: 'action', content_type: 'text', content_value: '-'}, "1" => {content_category: 'expectation', content_type: 'text', content_value: '-' } } } } }, class: "btn btn-light btn-sm text-nowrap d-inline-flex align-items-center shadow-sm", data: { turbo_stream: true } do
+          i.bi.bi-grid-3x3-gap.me-1.text-primary
+          | Create Test Case
+
+        = link_to project_task_bugs_path(@project, @task), class: "btn btn-light btn-sm text-nowrap d-inline-flex align-items-center shadow-sm" do
+          i.bi.bi-bug-fill.me-1.text-danger
+          | Bugs list
+
+        button.btn.btn-light.btn-sm.text-nowrap.d-inline-flex.align-items-center.shadow-sm data-bs-toggle="modal" data-bs-target="#importTestCasesModal"
+          i.bi.bi-cloud-download.me-1
+          | Import from Sheet
+
+        - if @task.test_cases.active.exists?
+          button.btn.btn-light.btn-sm.text-nowrap.d-inline-flex.align-items-center.shadow-sm type="button" data-bs-toggle="modal" data-bs-target="#cloneTestCasesModal" title="Clone test cases from this task into another task"
+            i.bi.bi-files.me-1.text-info
+            | Clone Test Cases
+
+        button.btn.btn-light.btn-sm.text-nowrap.d-inline-flex.align-items-center.shadow-sm data-bs-toggle="modal" data-bs-target="#autoGenerateTCModal"
+          i.bi.bi-magic.me-1.text-purple
+          | Auto Generate TC
+
+        .dropdown
+          button.btn.btn-light.btn-sm.dropdown-toggle.shadow-sm type="button" data-bs-toggle="dropdown" aria-expanded="false"
+            i.bi.bi-gear.me-1
+            | Options
+          ul.dropdown-menu.dropdown-menu-end
+            li
+              = button_to promote_all_to_subtask_project_task_path(@project, @task), 
+                        method: :post, 
+                        class: "dropdown-item text-purple", 
+                        data: { turbo_confirm: "Are you sure you want to move all #{@task.test_cases.active.count} Test Cases into a new Subtask?" } do
+                i.bi.bi-arrow-up-right-square.me-2
+                | Group All into Subtask
+            li
+              button.dropdown-item.text-info type="button" data-bs-toggle="modal" data-bs-target="#deviceConfigModal"
+                i.bi.bi-phone.me-2
+                | Configure Devices
+            li
+              hr.dropdown-divider
+            li
+              = link_to edit_project_task_path(@task.project, @task), class: "dropdown-item" do
+                i.bi.bi-pencil.me-2.text-primary
+                | Edit Task
+            li
+              hr.dropdown-divider
+            li
+              button.dropdown-item.text-warning type="button" data-bs-toggle="modal" data-bs-target="#softDeleteModal"
+                i.bi.bi-archive.me-2
+                | Soft Delete
+            li
+              button.dropdown-item.text-danger type="button" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                i.bi.bi-trash.me-2
+                | Delete Permanently
+
+      / Layer 3: Meta Info
+      .d-flex.align-items-center.gap-3.text-white-50.flex-wrap.small
+        span
+          i.bi.bi-tag.me-1
+          | Redmine ##{@task.redmine_id}
+        span •
+        span Created by: #{@task.created_by_name || 'N/A'}
+        span •
+        .dropdown.d-inline-block data-controller="task-status"
+          button.badge.rounded-pill.border-0.py-2.px-3.dropdown-toggle.status-badge-btn type="button" data-bs-toggle="dropdown" aria-expanded="false" class=task_status_bg_class(@task.status)
+            = @task.status || 'N/A'
+          ul.dropdown-menu.dropdown-menu-start.shadow
+            - ['New', 'Pending', 'In Progress', 'Resolved', 'Waiting Release', 'Closed'].each do |s|
+              li
+                button.dropdown-item.d-flex.align-items-center type="button" class=task_status_text_class(s) data-action="click->task-status#change" data-task-status-value=s data-task-status-url-value=project_task_path(@project, @task)
+                  - if @task.status&.downcase == s.downcase
+                    i.bi.bi-check-circle-fill.me-2
+                  - else
+                    i.bi.bi-circle.me-2
+                  = s
+
+    / Task Stats
+    .card-body.bg-light.border-bottom
+      .row.g-3.text-center
+        .col-6.col-md
+          .h4.fw-bold.text-primary.mb-0= "#{@task.estimated_time || 0}h"
+          small.text-muted Estimated Time
+        .col-6.col-md
+          .h4.fw-bold.text-success.mb-0= "#{@task.spent_time || 0}h"
+          small.text-muted Spent Time
+        .col-6.col-md
+          .h4.fw-bold.text-info.mb-0= "#{@task.percent_done || 0}%"
+          small.text-muted Progress
+        .col-6.col-md
+          .h4.fw-bold.text-warning.mb-0= @task.total_test_cases_count
+          small.text-muted Test Cases
+        .col-6.col-md
+          .h4.fw-bold.text-secondary.mb-0= @task.subtasks_count
+          small.text-muted Subtasks
+
+    / Task Details
+    .card-body
+      - if @task.description.present?
+        .mb-4
+          h5.fw-semibold.mb-2 Description
+          .bg-light.rounded.p-3
+            p.mb-0.text-muted.text-prewrap
+              = @task.description
+
+      .row.g-4.mb-4
+        .col-md-6
+          h6.fw-semibold.text-muted.mb-2 Timeline
+          ul.list-unstyled.mb-0
+            li.mb-1
+              span.text-muted class="label-fixed-width" Start Date:
+              span.fw-medium= @task.start_date&.strftime("%Y-%m-%d") || 'N/A'
+            li
+              span.text-muted class="label-fixed-width" Due Date:
+              span.fw-medium= @task.due_date&.strftime("%Y-%m-%d") || 'N/A'
+
+        .col-md-6
+          h6.fw-semibold.text-muted.mb-2 Links
+          ul.list-unstyled.mb-0
+            - if @task.testcase_link.present?
+              li.mb-1
+                span.text-muted class="label-fixed-width" Testcase:
+                a href=@task.testcase_link target="_blank" rel="noopener noreferrer"
+                  | View Sheet →
+            - if @task.bug_link.present?
+              li
+                span.text-muted class="label-fixed-width" Bug:
+                a href=@task.bug_link target="_blank" rel="noopener noreferrer"
+                  | View Sheet →
+
+      - if @task.stg_bugs_vn.to_i > 0 || @task.stg_bugs_jp.to_i > 0 || @task.prod_bugs.to_i > 0
+        .mb-4
+          h6.fw-semibold.text-muted.mb-2 Bug Statistics
+          .d-flex.gap-3.flex-wrap
+            .bg-warning.bg-opacity-10.px-3.py-2.rounded
+              span.text-muted STG VN:
+              span.fw-bold.text-warning.ms-1= @task.stg_bugs_vn
+            .bg-warning.bg-opacity-25.px-3.py-2.rounded
+              span.text-muted STG JP:
+              span.fw-bold.text-warning.ms-1= @task.stg_bugs_jp
+            .bg-danger.bg-opacity-10.px-3.py-2.rounded
+              span.text-muted Production:
+              span.fw-bold.text-danger.ms-1= @task.prod_bugs
+
+  / Subtasks Section
+  - if @task.subtasks.any?
+    .card.border-0.shadow-sm.mb-4
+      .card-header.bg-white.border-bottom
+        h5.mb-0.fw-bold.d-flex.align-items-center.justify-content-between.w-100
+          .d-flex.align-items-center
+            i.bi.bi-list-task.me-2.text-purple
+            | Subtasks (#{@task.subtasks_count})
+          button.btn.btn-purple.btn-sm.text-white data-bs-toggle="modal" data-bs-target="#createSubtaskModal"
+            i.bi.bi-plus-circle.me-1
+            | Add Subtask
+
+      .card-body
+        .row.g-3
+          - @task.subtasks.each do |subtask|
+            .col-md-6.col-lg-4
+              div data-controller="navigation" data-navigation-url-value=project_task_path(@task.project, subtask)
+                .card.h-100.border.hover-shadow.cursor-pointer data-action="click->navigation#click"
+                  .card-body
+                    .d-flex.justify-content-between.align-items-start.mb-2
+                      h6.card-title.mb-0.text-truncate.cell-truncate-md
+                        = subtask.title.gsub(@task.title, '').gsub(' - ', '').strip
+                      span.badge.bg-primary.bg-opacity-10.text-primary
+                        = "#{subtask.number_of_test_cases} TCs"
+                    small.text-muted
+                      | Status: #{subtask.status}
+
+  / Test Cases Section (Spreadsheet View)
+  #test-cases-spreadsheet-container
+    - if @total_test_cases.positive?
+      .card.border-0.shadow-sm.mb-4#test-cases
+        .card-header.bg-white.py-3
+          .d-flex.justify-content-between.align-items-center
+            h5.mb-0.fw-bold.text-primary
+              i.bi.bi-grid-3x3-gap.me-2
+              | Test Cases 
+              span.badge.bg-primary.bg-opacity-10.text-primary.ms-2= @total_test_cases
+            - if @total_tc_pages > 1
+              .text-muted.small
+                | Page #{@test_cases_page}/#{@total_tc_pages}
+            
+            .d-flex.align-items-center.gap-2.ms-auto
+              button.btn.btn-outline-primary.btn-sm.d-inline-flex.align-items-center data-action="click->layout-toggle#toggle"
+                i.bi.bi-eye-slash.me-1 data-layout-toggle-target="icon"
+                span data-layout-toggle-target="buttonLabel" Hide Details
+              
+              - if @show_archived
+                = link_to project_task_path(@project, @task, show_archived: 0, tc_page: 1), class: "btn btn-primary btn-sm d-inline-flex align-items-center" do
+                  i.bi.bi-eye-fill.me-1
+                  | Viewing Archived (#{@total_test_cases})
+              - else
+                = link_to project_task_path(@project, @task, show_archived: 1, tc_page: 1), class: "btn btn-outline-secondary btn-sm d-inline-flex align-items-center" do
+                  i.bi.bi-archive.me-1
+                  | Show Archived
+                  - if @task.test_cases.deleted.any?
+                    span.badge.bg-secondary.ms-2 = @task.test_cases.deleted.count
+
+        .card-body.p-0
+          - devices = @task.unique_devices
+          - tc_start_index = (@test_cases_page - 1) * @test_cases_per_page
+          = render 'test_cases/spreadsheet_table', test_cases: @paginated_test_cases, devices: devices, start_index: tc_start_index
+        
+        / Pagination for Test Cases
+        - if @total_tc_pages > 1
+          .card-footer.bg-white.border-top-0
+            = render 'shared/pagination', page: @test_cases_page, total_pages: @total_tc_pages, param_name: 'tc_page', anchor: 'test-cases'
+
+
+  / Activity History Section
+  div data-layout-toggle-target="section"
+    = render 'shared/activity_timeline', logs: ActivityLog.where(trackable: @task).includes(:user).limit(50)
+
+  / Import Test Cases Modal
+  .modal.fade#importTestCasesModal tabindex="-1" aria-hidden="true" data-controller="import-progress"
+    .modal-dialog
+      .modal-content
+        .modal-header.bg-success.text-white
+          h5.modal-title
+            i.bi.bi-cloud-download.me-2
+            | Import Test Cases from Google Sheet
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        = form_with url: import_from_sheet_project_task_test_cases_path(@task.project, @task), method: :post, local: true, data: { import_progress_target: "form", action: "submit->import-progress#showProgress" } do |f|
+          .modal-body
+            .mb-3
+              label.form-label.fw-bold Google Sheet URL or Spreadsheet ID *
+              = text_field_tag :spreadsheet_id, @task.testcase_link, class: 'form-control', placeholder: 'https://docs.google.com/spreadsheets/d/xxx/edit or spreadsheet_id', required: true
+              .form-text Enter the URL or ID of the Google Sheet containing test cases
+            
+            - if @task.test_cases.active.exists? || @task.subtasks.exists?
+              .alert.alert-warning.mt-3
+                .d-flex.align-items-center.mb-2
+                  i.bi.bi-exclamation-triangle-fill.me-2.fs-4
+                  strong Data Replacement Warning
+                p.small.mb-2 You are about to re-synchronize data. If you choose "Replace", all current Test Cases of this task (and subtasks) will be deleted and reloaded from the Sheet.
+                .form-check
+                  = check_box_tag :wipe_existing, '1', false, class: 'form-check-input', id: 'checkWipeExisting'
+                  label.form-check-label.fw-bold.text-danger for="checkWipeExisting"
+                    | Delete existing data before import (Replace)
+  
+            .alert.alert-info.d-flex.align-items-start.mt-3
+              i.bi.bi-info-circle.me-2.mt-1
+              div
+                strong Note:
+                ul.mb-0.mt-1.small
+                  li Google Sheet must be shared with the service account
+                  li Sheet format must follow the standard template
+            
+            / Progress Bar
+            .d-none data-import-progress-target="progress"
+              .alert.alert-success.mb-0
+                .d-flex.align-items-center.justify-content-between.mb-2
+                  .d-flex.align-items-center
+                    .spinner-border.spinner-border-sm.me-2 role="status"
+                      span.visually-hidden Loading...
+                    strong Importing test cases from Google Sheet...
+                  span.time-remaining.badge.bg-light.text-dark.px-3.py-2 Calculating...
+                .progress.progress-lg
+                  .progress-bar.progress-bar-striped.progress-bar-animated.bg-success role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"
+                    | 0%
+                small.text-muted.mt-2.d-block
+                  i.bi.bi-info-circle.me-1
+                  | Fetching data from Google Sheet and creating test cases...
+  
+          .modal-footer
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" data-import-progress-target="cancelButton" Cancel
+            = f.submit "Import", class: 'btn btn-success', data: { import_progress_target: "submitButton" }
+  
+  / Soft Delete Confirmation Modal
+  .modal.fade#softDeleteModal tabindex="-1" aria-hidden="true"
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header.bg-warning
+          h5.modal-title
+            i.bi.bi-archive.me-2
+            | Confirm Soft Delete
+          button.btn-close type="button" data-bs-dismiss="modal" aria-label="Close"
+        .modal-body
+          p Are you sure you want to soft delete this task?
+          .alert.alert-warning.d-flex.align-items-center
+            i.bi.bi-exclamation-triangle.me-2
+            div
+              strong Task:
+              = @task.title
+          p.text-muted.small.mb-0 The task will be hidden from the list but can still be restored.
+        .modal-footer
+          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+          = button_to "Soft Delete", soft_delete_project_task_path(@task.project, @task), method: :patch, class: "btn btn-warning"
+  
+  / Delete Confirmation Modal
+  .modal.fade#deleteModal tabindex="-1" aria-hidden="true"
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header.bg-danger.text-white
+          h5.modal-title
+            i.bi.bi-trash.me-2
+            | Confirm Permanent Deletion
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        .modal-body
+          p Are you sure you want to <strong>PERMANENTLY DELETE</strong> this task?
+          .alert.alert-danger.d-flex.align-items-center
+            i.bi.bi-exclamation-octagon.me-2
+            div
+              strong Task:
+              = @task.title
+          p.text-danger.small.mb-0
+            i.bi.bi-exclamation-triangle.me-1
+            | This action cannot be undone! All test cases and related data will be deleted.
+        .modal-footer
+          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+          = button_to "Delete Permanently", project_task_path(@task.project, @task), method: :delete, class: "btn btn-danger"
+  
+  
+
+
+
+  / Create Subtask Modal
+  .modal.fade#createSubtaskModal tabindex="-1" aria-hidden="true"
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header.bg-purple.text-white
+          h5.modal-title
+            i.bi.bi-plus-circle.me-2
+            | Create New Subtask
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        = form_with model: [@project, Task.new], url: create_subtask_project_task_path(@project, @task), method: :post, local: true do |f|
+          .modal-body
+            .mb-3
+              = f.label :title, "Subtask Title *", class: 'form-label fw-bold'
+              = f.text_field :title, class: 'form-control', placeholder: 'Enter subtask title', required: true, value: "#{@task.title} - "
+            .mb-3
+              = f.label :description, "Description", class: 'form-label fw-bold'
+              = f.text_area :description, class: 'form-control', rows: 3, placeholder: 'Brief description of this subtask'
+            .row
+              .col-md-6
+                .mb-3
+                  = f.label :estimated_time, "Estimate (h)", class: 'form-label fw-bold'
+                  = f.number_field :estimated_time, class: 'form-control', step: 0.5, value: 0
+              .col-md-6
+                .mb-3
+                  = f.label :status, "Status", class: 'form-label fw-bold'
+                  = f.select :status, ['New', 'Pending', 'In Progress', 'Resolved', 'Waiting Release', 'Closed'], { selected: 'New' }, { class: 'form-select' }
+          .modal-footer
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+            = f.submit "Create Subtask", class: 'btn btn-purple text-white'
+
+
+  / Device Configuration Modal
+  .modal.fade#deviceConfigModal tabindex="-1" aria-hidden="true"
+    .modal-dialog.modal-dialog-centered
+      .modal-content
+        .modal-header.bg-info.text-white
+          h5.modal-title
+            i.bi.bi-phone.me-2
+            | Configure Device Display
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        = form_with url: update_device_config_project_task_path(@project, @task), method: :post, local: true do |f|
+          .modal-body
+            .mb-3
+              label.form-label.fw-bold for="device_config" Device List (comma-separated)
+              = text_field_tag :device_config, @task.device_config, class: 'form-control', placeholder: 'e.g.: BROWSER, FIREFOX, SAFARI, IOS, APP'
+              .form-text.mt-2
+                | Enter the devices you want to display status columns for in the Spreadsheet table. 
+                br
+                | If left empty, the system will automatically display from test results or inherit from parent task.
+            
+            - if @task.parent_id.present? && @task.parent&.device_config.present?
+              .alert.alert-light.border.small
+                i.bi.bi-info-circle.me-2
+                | Inherited from parent task: 
+                strong= @task.parent.device_config
+
+          .modal-footer
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" Cancel
+            = f.submit "Save Configuration", class: 'btn btn-info text-white'
+  / Clone Test Cases Modal
+  - if @task.test_cases.active.exists?
+    = render 'test_cases/clone_modal', task: @task
+
+  / Auto-generate TC Modal (Placeholder)
+  .modal.fade#autoGenerateTCModal tabindex="-1" aria-hidden="true"
+    .modal-dialog
+      .modal-content
+        .modal-header.bg-info.text-white
+          h5.modal-title
+            i.bi.bi-magic.me-2
+            | Auto-Generate Test Cases (AI)
+          button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
+        .modal-body.py-4
+          .text-center
+            .display-4.mb-3 ✨
+            h5.fw-bold Feature in Development!
+            p.text-muted The system will soon support automatic Test Case generation based on Task descriptions and design files.
+        .modal-footer
+          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Close

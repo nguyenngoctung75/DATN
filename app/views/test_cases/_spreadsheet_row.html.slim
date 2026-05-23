@@ -1,0 +1,76 @@
+- devices = local_assigns[:devices] || ['pc', 'sp', 'app']
+- step = test_case.test_step || test_case.test_steps.ordered.first
+
+tr.test-case-row id="test-case-row-#{test_case.id}" class=(test_case.deleted? ? 'table-secondary opacity-75' : '') data-controller="editable-cell" data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id data-history-url=cell_history_project_task_test_case_path(test_case.task.project, test_case.task, test_case) data-history-revert-url=revert_project_task_test_case_path(test_case.task.project, test_case.task, test_case)
+  td.text-center.fw-bold.bg-light.align-middle
+    span.text-dark
+      = "TC-#{index.to_s.rjust(3, '0')}"
+    - unless test_case.deleted?
+      = button_to project_task_test_cases_path(test_case.task.project, test_case.task), params: { tc_page: @test_cases_page, show_archived: @show_archived ? 1 : 0, insert_after: test_case.id, test_case: { title: '-', test_type: 'Feature', target: 'PC・SP・APP', note: '', test_step_attributes: { step_number: 1, test_step_contents_attributes: { "0" => {content_category: 'action', content_type: 'text', content_value: '-'}, "1" => {content_category: 'expectation', content_type: 'text', content_value: '-' } } } } }, class: "btn btn-link btn-sm text-success p-0 d-block mx-auto mt-1", title: "Insert new TC below", form_class: "d-inline", data: { turbo_stream: true } do
+        i.bi.bi-plus-circle-fill
+
+  td.text-center.align-middle data-cell-field="test_type"
+    div.p-2
+      = render 'test_cases/metadata_dropdown', test_case: test_case, field: 'test_type'
+
+  - row_info = local_assigns[:row_info] || {}
+  - unless row_info[:hide]
+    td.align-middle.text-break.position-relative.cell-truncate-lg rowspan=row_info[:rowspan] data-controller="function-group" data-function-group-test-case-id-value=test_case.id data-function-group-project-id-value=test_case.task.project_id data-function-group-task-id-value=test_case.task.id data-copy-col="function" data-cell-field="title"
+      div.p-2
+        .rich-content id="test-case-#{test_case.id}-title" data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="title" title=strip_tags(test_case.title.to_s)
+          == format_content_with_media_links(test_case.title)
+        .d-flex.gap-1.mt-1
+          - if row_info[:rowspan] && row_info[:rowspan] > 1
+            button.btn.btn-outline-danger.border-0.p-0.function-group-btn type="button" title="Split: Tách TC này ra khỏi nhóm" data-action="click->function-group#split"
+              i.bi.bi-scissors style="font-size: 0.8rem;"
+          - unless test_case.deleted?
+            button.btn.btn-outline-primary.border-0.p-0.function-group-btn type="button" title="Merge: Gộp TC này với hàng trên" data-action="click->function-group#merge"
+              i.bi.bi-link style="font-size: 0.8rem;"
+
+  - if step
+    / Actions column for this step
+    td.p-2.align-top.border-start.position-relative data-copy-col="action" data-cell-field="content_value"
+      - step.action_contents.each do |content|
+        .rich-content data-editable-cell-target="display" data-action="click->editable-cell#edit" data-content-id=content.id data-field="content_value"
+          == format_content_with_media_links(content.content_value)
+
+    / Expected results column for this step
+    td.p-2.align-top.border-start.position-relative data-copy-col="expected" data-cell-field="content_value"
+      - step.expected_contents.each do |content|
+        .rich-content.mb-2 data-editable-cell-target="display" data-action="click->editable-cell#edit" data-content-id=content.id data-field="content_value"
+          == format_content_with_media_links(content.content_value)
+  - else
+    td.p-2.text-muted.small.fst-italic No steps defined
+    td.p-2.text-muted.small.fst-italic No results defined
+
+  td.align-middle.text-center.fw-bold.small.px-2.text-nowrap data-cell-field="target"
+    = render 'test_cases/metadata_dropdown', test_case: test_case, field: 'target'
+
+  - devices.each do |device|
+    - status_info = test_case.latest_status_info_for(device)
+    td.text-center.align-middle.device-status-cell class=status_info[:bg_class]
+      = render 'test_cases/device_status_dropdown', test_case: test_case, device: device, status: status_info[:status]
+
+  td.align-middle.p-2.note-cell data-cell-field="note"
+    .note-display.rich-content id="test-case-#{test_case.id}-note" data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="note"
+      - if test_case.note.present?
+        == format_content_with_media_links(test_case.note)
+      - else
+        | -
+
+  td.align-middle.text-center.p-2.actions-column.d-none
+    - if test_case.active?
+      = button_to soft_delete_project_task_test_case_path(test_case.task.project, test_case.task, test_case),
+                  method: :patch,
+                  params: { tc_page: @test_cases_page, show_archived: @show_archived ? 1 : 0 },
+                  class: "btn btn-link text-warning p-0",
+                  title: "Archive",
+                  form: { data: { turbo_confirm: "Are you sure you want to archive this test case?" } } do
+        i.bi.bi-archive
+    - else
+      = button_to restore_project_task_test_case_path(test_case.task.project, test_case.task, test_case),
+                  method: :patch,
+                  params: { tc_page: @test_cases_page, show_archived: 1 },
+                  class: "btn btn-link text-success p-0",
+                  title: "Restore" do
+        i.bi.bi-arrow-counterclockwise

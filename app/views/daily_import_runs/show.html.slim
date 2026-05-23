@@ -1,0 +1,43 @@
+.container-fluid.px-4.py-4
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Settings", edit_app_configuration_path
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      li.breadcrumb-item
+        = link_to @project.name, project_path(@project)
+      li.breadcrumb-item
+        = link_to "History of Daily Import", project_daily_import_runs_path(@project)
+      li.breadcrumb-item.active aria-current="page"
+        | Details
+
+  .card.border-0.shadow-sm.mb-4
+    .card-header.bg-light.text-dark.p-4
+      h1.h3.fw-bold.mb-2
+        i.bi.bi-journal-text.me-2
+        | Details of Daily Import run
+      .row.mt-2.small
+        .col-md-3
+          strong Time:
+          = @run.started_at&.strftime("%d/%m/%Y %H:%M:%S")
+        .col-md-2
+          strong Status:
+          span.badge class=(@run.status == "success" ? "bg-success" : @run.status == "failed" ? "bg-danger" : "bg-secondary")
+            = @run.status
+        .col-md-2
+          strong Imported:
+          = @run.imported_count
+        .col-md-2
+          strong Skipped:
+          = @run.skipped_count
+        - if @run.error_message.present?
+          .col-md-12.mt-2
+            strong.text-danger Error:
+            span.text-danger= @run.error_message
+
+  .card.border-0.shadow-sm
+    .card-header.bg-dark.text-white
+      | Log import
+    .card-body.p-0
+      = render 'shared/log_box', content: @run.log_output

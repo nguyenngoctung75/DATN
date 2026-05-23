@@ -1,0 +1,1183 @@
+.label-fixed-width {
+  display: inline-block;
+  width: 100px;
+}
+
+.color-button {
+  width: 24px;
+  height: 24px;
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.hover-card {
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.hover-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hover-shadow:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Flash Messages Toast Style */
+.flash-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1060;
+  min-width: 300px;
+  pointer-events: none;
+}
+
+.flash-container .alert {
+  pointer-events: auto;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  margin-bottom: 10px;
+}
+/* .spreadsheet-list-table merged into .spreadsheet-table below */
+
+.spreadsheet-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
+  background: white;
+  font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+
+  /* Header — Fortune Sheet style */
+  thead th {
+    background: linear-gradient(180deg, #f5f6f8 0%, #eef0f4 100%);
+    color: #333;
+    font-weight: 600;
+    text-transform: none;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    padding: 8px 10px;
+    border-bottom: 1px solid #d4d4d4;
+    border-right: 1px solid #e0e0e0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+    user-select: none;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  /* Cells — compact, subtle borders */
+  tbody td {
+    padding: 0;
+    border-bottom: 1px solid #e8e8e8;
+    border-right: 1px solid #e8e8e8;
+    vertical-align: top;
+    transition: background-color 0.1s ease;
+
+    &:last-child {
+      border-right: none;
+    }
+
+    .form-control {
+      border-radius: 0;
+      border: none;
+      padding: 6px 8px;
+      font-size: 13px;
+      line-height: 1.4;
+      min-height: 32px;
+
+      &:focus {
+        background-color: #e8f0fe;
+        box-shadow: inset 0 0 0 2px #1a73e8;
+        outline: none;
+        z-index: 10;
+      }
+    }
+
+    .form-select {
+      border: none;
+      border-radius: 0;
+      padding: 6px 8px;
+      background-color: transparent;
+      font-size: 13px;
+      min-height: 32px;
+
+      &:focus {
+        background-color: #e8f0fe;
+        box-shadow: inset 0 0 0 2px #1a73e8;
+      }
+    }
+
+    /* Editable cell padding */
+    .p-2 {
+      padding: 6px 8px !important;
+    }
+  }
+
+  /* Alternating row colors */
+  tbody tr:nth-child(even) td {
+    background-color: #fafbfc;
+  }
+
+  /* Row hover — Google Sheets blue tint */
+  tbody tr:hover td {
+    background-color: #e8f0fe !important;
+  }
+
+  /* Active cell — blue outline when editing */
+  tbody td:focus-within {
+    outline: 2px solid #1a73e8;
+    outline-offset: -2px;
+    z-index: 5;
+    position: relative;
+  }
+
+  .step-number {
+    background: #f5f6f8;
+    width: 36px;
+    color: #666;
+    font-size: 12px;
+  }
+
+  /* Status badge compact */
+  .status-badge {
+    min-width: 50px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 3px;
+    padding: 3px 6px;
+  }
+
+  /* Nested tables inherit clean style */
+  .table {
+    background-color: transparent;
+    border: none;
+    margin: 0;
+
+    tr {
+      border-bottom: 1px solid #f0f0f0;
+      &:last-child { border-bottom: none; }
+    }
+
+    td {
+      border: none !important;
+      padding: 4px 8px;
+    }
+  }
+}
+
+/* Custom thin scrollbar for spreadsheet containers */
+.table-responsive {
+  &::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f5f5f5;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #c0c0c0;
+    border-radius: 4px;
+    &:hover { background: #a0a0a0; }
+  }
+}
+
+/* ========== Spreadsheet Toolbar ========================================= */
+// Boost all Bootstrap dropdown-menus inside the toolbar above the sticky stacking context (z-index: 1020)
+.spreadsheet-toolbar .dropdown-menu { z-index: 1060 !important; }
+
+.spreadsheet-toolbar {
+  display: flex;
+  background: #f5f6f8 !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 0 !important;
+  padding: 3px 8px !important;
+  gap: 1px !important;
+  flex-wrap: wrap;
+  overflow: visible;
+  align-items: center;
+
+  // Legacy Bootstrap btn inside toolbar — keep working for transition period
+  .btn {
+    border-radius: 3px;
+    padding: 3px 6px;
+    font-size: 13px;
+    border: none;
+    color: #444;
+    &:hover { background: #e0e0e0; }
+    &.btn-primary { color: #fff; }
+  }
+  .vr { opacity: 0.3; margin: 0 4px; }
+  .small.text-muted { font-size: 11px; color: #888 !important; }
+}
+
+// ── Toolbar atom: button ──────────────────────────────────────────────────
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  min-width: 26px;
+  padding: 0 5px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #3c4043;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.08s;
+
+  &:hover   { background: #e8eaed; }
+  &:active  { background: #dadce0; }
+  &.active  { background: #d3e2fd; color: #1a73e8; }
+
+  &.dropdown-toggle::after { margin-left: 2px; }
+
+  b, em, s { font-style: normal; font-size: 14px; font-weight: 700; }
+  em        { font-style: italic; }
+  s         { text-decoration: line-through; }
+}
+
+// ── Toolbar separator ─────────────────────────────────────────────────────
+.toolbar-sep {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background: #dadce0;
+  margin: 0 4px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+// ── Font family dropdown button ───────────────────────────────────────────
+.toolbar-font-btn {
+  min-width: 88px;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  justify-content: flex-start;
+  font-size: 12px;
+  padding: 0 6px;
+}
+
+// ── Font size input ───────────────────────────────────────────────────────
+.toolbar-fontsize {
+  width: 38px;
+  height: 26px;
+  padding: 0 4px;
+  border: 1px solid #dadce0;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
+  outline: none;
+  background: #fff;
+  color: #3c4043;
+  -moz-appearance: textfield;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+  &:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+}
+
+// ── Color button (shows icon + color bar) ────────────────────────────────
+.toolbar-color-btn {
+  padding: 0 4px;
+  flex-direction: column;
+  gap: 0;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+
+  &.dropdown-toggle::after { display: none; } // hide default caret
+}
+
+.toolbar-color-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+  font-size: 13px;
+  line-height: 1;
+
+  span:first-child { font-weight: 700; font-size: 13px; line-height: 1; }
+}
+
+.toolbar-color-bar {
+  display: block;
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+  margin-top: 1px;
+}
+
+// ── Color palette dropdown ────────────────────────────────────────────────
+.toolbar-color-palette {
+  // 10 swatches × 16px + 9 gaps × 2px = 178px; add padding
+  min-width: 196px;
+  max-width: 220px;
+  z-index: 1060 !important;
+
+  p { font-size: 10px; letter-spacing: .05em; color: #9aa0a6; margin-bottom: 5px; }
+}
+
+.toolbar-color-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 16px);
+  gap: 2px;
+}
+
+.toolbar-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  border: 1px solid rgba(0,0,0,0.12);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+
+  &:hover {
+    transform: scale(1.25);
+    border-color: rgba(0,0,0,0.4);
+    z-index: 1;
+    position: relative;
+  }
+}
+
+// ── Link popover ──────────────────────────────────────────────────────────
+.toolbar-link-wrapper { display: inline-flex; align-items: center; }
+
+.toolbar-link-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  min-width: 280px;
+
+  &.d-none { display: none !important; }
+}
+
+.toolbar-link-input {
+  flex: 1;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+
+  &:focus { border-color: #1a73e8; box-shadow: 0 0 0 1px #1a73e8; }
+}
+
+.toolbar-link-ok {
+  height: 26px;
+  width: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: #1a73e8;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover { background: #1557b0; }
+}
+
+
+/* Rich Editor Styles */
+.rich-editor {
+  min-height: 50px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  overflow-y: auto;
+
+  &:empty:before {
+    content: attr(placeholder);
+    color: #94a3b8;
+    font-style: italic;
+    pointer-events: none;
+  }
+
+  b {
+    font-weight: bold;
+  }
+
+  i {
+    font-style: italic;
+  }
+
+  u {
+    text-decoration: underline;
+  }
+}
+
+/* .formatting-toolbar removed — unused */
+
+
+.spreadsheet-container {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  background: #fff;
+  padding: 1.5rem;
+  animation: slideDown 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User Avatar Circle */
+.user-avatar-circle {
+  width: 32px;
+  height: 32px;
+  font-size: 0.8rem;
+}
+
+.user-avatar-circle-lg {
+  width: 36px;
+  height: 36px;
+  font-size: 0.9rem;
+}
+
+/* Cell History Popover */
+.cell-history-popover {
+  max-width: 380px;
+  --bs-popover-max-width: 380px;
+  font-size: 13px;
+
+  .popover-body { padding: 10px 12px; }
+
+  .ch-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .ch-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .ch-meta { flex: 1; line-height: 1.3; min-width: 0; }
+  .ch-time { font-size: 11px; color: #6c757d; }
+
+  .ch-label {
+    font-size: 11px;
+    color: #6c757d;
+    margin: 6px 0 2px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .ch-old,
+  .ch-new {
+    padding: 6px 8px;
+    border-radius: 4px;
+    max-height: 120px;
+    overflow: auto;
+    font-size: 13px;
+    word-break: break-word;
+  }
+
+  .ch-old { background: #fdecea; color: #842029; text-decoration: line-through; }
+  .ch-new { background: #d1e7dd; color: #0a3622; }
+
+  .ch-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e9ecef;
+    font-size: 12px;
+
+    button[data-ch="prev"],
+    button[data-ch="next"] {
+      background: none;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 2px 8px;
+      cursor: pointer;
+      white-space: nowrap;
+
+      &:disabled { opacity: .4; cursor: not-allowed; }
+      &:not(:disabled):hover { border-color: #0d6efd; color: #0d6efd; }
+    }
+
+    .ch-pos { flex: 1; text-align: center; color: #6c757d; }
+  }
+}
+
+/* Activity History Styles */
+.history-item {
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateX(2px);
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.change-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.changes-details {
+  background: linear-gradient(to right, rgba(13, 110, 253, 0.03), transparent);
+  border-radius: 4px;
+  padding: 0.5rem 0;
+}
+
+.pagination-wrapper {
+  .pagination {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    
+    .page-item {
+      .page-link {
+        border: none;
+        color: #6c757d;
+        padding: 0.5rem 0.75rem;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: rgba(13, 110, 253, 0.1);
+          color: #0d6efd;
+        }
+      }
+      
+      &.active .page-link {
+        background-color: #0d6efd;
+        color: white;
+        font-weight: 600;
+      }
+      
+      &.disabled .page-link {
+        color: #dee2e6;
+        cursor: not-allowed;
+      }
+    }
+  }
+}
+
+.activity-history {
+  scroll-margin-top: 80px;
+}
+
+/* Timeline rail — vertical line + dots */
+.activity-history .timeline-rail {
+  position: relative;
+  padding-left: 28px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: #e9ecef;
+    border-radius: 1px;
+  }
+}
+
+.timeline-entry {
+  position: relative;
+  margin-bottom: 1rem;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -22px;
+  top: 16px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #adb5bd;
+  z-index: 1;
+
+  &.dot-create  { border-color: #198754; background: #d1e7dd; }
+  &.dot-update  { border-color: #0d6efd; background: #cfe2ff; }
+  &.dot-delete  { border-color: #dc3545; background: #f8d7da; }
+  &.dot-restore { border-color: #fd7e14; background: #ffe5d0; }
+}
+
+.timeline-content {
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.timeline-timestamps {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+
+  .ts-relative { color: #495057; }
+  .ts-separator { color: #ced4da; }
+  .ts-absolute  { color: #6c757d; }
+}
+
+.timeline-group-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: rgba(13, 110, 253, 0.08);
+  color: #0d6efd;
+  font-size: 0.72rem;
+  font-weight: 500;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
+/* History Tabs (Redmine style) */
+.history-tabs {
+  .nav-tabs {
+    .nav-item {
+      .nav-link {
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: #6c757d;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          border-bottom-color: #dee2e6;
+          color: #495057;
+        }
+        
+        &.active {
+          color: #0d6efd;
+          border-bottom-color: #0d6efd;
+          background: transparent;
+        }
+      }
+    }
+  }
+}
+
+.function-group-btn {
+  opacity: 0;
+  transition: opacity 0.15s;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover { opacity: 1 !important; }
+}
+
+// Reveal group buttons on row hover
+.test-case-row:hover .function-group-btn { opacity: 0.65; }
+
+/* ========== Context Menu ========== */
+.spreadsheet-context-menu {
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-width: 220px;
+  padding: 6px 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 13px;
+  animation: ctxFadeIn 0.12s ease-out;
+
+  .ctx-item {
+    padding: 7px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+    transition: background 0.08s;
+
+    &:hover {
+      background: #e8f0fe;
+    }
+
+    i {
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+      color: #555;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+    }
+
+    kbd {
+      font-size: 10px;
+      color: #999;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: inherit;
+      margin-left: auto;
+    }
+  }
+
+  .ctx-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .ctx-danger {
+    color: #d93025;
+    i { color: #d93025; }
+    &:hover { background: #fce8e6; }
+  }
+
+  .ctx-divider {
+    height: 1px;
+    background: #e8e8e8;
+    margin: 4px 0;
+  }
+}
+
+/* Copy flash animation on cell/row */
+.cell-copied {
+  animation: cellCopyFlash 1.5s ease-out;
+}
+
+@keyframes cellCopyFlash {
+  0%   { outline: 2px dashed #1a73e8; outline-offset: -2px; }
+  70%  { outline: 2px dashed #1a73e8; outline-offset: -2px; }
+  100% { outline: none; }
+}
+
+
+@keyframes ctxFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ========== Column Resize Handles ========== */
+.col-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  z-index: 20;
+  background: transparent;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #1a73e8;
+  }
+}
+
+/* ========== Cell Feedback States ========== */
+.spreadsheet-cell-display {
+  outline: none;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.spreadsheet-cell-active {
+  background-color: rgba(26, 115, 232, 0.1) !important;
+  outline: 2px solid #1a73e8;
+  outline-offset: -1px;
+  border-radius: 0;
+  position: relative;
+  z-index: 2;
+}
+
+// Highlight entire row when any cell in it is focused/active
+.test-case-row:has(.spreadsheet-cell-active) {
+  td { background-color: rgba(26, 115, 232, 0.03) !important; }
+
+  // ID column acts like Google Sheets row-number indicator
+  td:first-child {
+    background-color: rgba(26, 115, 232, 0.12) !important;
+    border-left: 3px solid #1a73e8;
+  }
+}
+
+.spreadsheet-inline-editor {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  background-color: #fff !important;
+  border: 2px solid #1a73e8 !important;
+  border-radius: 2px;
+  padding: 4px 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  font-family: inherit;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  outline: none !important;
+  resize: vertical;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+  position: relative;
+  z-index: 50;
+  margin: -4px; /* Pull it slightly out over the padding of the cell */
+}
+
+.cell-saving {
+  opacity: 0.75;
+}
+
+.cell-saved {
+  animation: cellSaveFlash 0.6s ease-out;
+}
+
+.cell-error {
+  animation: cellErrorFlash 0.6s ease-out;
+}
+
+@keyframes cellSaveFlash {
+  0% { background-color: #d4edda; }
+  100% { background-color: transparent; }
+}
+
+@keyframes cellErrorFlash {
+  0% { background-color: #f8d7da; }
+  100% { background-color: transparent; }
+}
+
+/* ========== Freeze: Sticky First Column ========== */
+.spreadsheet-table {
+  th:first-child,
+  td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: inherit;
+  }
+
+  thead th:first-child {
+    z-index: 15; /* Above other sticky elements */
+    background: linear-gradient(180deg, #f5f6f8 0%, #eef0f4 100%);
+  }
+
+  tbody tr:nth-child(even) td:first-child {
+    background: #fafbfc;
+  }
+
+  tbody tr:hover td:first-child {
+    background: #e8f0fe !important;
+  }
+}
+
+/* ========== Toast Notifications (for undo/redo & context menu) ========== */
+.spreadsheet-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #323232;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: 'Inter', -apple-system, sans-serif;
+  z-index: 10000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Purple theme utilities (moved from inline <style> in tasks/show) */
+.text-purple { color: #764ba2 !important; }
+.bg-purple { background-color: #764ba2 !important; }
+.btn-purple { background-color: #764ba2 !important; border-color: #764ba2 !important; color: white; }
+.btn-purple:hover { background-color: #667eea !important; border-color: #667eea !important; }
+.btn-outline-purple { color: #764ba2; border-color: #764ba2; }
+.btn-outline-purple:hover { background-color: #764ba2; color: white; }
+.btn-xs { padding: 0.1rem 0.25rem; font-size: 0.75rem; border-radius: 0.2rem; }
+
+/* Layout utilities */
+.progress-lg { height: 28px; }
+.cursor-pointer { cursor: pointer; }
+.text-prewrap { white-space: pre-wrap; }
+.status-badge-btn { cursor: pointer; font-size: 0.85rem; }
+
+/* Breadcrumb truncation */
+.breadcrumb-truncate-sm { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.breadcrumb-truncate-md { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.breadcrumb-truncate-lg { max-width: 600px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Spreadsheet toolbar positioning */
+.spreadsheet-toolbar-sticky { z-index: 1020; top: 10px; user-select: none; }
+
+/* ========== Formula Bar ================================================== */
+.formula-bar {
+  display: flex;
+  align-items: flex-start;
+  min-height: 26px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-top: none;
+  user-select: none;
+
+  .formula-bar-ref {
+    min-width: 80px;
+    padding: 0 8px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #1a237e;
+    border-right: 1px solid #e0e0e0;
+    white-space: nowrap;
+    text-align: center;
+    flex-shrink: 0;
+    line-height: 26px;
+  }
+
+  .formula-bar-fx {
+    padding: 0 8px;
+    color: #888;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    border-right: 1px solid #e0e0e0;
+    flex-shrink: 0;
+    user-select: none;
+    line-height: 26px;
+  }
+
+  .formula-bar-input {
+    flex: 1;
+    min-height: 26px;
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    font-size: 13px;
+    background: transparent;
+    user-select: text;
+    word-break: break-word;
+    line-height: 1.4;
+
+    &[contenteditable="false"] {
+      color: #bbb;
+      cursor: default;
+    }
+
+    &[contenteditable="true"] { cursor: text; }
+
+    a { pointer-events: none; text-decoration: underline; }
+  }
+}
+
+/* Spreadsheet cell truncation */
+.cell-truncate-md { max-width: 200px; }
+.cell-truncate-lg { max-width: 250px; overflow: hidden; }
+
+/* Dropdown menu with scroll */
+.dropdown-menu-scroll { max-height: 250px; overflow-y: auto; }
+
+/* Log output box */
+.log-box-scroll { max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; }
+
+/* Task card */
+.task-card { transition: all 0.2s; }
+
+/* Media preview */
+.media-preview-img { max-width: 100%; max-height: 85vh; width: auto; object-fit: contain; }
+.media-preview-video { max-height: 85vh; }
+
+// ── Spreadsheet UX improvements ───────────────────────────────────────────
+
+// Rich content cells — hover affordance + empty placeholder
+.rich-content {
+  min-height: 26px;
+  cursor: text;
+  border-radius: 2px;
+  transition: background-color 0.1s;
+  word-break: break-word;
+  white-space: pre-wrap;
+
+  &:hover:not([contenteditable="true"]) {
+    background-color: rgba(26, 115, 232, 0.05);
+  }
+
+  // "—" placeholder already in Slim for empty cells is fine;
+  // this adds a subtle "click to edit" cue via outline on keyboard focus
+  &:focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 1px;
+  }
+}
+
+// Group description section header row
+.test-case-group-header-row {
+  td.spreadsheet-group-header-cell {
+    background-color: #e8def8;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-top: 2px solid #b39ddb;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    font-size: 0.95rem;
+  }
+  &:hover td.spreadsheet-group-header-cell {
+    background-color: #ddd0f5;
+  }
+}
+
+// Merged group indicator — left accent border on the rowspan-ed Function td
+.spreadsheet-table tbody td[rowspan] {
+  border-left: 3px solid rgba(26, 115, 232, 0.35) !important;
+}
+
+// Stronger left border when active
+.test-case-row:has(.spreadsheet-cell-active) td[rowspan] {
+  border-left-color: #1a73e8 !important;
+}
+
+// "Insert row below" button — invisible until row hover, then subtle
+.test-case-row {
+  .btn-link.text-success {
+    opacity: 0;
+    transition: opacity 0.15s, transform 0.12s;
+  }
+
+  &:hover .btn-link.text-success {
+    opacity: 0.75;
+  }
+
+  &:hover .btn-link.text-success:hover {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+// Cell copied — persistent dashed outline like Google Sheets (JS removes the class after timeout)
+.cell-copied {
+  animation: none !important;
+  outline: 2px dashed #1a73e8 !important;
+  outline-offset: -2px;
+}
+
+// ── Inline Split Input ────────────────────────────────────────────────────
+.split-input-wrapper {
+  margin-top: 6px;
+
+  .split-inline-input {
+    display: block;
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    border: 2px solid #1a73e8 !important;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.18) !important;
+    outline: none;
+    background: #fff;
+
+    &:focus { border-color: #1a73e8 !important; }
+  }
+
+  .split-input-hint {
+    font-size: 10px;
+    color: #9aa0a6;
+    text-align: center;
+    margin-top: 3px;
+    user-select: none;
+  }
+}
+
+// ── Steps / Expected columns — visual separator ───────────────────────────
+.spreadsheet-table {
+  // Each content block inside action/expected columns
+  td .rich-content + .rich-content {
+    border-top: 1px dashed #e9ecef;
+    margin-top: 2px;
+    padding-top: 2px;
+  }
+}

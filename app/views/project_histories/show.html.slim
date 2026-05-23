@@ -1,0 +1,126 @@
+.container-fluid.px-4.py-4
+  / Breadcrumb
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Dashboard", root_path
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      - if @project
+        li.breadcrumb-item
+          = link_to @project.name, @project
+        li.breadcrumb-item
+          = link_to "History", project_histories_path(project_id: @project.id)
+      - else
+        li.breadcrumb-item
+          = link_to "Project History", project_histories_path
+      li.breadcrumb-item.active aria-current="page"
+        | Details
+
+  / Back Button
+  .mb-4
+    - if @project
+      = link_to project_histories_path(project_id: @project.id), class: "btn btn-outline-secondary" do
+        i.bi.bi-arrow-left.me-2
+        | Back to History
+    - else
+      = link_to project_histories_path, class: "btn btn-outline-secondary" do
+        i.bi.bi-arrow-left.me-2
+        | Back to History
+
+  / History Details Card
+  .card.border-0.shadow-sm.mb-4
+    .card-header.bg-light.text-dark.p-4
+      .d-flex.justify-content-between.align-items-start
+        div
+          h1.h3.fw-bold.mb-2
+            i.bi.bi-clock-history.me-2
+            | History Details
+          p.mb-0.text-muted Complete information about this change
+        span.badge.rounded-pill.px-3.py-2 class=action_badge_class(@project_history.action_type)
+          = @project_history.action_description
+
+  / Main Info
+  .row.g-4.mb-4
+    .col-md-6
+      .card.border-0.shadow-sm.h-100
+        .card-body
+          h5.card-title.fw-bold.mb-4
+            i.bi.bi-info-circle.me-2
+            | Basic Information
+          .mb-3
+            .text-muted.small.mb-1 Project
+            - if @project
+              .fw-semibold= link_to @project.name, @project, class: "text-decoration-none"
+            - else
+              .fw-semibold.text-muted.fst-italic (Project has been deleted)
+          .mb-3
+            .text-muted.small.mb-1 Action
+            .fw-semibold= @project_history.action_description
+          .mb-3
+            .text-muted.small.mb-1 Performed by
+            .d-flex.align-items-center
+              .bg-primary.text-white.rounded-circle.d-flex.align-items-center.justify-content-center.me-2.user-avatar-circle-lg
+                = @project_history.user.name&.first&.upcase || @project_history.user.email.first.upcase
+              div
+                .fw-semibold= @project_history.user.name || @project_history.user.email.split('@').first
+                .text-muted.small= @project_history.user.email
+          .mb-0
+            .text-muted.small.mb-1 Time
+            .fw-semibold= @project_history.created_at.strftime("%d/%m/%Y %H:%M:%S")
+            .text-muted.small
+              = time_ago_in_words(@project_history.created_at)
+              |  ago
+
+    .col-md-6
+      .card.border-0.shadow-sm.h-100
+        .card-body
+          h5.card-title.fw-bold.mb-4
+            i.bi.bi-list-check.me-2
+            | Quick Summary
+          p= @project_history.changes_summary
+
+  / Detailed Changes
+  - if @project_history.field_changes.any?
+    .card.border-0.shadow-sm.mb-4
+      .card-header.bg-light
+        h5.card-title.mb-0.fw-bold
+          i.bi.bi-arrow-left-right.me-2
+          | Field-by-Field Changes
+      .card-body
+        .table-responsive
+          table.table.table-bordered.mb-0
+            thead.table-light
+              tr
+                th Field Name
+                th.bg-danger.bg-opacity-10.text-danger Old Value
+                th.bg-success.bg-opacity-10.text-success New Value
+            tbody
+              - @project_history.field_changes.each do |field, values|
+                tr
+                  td.fw-semibold= field.titleize
+                  td.text-danger
+                    - if values[:old].present?
+                      code= values[:old]
+                    - else
+                      em.text-muted (empty)
+                  td.text-success
+                    - if values[:new].present?
+                      code= values[:new]
+                    - else
+                      em.text-muted (empty)
+
+  / Raw Data (for debugging)
+  .card.border-0.shadow-sm
+    .card-header.bg-light
+      h5.card-title.mb-0.fw-bold
+        i.bi.bi-code-square.me-2
+        | Raw JSON Data
+    .card-body
+      .row.g-4
+        - if @project_history.metadata.present?
+          .col-md-12
+            h6.fw-bold Metadata
+            pre.bg-light.p-3.rounded style="max-height: 400px; overflow-y: auto;"
+              code= JSON.pretty_generate(@project_history.metadata)
+              

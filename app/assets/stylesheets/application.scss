@@ -1,0 +1,313 @@
+// Entry point for your Sass build
+@use "ui_components";
+@use "sidebar";
+@import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+ /* Notification dropdown in header */
+.notification-dropdown.dropdown-menu {
+  overflow: hidden;
+  .notification-dropdown-list {
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Mỗi thông báo một ô riêng, có viền ngăn cách */
+  .notification-dropdown-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .notification-dropdown-item:last-child {
+    border-bottom: none;
+  }
+  .notification-dropdown-body {
+    background: #fff;
+  }
+  .notification-item {
+    white-space: normal;
+    .text-break { word-break: break-word; }
+  }
+  /* Unread: giống trang notification — nền tím nhạt, viền trái */
+  .notification-item-unread {
+    background-color: rgba(102, 126, 234, 0.12) !important;
+    border-left: 3px solid #667eea;
+  }
+  /* Đã đọc: giống trang notification — nền xám, chữ mờ */
+  .notification-item-read {
+    background-color: #f8f9fa !important;
+    border-left: 3px solid transparent;
+  }
+  .notification-item-read .small.fw-semibold { font-weight: normal !important; color: #6c757d; }
+  .notification-item-read .small.text-muted { opacity: 0.9; }
+  /* Avoid stray badge at bottom */
+  > li:last-child .badge { display: none; }
+}
+
+/* Notifications index: read vs unread — override list-group-item */
+.list-group-item.notification-unread {
+  background-color: #fff !important;
+  border-left: 3px solid #667eea;
+}
+.list-group-item.notification-read {
+  background-color: #f8f9fa !important;
+  border-left: 3px solid #dee2e6;
+}
+.notification-read .fw-normal { color: #6c757d; }
+ .status-badge {
+   font-size: 0.8em;
+ }
+
+ .priority-high { color: #dc3545; }
+ .priority-normal { color: #ffc107; }
+ .priority-low { color: #17a2b8; }
+
+ .status-new { color: #007bff; }
+ .status-fixing { color: #ffc107; }
+ .status-testing { color: #17a2b8; }
+ .status-done { color: #28a745; }
+ .status-pending { color: #6c757d; }
+ 
+/* Import Progress Bar Styles */
+.import-progress-container {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.import-progress-text {
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 0.75rem;
+}
+
+.progress {
+  height: 28px;
+  border-radius: 14px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 28px;
+  transition: width 0.3s ease-out;
+  border-radius: 14px;
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Time remaining badge */
+.time-remaining {
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Spinner animation */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.15em;
+}
+
+/* CI/CD realtime toast (rendered by ci_toast_controller.js) */
+#ci-toast-container { pointer-events: none; }
+
+.ci-toast {
+  pointer-events: auto;
+  position: relative;
+  min-width: 280px;
+  max-width: 380px;
+  margin-bottom: 10px;
+  padding: 12px 36px 12px 14px;
+  border-radius: 8px;
+  background: #fff;
+  border-left: 4px solid #6c757d;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.ci-toast--visible { opacity: 1; transform: translateY(0); }
+.ci-toast--ok      { border-left-color: #198754; }
+.ci-toast--fail    { border-left-color: #dc3545; }
+
+.ci-toast__title { font-weight: 600; margin-bottom: 4px; }
+.ci-toast__msg   { color: #555; margin-bottom: 6px; }
+.ci-toast__link  { font-size: 13px; }
+.ci-toast__close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: #888;
+}
+
+/* Toast Notifications */
+.toast-container {
+  z-index: 9999 !important;
+}
+
+.toast {
+  min-width: 300px;
+  max-width: 500px;
+  border-radius: 12px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast.hiding {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.toast-body {
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 1rem 0.75rem;
+}
+
+.toast .btn-close {
+  opacity: 0.8;
+}
+
+.toast .btn-close:hover {
+  opacity: 1;
+}
+
+/* Toast icons */
+.toast-body i {
+  font-size: 1.25rem;
+}
+
+/* Spreadsheet toolbar — base structure (overrides in ui_components.scss) */
+.spreadsheet-toolbar {
+  display: flex !important;
+  align-items: center;
+}
+
+.dropdown-toggle-no-caret::after {
+  display: none !important;
+}
+
+.spreadsheet-toolbar .dropdown-toggle::after {
+  display: none !important;
+}
+
+.spreadsheet-toolbar .dropdown-menu {
+  z-index: 1050;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+}
+
+/* Spreadsheet font size utility */
+.fs-spreadsheet {
+  font-size: 13px !important;
+}
+
+/* Column widths for spreadsheet tables */
+.spreadsheet-list-table {
+  .id-column { width: 70px; }
+  .test-type-column { width: 100px; }
+  .function-column { width: 200px; }
+  .steps-column { width: 350px; }
+  .expected-column { width: 350px; }
+  .target-column { width: 120px; }
+  .device-column { width: 100px; }
+  .note-column { width: 200px; }
+  .actions-column { width: 70px; }
+}
+
+/* Bug Spreadsheet Column Widths */
+.bug-spreadsheet-table {
+  .bug-id-col { width: 80px; }
+  .bug-content-col { width: 300px; min-width: 250px; }
+  .bug-app-col { width: 100px; }
+  .bug-category-col { width: 120px; }
+  .bug-type-col { width: 100px; }
+  .bug-priority-col { width: 100px; }
+  .bug-dev-col { width: 120px; }
+  .bug-test-col { width: 120px; }
+  .bug-status-col { width: 100px; }
+  .bug-media-col { width: 200px; min-width: 150px; }
+  .bug-note-col { width: 195px; min-width: 150px; }
+  .bug-actions-col { width: 65px; }
+}
+
+/* Full-Width Device Status Cells */
+.device-status-cell {
+  padding: 0 !important;
+  height: 1px; // Hack: ensures nested .h-100 divs work correctly in table cells
+  
+  .dropdown {
+    height: 100%;
+    display: block;
+  }
+}
+
+.status-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 11px;
+  min-height: 36px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  padding: 4px 6px;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+  
+  &.bg-warning {
+    color: #212529 !important;
+  }
+}

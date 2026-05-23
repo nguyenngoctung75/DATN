@@ -1,0 +1,113 @@
+# Shared config for web and worker (same image, different command)
+x-app: &app
+  image: tool_test:staging
+  env_file: .env.staging
+  volumes:
+    - ./app:/rails/app
+    - ./config:/rails/config
+    - ./lib:/rails/lib
+    - ./db:/rails/db
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: always
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  web:
+    <<: *app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: staging
+    environment:
+      RAILS_ENV: staging
+    ports:
+      - "0.0.0.0:80:4000"
+    mem_limit: 700m
+    mem_reservation: 500m
+    cpus: "1.5"
+
+  worker:
+    <<: *app
+    environment:
+      RAILS_ENV: staging
+    command: ["bundle", "exec", "rails", "solid_queue:start"]
+    mem_limit: 400m
+    mem_reservation: 250m
+    cpus: "1.0"
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_USER: ${DATABASE_USERNAME}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-name-resolve
+      - --innodb-buffer-pool-size=128M
+      - --innodb-log-file-size=48M
+      - --innodb-flush-log-at-trx-commit=2
+      - --max-connections=40
+      - --performance-schema=OFF
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "--silent"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    restart: always
+    mem_limit: 500m
+    mem_reservation: 300m
+    cpus: "1.0"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  redis:
+    image: redis:7-alpine
+    command:
+      - redis-server
+      - --maxmemory
+      - "48mb"
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: always
+    mem_limit: 80m
+    mem_reservation: 48m
+    cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local

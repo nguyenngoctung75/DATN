@@ -1,0 +1,81 @@
+.container-fluid.px-4.py-4
+  - if flash[:alert].present?
+    .alert.alert-danger.alert-dismissible.fade.show role="alert"
+      = flash[:alert]
+      button.btn-close type="button" data-bs-dismiss="alert" aria-label="Close"
+  .row.mb-4
+    .col
+      h1.display-6.fw-bold.text-dark Config Settings
+
+  .row.justify-content-center
+    .col-lg-8
+      .card.border-0.shadow-sm
+        .card-body.p-4
+          = form_with model: @configuration, url: app_configuration_path, method: :patch, class: 'needs-validation config-form', local: true, data: { turbo: false } do |f|
+            / Per-project: list with Redmine link + Enable (per project)
+            .mb-4
+              label.form-label.fw-semibold Configuration by Project
+              p.small.text-muted.mb-3 Daily import at 8:00 AM.
+              .border.rounded.p-3.dropdown-menu-scroll
+                table.table.table-sm.table-hover.mb-0
+                  thead
+                    tr
+                      th Project (local)
+                      th Redmine Project
+                      th.text-end style="width: 100px;" Enable 
+                      th.text-end style="width: 90px;" History
+                  tbody
+                    - @projects.each do |project|
+                      tr
+                        td.align-middle
+                          = project.name
+                        td
+                          select.form-select.form-select-sm name="project_redmine_ids[#{project.id}]" id="project_redmine_#{project.id}" data-project-id=project.id class="config-change"
+                            option value="" -- Not linked --
+                            - @redmine_projects.each do |rp|
+                              option value=rp[:identifier] selected=(project.redmine_project_id == rp[:identifier].to_s)
+                                = rp[:name]
+                        td.text-end
+                          .form-check.form-switch.d-inline-block
+                            input.form-check-input.config-change type="checkbox" name="project_daily_import_enabled[#{project.id}]" id="project_enable_#{project.id}" value="1" checked=(project.daily_import_enabled?)
+                            label.form-check-label.small for="project_enable_#{project.id}" Enable
+                        td.text-end
+                          = link_to "History", project_daily_import_runs_path(project), class: 'btn btn-sm btn-outline-primary'
+              - if @configuration.errors[:base].any?
+                .invalid-feedback.d-block = @configuration.errors[:base].join(', ')
+
+            #config-actions.gap-2.mt-3 class=(@configuration.errors.any? ? 'd-flex' : 'd-none d-flex')
+              = f.submit "Save Configuration", class: 'btn btn-primary btn-lg'
+              = link_to "Cancel", root_path, class: 'btn btn-outline-secondary btn-lg'
+
+  javascript:
+    document.addEventListener('DOMContentLoaded', function() {
+      var form = document.querySelector('.config-form');
+      var actions = document.getElementById('config-actions');
+      if (!form) return;
+      if (actions) {
+        function showActions() { actions.classList.remove('d-none'); actions.classList.add('d-flex'); }
+        form.querySelectorAll('.config-change').forEach(function(el) {
+          el.addEventListener('change', showActions);
+          el.addEventListener('input', showActions);
+        });
+      }
+      form.addEventListener('submit', function(e) {
+        var enabled = form.querySelectorAll('input[name^="project_daily_import_enabled"]:checked');
+        var invalid = [];
+        enabled.forEach(function(cb) {
+          var id = cb.name.match(/\[(\d+)\]/)[1];
+          var sel = form.querySelector('select[name="project_redmine_ids[' + id + ']"]');
+          if (sel && !sel.value.trim()) {
+            var row = cb.closest('tr');
+            var name = row ? row.querySelector('td').textContent.trim() : 'Project ' + id;
+            invalid.push(name);
+          }
+        });
+        if (invalid.length) {
+          e.preventDefault();
+          alert('Please select a Redmine project for each enabled item:\n\n' + invalid.join('\n'));
+          return false;
+        }
+      });
+    });

@@ -1,0 +1,16 @@
+.container.py-4
+  nav aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item = link_to 'Projects', projects_path
+      li.breadcrumb-item.text-truncate.breadcrumb-truncate-sm = link_to @project.name, project_path(@project), title: @project.name
+      li.breadcrumb-item.text-truncate.breadcrumb-truncate-md = link_to @task.title, project_task_path(@project, @task), title: @task.title
+      li.breadcrumb-item = link_to 'Bugs', project_task_bugs_path(@project, @task)
+      li.breadcrumb-item.text-truncate.breadcrumb-truncate-md = link_to "Bug ##{@bug.id}", project_task_bug_path(@project, @task, @bug), title: "Bug ##{@bug.id}: #{@bug.title}"
+      li.breadcrumb-item.active aria-current="page" Edit
+
+  .mb-4
+    h2.mb-0.text-truncate title="Edit Bug: #{@bug.title} (Task: #{@task.title})"
+      i.bi.bi-pencil-square.me-2.text-primary
+      | Edit Bug: #{@bug.title}
+
+  = render 'form', bug: @bug

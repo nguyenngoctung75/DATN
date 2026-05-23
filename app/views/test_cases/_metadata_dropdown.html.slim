@@ -1,0 +1,24 @@
+- test_case = TestCasePresenter.new(test_case)
+- field_name = local_assigns[:field]
+- value = test_case.send(field_name)
+- display_value = field_name == 'test_type' ? test_case.test_type_display : test_case.target_display
+
+- options = []
+- if field_name == 'test_type'
+  - options = [['feature', 'Feature'], ['ui', 'UI'], ['data', 'Data']]
+- elsif field_name == 'target'
+  - options = [['pc', 'PC'], ['sp', 'SP'], ['app', 'APP'], ['pc_sp', 'PC・SP'], ['pc_sp_app', 'PC・SP・APP']]
+
+.dropdown data-controller="test-case-metadata" id="test-case-#{test_case.id}-#{field_name}-cell"
+  - if field_name == 'test_type'
+    button.btn.btn-sm.badge.bg-primary.bg-opacity-10.text-primary.px-2.py-1.fw-semibold class="dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}'
+      = display_value
+  - else
+    button.btn.btn-sm.fw-bold.small.px-2.w-100 class="dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' style="white-space: nowrap;"
+      = display_value
+
+  ul.dropdown-menu.shadow-sm
+    - options.each do |val, label|
+      li
+        button.dropdown-item type="button" data-action="click->test-case-metadata#update" data-field=field_name data-value=val data-test-case-id=test_case.id data-project-id=test_case.task.project_id data-task-id=test_case.task.id class=(value == val ? 'active' : '')
+          = label

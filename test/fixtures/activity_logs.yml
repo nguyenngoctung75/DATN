@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  trackable: one
+  trackable_type: Trackable
+  action_type: MyString
+  metadata: 
+
+two:
+  user: two
+  trackable: two
+  trackable_type: Trackable
+  action_type: MyString
+  metadata: 

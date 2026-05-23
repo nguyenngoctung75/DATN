@@ -1,0 +1,35 @@
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.49.1-noble
+    working_dir: /work
+    environment:
+      BASE_URL: http://web:4000
+      CI: ${CI:-}
+    volumes:
+      - ./playwright:/work
+      - playwright_node_modules:/work/node_modules
+    depends_on:
+      - web
+    networks:
+      - default
+    command: >
+      bash -lc "
+        set -e
+        echo '[playwright] Installing npm deps (if needed)...'
+        if [ ! -d node_modules/@playwright/test ]; then
+          npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+        fi
+        echo '[playwright] Waiting for Rails web container...'
+        for i in $$(seq 1 60); do
+          if curl -fsS -o /dev/null http://web:4000/; then
+            echo '[playwright] Rails is reachable.'; break
+          fi
+          echo '[playwright] still waiting ('$$i'/60)...'
+          sleep 5
+        done
+        echo '[playwright] Running tests...'
+        npx playwright test
+      "
+
+volumes:
+  playwright_node_modules:

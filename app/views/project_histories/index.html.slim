@@ -1,0 +1,96 @@
+.container-fluid.px-4.py-4
+  / Breadcrumb
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Dashboard", root_path
+      - if @project
+        li.breadcrumb-item
+          = link_to "Projects", projects_path
+        li.breadcrumb-item
+          = link_to @project.name, @project
+        li.breadcrumb-item.active aria-current="page"
+          | History
+      - else
+        li.breadcrumb-item
+          = link_to "Projects", projects_path
+        li.breadcrumb-item.active aria-current="page"
+          | All Project Histories
+
+  / Header
+  .card.border-0.shadow-sm.mb-4
+    .card-header.bg-light.text-dark.p-4
+      h1.h3.fw-bold.mb-2
+        i.bi.bi-clock-history.me-2
+        - if @project
+          | Activity History: #{@project.name}
+        - else
+          | Activity History for All Projects
+      p.mb-0.text-muted Track all changes that have been made
+
+  / Filter Section
+  .card.border-0.shadow-sm.mb-4
+    .card-body
+      = form_with url: project_histories_path, method: :get, local: true, class: "row g-3" do |f|
+        .col-md-4
+          = label_tag :action_filter, "Filter by Action", class: "form-label fw-bold"
+          = select_tag :action_filter, options_for_select([['All Actions', ''], ['Created', 'create'], ['Updated', 'update'], ['Archived', 'delete'], ['Restored', 'restore'], ['Deleted', 'destroy']], params[:action_filter]), class: "form-select"
+        
+        .col-md-8.d-flex.align-items-end
+          = button_tag type: "submit", class: "btn btn-primary me-2" do
+            i.bi.bi-funnel.me-2
+            | Apply Filter
+          = link_to "Clear", project_histories_path, class: "btn btn-outline-secondary"
+
+  / Histories List
+  .card.border-0.shadow-sm
+    .card-body.p-0
+      - if @project_histories.any?
+        .table-responsive
+          table.table.table-hover.mb-0
+            thead.table-light
+              tr
+                th.text-center.align-middle.px-4.py-3 #
+                th.text-center.align-middle Action
+                th.text-center.align-middle Project
+                th.text-center.align-middle User
+                th.text-center.align-middle Changes
+                th.text-center.align-middle Time
+                th.text-center.align-middle Actions
+            tbody
+              - @project_histories.each_with_index do |history, index|
+                tr
+                  td.text-center.align-middle.px-4.py-3.fw-bold.text-muted= index + 1
+                  td.text-center.align-middle
+                    span.badge.rounded-pill.px-3.py-2 class=action_badge_class(history.action_type)
+                      = history.action_description
+                  td.text-center.align-middle
+                    - if history.trackable
+                      = link_to history.trackable.name, history.trackable, class: "text-decoration-none fw-semibold"
+                    - else
+                      span.text-muted.fst-italic (Project has been deleted)
+                  td.align-middle
+                    .d-flex.align-items-center.justify-content-center
+                      .bg-primary.text-white.rounded-circle.d-flex.align-items-center.justify-content-center.me-2.user-avatar-circle
+                        = history.user.name&.first&.upcase || history.user.email.first.upcase
+                      div
+                        .fw-semibold= history.user.name || history.user.email.split('@').first
+                        .text-muted.small= history.user.email
+                  td.text-center.align-middle
+                    .text-muted.small style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                      = history.changes_summary
+                  td.text-center.align-middle
+                    .text-muted.small
+                      = time_ago_in_words(history.created_at)
+                      |  ago
+                    .text-muted.smaller= history.created_at.strftime("%d/%m/%Y %H:%M")
+                  td.text-center.align-middle
+                    = link_to project_history_path(history), class: "btn btn-sm btn-outline-primary" do
+                      i.bi.bi-eye.me-1
+                      | View Details
+      - else
+        .text-center.py-5
+          .display-1.text-muted.mb-3 📋
+          h4.text-muted No history records found
+          p.text-muted Start making changes to projects to see history here.
+          

@@ -1,0 +1,91 @@
+- users = User.active.order(:name)
+- bug = BugPresenter.new(bug)
+
+tr.bug-row id="bug-row-#{bug.id}" class=(bug.deleted? ? 'table-secondary opacity-75' : '') data-controller="editable-cell bug-field" data-bug-id=bug.id data-project-id=bug.task.project_id data-task-id=bug.task.id data-model="bug" data-bug-field-bug-id-value=bug.id data-bug-field-project-id-value=bug.task.project_id data-bug-field-task-id-value=bug.task.id data-history-url=cell_history_project_task_bug_path(bug.task.project, bug.task, bug) data-history-revert-url=revert_project_task_bug_path(bug.task.project, bug.task, bug)
+  / ID Column
+  td.text-center.fw-bold.bg-light.align-middle.bug-id-col
+    span.text-dark
+      = "BUG-#{index.to_s.rjust(3, '0')}"
+
+  / Content Column (editable, with history)
+  td.align-middle.text-break.position-relative.bug-content-col data-copy-col="function" data-cell-field="content"
+    div.p-2
+      .rich-content id="bug-#{bug.id}-content" data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="content" title=strip_tags(bug.content.to_s)
+        - if bug.content.present?
+          == format_content_with_media_links(bug.content)
+        - else
+          | -
+
+  / Application Column (dropdown - always show text)
+  td.text-center.align-middle.bug-app-col data-cell-field="application"
+    = render 'bugs/metadata_dropdown', bug: bug, field: 'application'
+
+  / Category Column (dropdown - always show text)
+  td.text-center.align-middle.bug-category-col data-cell-field="category"
+    = render 'bugs/metadata_dropdown', bug: bug, field: 'category'
+
+  / Bug Type Column (dropdown)
+  td.text-center.align-middle.bug-type-col data-cell-field="bug_type"
+    = render 'bugs/metadata_dropdown', bug: bug, field: 'bug_type'
+
+  / Priority Column (dropdown)
+  td.text-center.align-middle.bug-priority-col data-cell-field="priority"
+    = render 'bugs/metadata_dropdown', bug: bug, field: 'priority'
+
+  / Dev Column (user dropdown)
+  td.align-middle.bug-dev-col data-cell-field="dev_id"
+    .dropdown id="bug-#{bug.id}-dev-cell"
+      button.btn.btn-sm.text-start.w-100.fw-medium.px-2.py-1 type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' class="border-0 bg-transparent"
+        = bug.dev_name
+      ul.dropdown-menu.shadow-sm.dropdown-menu-scroll
+        li
+          button.dropdown-item type="button" data-action="click->bug-field#update" data-bug-field-field-param="dev_id" data-bug-field-value-param="" class=(bug.dev_id.nil? ? 'active' : '')
+            span.text-muted -- Unassigned --
+        - users.each do |user|
+          li
+            button.dropdown-item type="button" data-action="click->bug-field#update" data-bug-field-field-param="dev_id" data-bug-field-value-param=user.id class=(bug.dev_id == user.id ? 'active' : '')
+              = user.name
+
+  / Tester Column (user dropdown)
+  td.align-middle.bug-test-col data-cell-field="tester_id"
+    .dropdown id="bug-#{bug.id}-tester-cell"
+      button.btn.btn-sm.text-start.w-100.fw-medium.px-2.py-1 type="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-popper-config='{"strategy":"fixed"}' class="border-0 bg-transparent"
+        = bug.tester_name
+      ul.dropdown-menu.shadow-sm.dropdown-menu-scroll
+        li
+          button.dropdown-item type="button" data-action="click->bug-field#update" data-bug-field-field-param="tester_id" data-bug-field-value-param="" class=(bug.tester_id.nil? ? 'active' : '')
+            span.text-muted -- Unassigned --
+        - users.each do |user|
+          li
+            button.dropdown-item type="button" data-action="click->bug-field#update" data-bug-field-field-param="tester_id" data-bug-field-value-param=user.id class=(bug.tester_id == user.id ? 'active' : '')
+              = user.name
+
+  / Status Column (dropdown)
+  td.text-center.align-middle.bug-status-col data-cell-field="status"
+    = render 'bugs/metadata_dropdown', bug: bug, field: 'status'
+
+  / Image/Video Column (editable, with history)
+  td.align-middle.text-break.position-relative.bug-media-col data-copy-col="expected" data-cell-field="image_video_url"
+    div.p-2
+      .rich-content id="bug-#{bug.id}-image_video_url" data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="image_video_url" title=strip_tags(bug.image_video_url.to_s)
+        - if bug.image_video_url.present?
+          == format_content_with_media_links(bug.image_video_url)
+        - else
+          | -
+
+  / Note Column (editable)
+  td.align-middle.p-2.bug-note-col data-cell-field="notes"
+    .note-display.rich-content id="bug-#{bug.id}-notes" data-editable-cell-target="display" data-action="click->editable-cell#edit" data-field="notes"
+      - if bug.notes.present?
+        == format_content_with_media_links(bug.notes)
+      - else
+        | -
+
+  / Actions Column
+  td.align-middle.text-center.p-1.bug-actions-col.d-none
+    - if bug.active?
+      = button_to soft_delete_project_task_bug_path(bug.task.project, bug.task, bug), method: :patch, class: "btn btn-link text-warning p-0", title: "Archive", form: { data: { turbo_confirm: "Are you sure you want to archive this bug?" } } do
+        i.bi.bi-archive
+    - else
+      = button_to restore_project_task_bug_path(bug.task.project, bug.task, bug), method: :patch, class: "btn btn-link text-success p-0", title: "Restore" do
+        i.bi.bi-arrow-counterclockwise

@@ -1,0 +1,47 @@
+.container-fluid.px-4.py-4
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Settings", edit_app_configuration_path
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      li.breadcrumb-item
+        = link_to @project.name, project_path(@project)
+      li.breadcrumb-item.active aria-current="page"
+        | Daily Import History
+
+  .card.border-0.shadow-sm.mb-4
+    .card-header.bg-light.text-dark.p-4
+      h1.h3.fw-bold.mb-2
+        i.bi.bi-clock-history.me-2
+        | History of Daily Import runs: #{@project.name}
+      p.mb-0.text-muted The runs of importing tasks from Redmine (8:00 AM)
+
+  .card.border-0.shadow-sm
+    .card-body.p-0
+      - if @runs.any?
+        .table-responsive
+          table.table.table-hover.mb-0
+            thead.table-light
+              tr
+                th Started at
+                th Status
+                th.text-end Imported
+                th.text-end Skipped
+                th Error
+                th style="width: 100px;"
+            tbody
+              - @runs.each do |run|
+                tr
+                  td= run.started_at&.strftime("%d/%m/%Y %H:%M")
+                  td
+                    span.badge class=(run.status == "success" ? "bg-success" : run.status == "failed" ? "bg-danger" : run.status == "running" ? "bg-primary" : "bg-secondary")
+                      = run.status
+                  td.text-end= run.imported_count
+                  td.text-end= run.skipped_count
+                  td.small.text-danger= run.error_message.presence || "—"
+                  td
+                    = link_to "Details", project_daily_import_run_path(@project, run), class: "btn btn-sm btn-outline-primary"
+      - else
+        .p-4.text-center.text-muted
+          | No history yet. Cron runs at 8:00 AM every day for projects with Daily Import enabled.

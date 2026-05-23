@@ -1,0 +1,10 @@
+/ Usage: render 'shared/log_box', content: @log_content
+/ Optional: target: 'logBox' (sets data-import-progress-target attribute)
+- target = local_assigns[:target]
+- content = local_assigns[:content].to_s
+- if target
+  pre.mb-0.p-3.bg-light.small.log-box-scroll data-import-progress-target=target
+    = content.presence || 'No log yet.'
+- else
+  pre.mb-0.p-3.bg-light.small.log-box-scroll
+    = content.presence || 'No log yet.'

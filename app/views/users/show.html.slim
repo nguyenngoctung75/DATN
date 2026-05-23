@@ -1,0 +1,100 @@
+.container-fluid.px-4.py-4
+  / Header
+  .row.mb-4
+    .col
+      nav aria-label="breadcrumb"
+        ol.breadcrumb
+          li.breadcrumb-item
+            = link_to "Users", users_path
+          li.breadcrumb-item.active aria-current="page" = @user.email
+
+      .d-flex.justify-content-between.align-items-center
+        h1.display-6.fw-bold.text-dark
+          i.bi.bi-person-circle.me-2
+          | User Details
+        .btn-group
+          = link_to edit_user_path(@user), class: "btn btn-warning" do
+            i.bi.bi-pencil.me-2
+            | Edit
+          = link_to user_path(@user), data: { turbo_method: :delete, turbo_confirm: "Are you sure you want to delete this user?" }, class: "btn btn-danger" do
+            i.bi.bi-trash.me-2
+            | Delete
+
+  / User Info
+  .row.g-4
+    / Main Info Card
+    .col-lg-8
+      .card.border-0.shadow-sm
+        .card-header.bg-gradient.text-white.border-0 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+          h5.mb-0.fw-bold
+            i.bi.bi-info-circle.me-2
+            | Basic Information
+        .card-body.p-4
+          .row.g-3
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Email
+                .fw-bold.fs-5 = @user.email
+
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Name
+                .fw-bold.fs-5 = @user.name || "-"
+
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Role
+                div
+                  - case @user.role
+                  - when "admin"
+                    span.badge.bg-danger.fs-6 Admin
+                  - else
+                    span.badge.bg-secondary.fs-6 User
+
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Provider
+                div
+                  - if @user.provider == "local"
+                    span.badge.bg-info.fs-6 Local
+                  - else
+                    span.badge.bg-success.fs-6 = @user.provider.capitalize
+
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Created At
+                .fw-bold = @user.created_at.strftime("%d/%m/%Y %H:%M")
+
+            .col-md-6
+              .border-bottom.pb-2.mb-2
+                small.text-muted Last Updated
+                .fw-bold = @user.updated_at.strftime("%d/%m/%Y %H:%M")
+
+    / Stats Card
+    .col-lg-4
+      .card.border-0.shadow-sm
+        .card-header.bg-primary.text-white.border-0
+          h5.mb-0.fw-bold
+            i.bi.bi-bar-chart-fill.me-2
+            | Statistics
+        .card-body
+          .mb-3.pb-3.border-bottom
+            .d-flex.justify-content-between.align-items-center
+              div
+                i.bi.bi-list-task.text-primary.me-2
+                span Assigned Tasks
+              .fs-4.fw-bold.text-primary = @assigned_tasks_count
+
+          .mb-3.pb-3.border-bottom
+            .d-flex.justify-content-between.align-items-center
+              div
+                i.bi.bi-clipboard-check.text-success.me-2
+                span Created Test Cases
+              .fs-4.fw-bold.text-success = @created_test_cases_count
+
+          .mb-0
+            .d-flex.justify-content-between.align-items-center
+              div
+                i.bi.bi-bug.text-danger.me-2
+                span Bugs
+              .fs-4.fw-bold.text-danger = @tester_bugs_count              

@@ -1,0 +1,91 @@
+.container-fluid.px-4.py-4
+  / Breadcrumb
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Tasks", tasks_path
+      - if @test_run.task
+        li.breadcrumb-item
+          = link_to @test_run.task.title.truncate(30), project_task_path(@test_run.task.project, @test_run.task)
+      li.breadcrumb-item.active aria-current="page"
+        = @test_run.name.truncate(40)
+
+  / TestRun Header
+  .card.border-0.shadow-sm.mb-4
+    .card-header.text-white.p-4 style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);"
+      .d-flex.justify-content-between.align-items-start
+        div
+          h1.h3.fw-bold.mb-2= @test_run.name
+          .d-flex.align-items-center.gap-3.text-white-50
+            span
+              i.bi.bi-calendar-event.me-1
+              = @test_run.executed_at&.strftime("%d/%m/%Y %H:%M") || "Not started"
+            span •
+            span.badge.rounded-pill class="bg-#{@test_run.status_color}"
+              = @test_run.status.titleize
+        - if current_user&.admin?
+          .d-flex.gap-2
+            - if @test_run.status == 'pending'
+              = button_to "Start", start_project_task_test_run_path(@test_run.task.project, @test_run.task, @test_run), method: :post, class: "btn btn-light"
+            - elsif @test_run.status == 'running'
+              = button_to "Complete", complete_project_task_test_run_path(@test_run.task.project, @test_run.task, @test_run), method: :post, class: "btn btn-success"
+              = button_to "Abort", abort_project_task_test_run_path(@test_run.task.project, @test_run.task, @test_run), method: :post, class: "btn btn-danger"
+
+    / Stats
+    .card-body.bg-light.border-bottom
+      .row.g-3.text-center
+        .col-6.col-md-3
+          .h4.fw-bold.text-primary.mb-0= @test_run.result_count
+          small.text-muted Total Results
+        .col-6.col-md-3
+          .h4.fw-bold.text-success.mb-0= @test_run.pass_count
+          small.text-muted Passed
+        .col-6.col-md-3
+          .h4.fw-bold.text-danger.mb-0= @test_run.fail_count
+          small.text-muted Failed
+        .col-6.col-md-3
+          .h4.fw-bold.text-info.mb-0= "#{@test_run.pass_rate}%"
+          small.text-muted Pass Rate
+
+  / Description
+  - if @test_run.description.present?
+    .card.border-0.shadow-sm.mb-4
+      .card-body
+        h5.fw-semibold.mb-2 Description
+        p.text-muted.mb-0 style="white-space: pre-wrap;"
+          = @test_run.description
+
+  / Test Results
+  .card.border-0.shadow-sm
+    .card-header.bg-white.border-bottom
+      h5.mb-0.fw-bold
+        i.bi.bi-clipboard-data.me-2
+        | Test Results (#{@test_run.test_results.size})
+
+    .card-body
+      - if @test_run.test_results.any?
+        .vstack.gap-3
+          - @test_run.test_results.each do |result|
+            .card.border
+              .card-body
+                .d-flex.justify-content-between.align-items-center
+                  div
+                    h6.fw-semibold.mb-1= result.test_case.title
+                    small.text-muted
+                      | Device: #{result.device || 'N/A'}
+                      span.mx-2 •
+                      | Executed: #{result.executed_at&.strftime("%d/%m/%Y %H:%M") || 'N/A'}
+                  - status_class = case result.status
+                  - when 'pass' then 'bg-success'
+                  - when 'fail' then 'bg-danger'
+                  - when 'not_run' then 'bg-secondary'
+                  - when 'unknown' then 'bg-secondary'
+                  - else 'bg-secondary'
+                  span.badge.rounded-pill class=status_class
+                    = result.status.titleize
+      - else
+        .text-center.py-5.text-muted
+          i.bi.bi-inbox.display-4.d-block.mb-3
+          | No test results yet
+
+
