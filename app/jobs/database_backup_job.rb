@@ -31,7 +31,7 @@ class DatabaseBackupJob < ApplicationJob
 
   def cleanup_old_backups(dir, base_name, keep:)
     # Lấy danh sách tất cả các bản backup của file này, sắp xếp theo thời gian (cũ nhất đứng đầu)
-    backups = Dir.glob(dir.join("#{base_name}.backup.*")).reject { |f| f.end_with?("-wal") }.sort
+    backups = Dir.glob(dir.join("#{base_name}.backup.*")).reject { |f| f.end_with?('-wal') }.sort
 
     if backups.count > keep
       backups_to_delete = backups.first(backups.count - keep)

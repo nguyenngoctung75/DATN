@@ -27,5 +27,4 @@ class TestResult < ApplicationRecord
   def active?
     deleted_at.nil?
   end
-
 end

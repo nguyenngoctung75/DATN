@@ -111,7 +111,8 @@ class TestCasesController < ApplicationController
   # GET /projects/:project_id/tasks/:task_id/test_cases/:id/cell_history
   def cell_history
     field = params[:field].to_s
-    return render json: { error: 'Invalid field' }, status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
+    return render json: { error: 'Invalid field' },
+status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
 
     logs =
       if field == 'content_value' && params[:content_id].present?

@@ -46,9 +46,11 @@ module TestCaseImport
       possible_next_row = @sheet_data[@header_index + 1] if @sheet_data.length > @header_index + 1
 
       if data_row?(possible_next_row, header_row)
-        { data_rows: @sheet_data.drop(@header_index + 1), starting_row_number: @header_index + 2, device_names_row: nil }
+        { data_rows: @sheet_data.drop(@header_index + 1), starting_row_number: @header_index + 2,
+device_names_row: nil }
       else
-        { data_rows: @sheet_data.drop(@header_index + 2), starting_row_number: @header_index + 3, device_names_row: possible_next_row }
+        { data_rows: @sheet_data.drop(@header_index + 2), starting_row_number: @header_index + 3,
+device_names_row: possible_next_row }
       end
     end
 

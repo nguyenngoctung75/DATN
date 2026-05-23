@@ -13,7 +13,7 @@ class TasksController < ApplicationController
     end
 
     @stats_subtasks_count = Task.active.where.not(parent_id: nil).count
-    @stats_completed_count = Task.active.where(status: ['closed']).count
+    @stats_completed_count = Task.active.where(status: [ 'closed' ]).count
 
     # Options for status filter
     @status_options = base_scope.distinct.pluck(:status).compact.sort

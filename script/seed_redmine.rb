@@ -88,7 +88,7 @@ NOUN_BANK = {
   ]
 }.freeze
 
-CATEGORY_PREFIX = ['Chức năng', 'UI/UX', 'Validate', 'Permission', 'Edge case', 'Performance'].freeze
+CATEGORY_PREFIX = [ 'Chức năng', 'UI/UX', 'Validate', 'Permission', 'Edge case', 'Performance' ].freeze
 
 def conn
   @conn ||= Faraday.new(url: BASE_URL) do |f|

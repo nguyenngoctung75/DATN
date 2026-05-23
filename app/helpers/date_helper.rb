@@ -1,5 +1,5 @@
 module DateHelper
-  def format_date(date, format = "%Y-%m-%d")
+  def format_date(date, format = '%Y-%m-%d')
     date&.strftime(format)
   end
 
