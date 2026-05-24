@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main, master]
-    # `edited` so the workflow re-runs when the dev edits the PR description
+    # edited so the workflow re-runs when the dev edits the PR description
     # to add the Redmine link (the gating condition for notifying tooltest).
     types: [opened, edited, synchronize, reopened]
   push:
@@ -83,6 +83,17 @@ jobs:
           ruby-version-file: .ruby-version
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm deps & build CSS
+        run: |
+          npm ci
+          npm run build:css
+
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
@@ -90,8 +101,10 @@ jobs:
             sleep 2
           done
 
-      - name: Prepare DB
-        run: bundle exec rails db:prepare
+      # db:test:prepare chỉ load schema vào DB test, KHÔNG chạy db/seeds.rb.
+      # Tránh xung đột email duplicate giữa seed users và FactoryBot sequence.
+      - name: Prepare test DB (schema only, no seeds)
+        run: bundle exec rails db:test:prepare
 
       - name: Run RSpec
         run: bundle exec rspec --format documentation
@@ -151,7 +164,7 @@ jobs:
   # Runs after the three test jobs whether they pass or fail.
   # GATED: only POSTs the webhook when the PR description contains a Redmine
   # issue link (https://.../issues/<id>). If missing, logs a GitHub warning
-  # asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
+  # asking the dev to edit the PR — the edited trigger above will re-fire CI.
   # ─────────────────────────────────────────────────────────────────────────────
   notify:
     name: Notify tooltest (gated by Redmine link)
@@ -196,7 +209,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          # `jq -n --arg t "$PR_TITLE" '$t'` safely JSON-encodes the title
+          # jq -n --arg t "$PR_TITLE" '$t' safely JSON-encodes the title
           # (handles quotes, newlines, unicode, etc.)
           PR_TITLE_JSON=$(jq -n --arg t "$PR_TITLE" '$t')
           cat > /tmp/payload.json <<EOF
