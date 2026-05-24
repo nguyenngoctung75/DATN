@@ -2,9 +2,14 @@ require 'rails_helper'
 
 RSpec.describe DatabaseBackupJob, type: :job do
   let(:tmpdir) { Dir.mktmpdir }
+  let(:db_path) { File.join(tmpdir, 'test.sqlite3') }
 
   before do
     allow(Rails).to receive(:root).and_return(Pathname.new(tmpdir))
+    allow(ActiveRecord::Base).to receive(:connection_db_config).and_return(
+      double('db_config', adapter: 'sqlite3', database: db_path)
+    )
+    FileUtils.touch(db_path)
   end
 
   after { FileUtils.rm_rf(tmpdir) }
@@ -27,8 +32,7 @@ RSpec.describe DatabaseBackupJob, type: :job do
 
       before do
         FileUtils.mkdir_p(backup_dir)
-        db_config = ActiveRecord::Base.connection_db_config
-        file_name = File.basename(db_config.database)
+        file_name = File.basename(db_path)
         9.times do |i|
           FileUtils.touch(File.join(backup_dir, "#{file_name}.backup.2024-01-0#{i + 1}_00-00-00"))
         end
@@ -36,8 +40,7 @@ RSpec.describe DatabaseBackupJob, type: :job do
 
       it 'deletes the oldest backups, keeping only 7' do
         described_class.perform_now
-        db_config = ActiveRecord::Base.connection_db_config
-        file_name = File.basename(db_config.database)
+        file_name = File.basename(db_path)
         remaining = Dir.glob(File.join(backup_dir, "#{file_name}.backup.*"))
           .reject { |f| f.end_with?('-wal') }
         expect(remaining.count).to eq(7)

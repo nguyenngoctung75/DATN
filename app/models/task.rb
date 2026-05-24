@@ -54,7 +54,7 @@ class Task < ApplicationRecord
 
   scope :search, ->(q) {
     where(
-      'tasks.title LIKE :q OR tasks.description LIKE :q OR CAST(tasks.redmine_id AS TEXT) LIKE :q',
+      'tasks.title LIKE :q OR tasks.description LIKE :q OR CAST(tasks.redmine_id AS CHAR) LIKE :q',
       q: "%#{q}%"
     )
   }
@@ -79,15 +79,15 @@ class Task < ApplicationRecord
         status: 'new',
         created_by_name: created_by_name
       )
-      tcs = test_cases.where('title = ? OR function = ?', function_name, function_name)
+      tcs = test_cases.where(title: function_name)
       count = tcs.count
       tcs.update_all(task_id: subtask.id)
       update_column(:number_of_test_cases, test_cases.active.count)
       subtask.update_column(:number_of_test_cases, subtask.test_cases.active.count)
     end
-    [ subtask, count ]
+    [subtask, count]
   rescue ActiveRecord::RecordInvalid
-    [ nil, 0 ]
+    [nil, 0]
   end
 
   def promote_all_to_subtask!(project:, created_by_name:)
@@ -106,9 +106,9 @@ class Task < ApplicationRecord
       update_column(:number_of_test_cases, test_cases.active.count)
       subtask.update_column(:number_of_test_cases, subtask.test_cases.active.count)
     end
-    [ subtask, count ]
+    [subtask, count]
   rescue ActiveRecord::RecordInvalid
-    [ nil, 0 ]
+    [nil, 0]
   end
 
   def subtask?

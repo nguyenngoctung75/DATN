@@ -36,7 +36,24 @@ namespace :seed do
       raise "Project #{identifier} cần đúng 100 issue, hiện có #{issues.size}" if issues.size != 100
 
       ActiveRecord::Base.transaction do
-        Project.where(redmine_project_id: identifier).destroy_all
+        # Cleanup thủ công TestStepContent trước khi destroy Project: model
+        # TestCase khai báo has_many :test_steps, dependent: :delete_all —
+        # delete_all bỏ qua FK cascade nên TestStepContent (FK step_id ->
+        # test_steps.id, không có ON DELETE CASCADE) sẽ orphan và gây
+        # ActiveRecord::InvalidForeignKey khi MySQL xoá test_steps.
+        # Các bảng có FK -> tasks.id nhưng không khai báo cascade từ phía Task:
+        #   - ci_builds.task_id  → nullify (CiBuild#task optional: true)
+        # Các bảng cascade qua dependent: :delete_all bỏ qua FK xuống cấp sâu:
+        #   - test_cases → test_steps (delete_all) → test_step_contents (FK chặn)
+        old_project_ids = Project.where(redmine_project_id: identifier).pluck(:id)
+        if old_project_ids.any?
+          old_task_ids = Task.where(project_id: old_project_ids).pluck(:id)
+          old_tc_ids   = TestCase.where(task_id: old_task_ids).pluck(:id)
+          old_step_ids = TestStep.where(case_id: old_tc_ids).pluck(:id)
+          TestStepContent.where(step_id: old_step_ids).delete_all if old_step_ids.any?
+          CiBuild.where(task_id: old_task_ids).update_all(task_id: nil) if old_task_ids.any?
+          Project.where(id: old_project_ids).destroy_all
+        end
 
         project = Project.create!(
           name: proj['name'],

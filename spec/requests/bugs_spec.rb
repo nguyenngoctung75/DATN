@@ -99,12 +99,12 @@ RSpec.describe "Bugs", type: :request do
     end
   end
 
+# ---------------------------------------------------------------------------
+  # GET .../bugs/:id/cell_history
   # ---------------------------------------------------------------------------
-  # GET .../bugs/:id/history
-  # ---------------------------------------------------------------------------
-  describe "GET .../bugs/:id/history" do
-    it "returns 200 without layout" do
-      get history_project_task_bug_path(project, task, bug)
+  describe "GET .../bugs/:id/cell_history" do
+    it "returns JSON for a valid field" do
+      get cell_history_project_task_bug_path(project, task, bug), params: { field: "content" }
       expect(response).to have_http_status(:ok)
     end
   end

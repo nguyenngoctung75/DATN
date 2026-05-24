@@ -63,13 +63,16 @@ RSpec.describe TestRun, type: :model do
     let(:run) { TestRun.new }
 
     it 'returns 0 when no results' do
-      allow(run).to receive(:result_count).and_return(0)
+      allow(run).to receive(:pass_count).and_return(0)
+      allow(run).to receive(:fail_count).and_return(0)
+      allow(run).to receive(:not_run_count).and_return(0)
       expect(run.pass_rate).to eq(0)
     end
 
     it 'computes correctly' do
-      allow(run).to receive(:result_count).and_return(10)
       allow(run).to receive(:pass_count).and_return(7)
+      allow(run).to receive(:fail_count).and_return(2)
+      allow(run).to receive(:not_run_count).and_return(1)
       expect(run.pass_rate).to eq(70.0)
     end
   end
@@ -84,12 +87,14 @@ RSpec.describe TestRun, type: :model do
     end
 
     it '#complete! transitions to completed' do
+      run.start!
       run.complete!
       expect(run.reload.status).to eq('completed')
       expect(run.completed_at).not_to be_nil
     end
 
     it '#abort! transitions to aborted' do
+      run.start!
       run.abort!
       expect(run.reload.status).to eq('aborted')
     end

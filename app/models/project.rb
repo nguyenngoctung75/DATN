@@ -48,8 +48,7 @@ class Project < ApplicationRecord
     if q.present?
       like_q = "%#{q.to_s.strip.downcase}%"
       scope = scope.where(
-        'LOWER(tasks.title) LIKE :q OR CAST(tasks.id AS TEXT) LIKE :raw_q ' \
-        'OR CAST(tasks.redmine_id AS TEXT) LIKE :raw_q',
+        'LOWER(tasks.title) LIKE :q OR CAST(tasks.id AS CHAR) LIKE :raw_q OR CAST(tasks.redmine_id AS CHAR) LIKE :raw_q',
         q: like_q, raw_q: "%#{q.to_s.strip}%"
       )
     end

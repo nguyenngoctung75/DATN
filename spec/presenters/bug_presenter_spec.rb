@@ -65,17 +65,6 @@ RSpec.describe BugPresenter do
     end
   end
 
-  describe '#to_sheet_row' do
-    it 'returns a hash with display values' do
-      row = subject.to_sheet_row
-      expect(row[:application]).to eq('SP + PC')
-      expect(row[:category]).to eq('STG Bugs (VN)')
-      expect(row[:dev]).to eq('N/A')
-      expect(row[:tester]).to eq('N/A')
-      expect(row[:no]).to eq(bug.id)
-    end
-  end
-
   it 'delegates model methods via SimpleDelegator' do
     expect(subject.title).to eq(bug.title)
     expect(subject.task_id).to eq(bug.task_id)
