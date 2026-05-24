@@ -14,9 +14,10 @@ RSpec.describe GoogleSheetService do
       .and_return(true)
     fake_creds = instance_double(Google::Auth::ServiceAccountCredentials)
     allow(Google::Auth::ServiceAccountCredentials).to receive(:make_creds).and_return(fake_creds)
-    allow(File).to receive(:open)
+    allow(File).to receive(:read).and_call_original
+    allow(File).to receive(:read)
       .with(Rails.root.join('config', 'google_credentials.json'))
-      .and_return(StringIO.new('{}'))
+      .and_return('{}')
   end
 
   describe '#list_sheets' do
