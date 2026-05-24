@@ -34,11 +34,11 @@ end
 
 SEED_PROJECTS = [
   { identifier: 'seed-mobile-banking', theme: :banking,
-    feature_groups: ['Auth', 'Transfer', 'Card', 'Bill', 'Savings'] },
+    feature_groups: [ 'Auth', 'Transfer', 'Card', 'Bill', 'Savings' ] },
   { identifier: 'seed-ecommerce-shop', theme: :ecommerce,
-    feature_groups: ['Search', 'Cart', 'Checkout', 'Order', 'Review'] },
+    feature_groups: [ 'Search', 'Cart', 'Checkout', 'Order', 'Review' ] },
   { identifier: 'seed-admin-dashboard', theme: :admin,
-    feature_groups: ['RBAC', 'Audit', 'Report', 'Config', 'Notification'] }
+    feature_groups: [ 'RBAC', 'Audit', 'Report', 'Config', 'Notification' ] }
 ].freeze
 
 NOUN_BANK = {
@@ -123,7 +123,8 @@ def lookup_ids
   trackers = get_json('/trackers.json')['trackers']
   statuses = get_json('/issue_statuses.json')['issue_statuses']
 
-  tr = ->(name) { trackers.find { |t| t['name'] == name }&.dig('id') or abort("Tracker '#{name}' chưa có. Chạy bootstrap script.") }
+  tr = ->(name) { trackers.find { |t|
+ t['name'] == name }&.dig('id') or abort("Tracker '#{name}' chưa có. Chạy bootstrap script.") }
   st = ->(name) { statuses.find { |s| s['name'] == name }&.dig('id') or abort("Status '#{name}' chưa có.") }
 
   {
@@ -346,4 +347,6 @@ File.write(out_path, JSON.pretty_generate(output))
 puts ''
 puts "Đã ghi #{out_path}"
 puts "Tổng: #{output['projects'].size} project, #{output['projects'].sum { |p| p['issues'].size }} Testing issue"
-puts "(mỗi project còn có #{output['projects'].first['issues'].size} User Story + 5 sibling task/phase khác = #{output['projects'].first['issues'].size * 7} issue total/project)"
+issues_per_project = output['projects'].first['issues'].size
+total = issues_per_project * 7
+puts "(mỗi project còn có #{issues_per_project} User Story + 5 sibling task/phase khác = #{total} issue total/project)"

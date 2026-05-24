@@ -85,11 +85,12 @@ ActiveRecord::Base.transaction do
   ai_usage_cf = IssueCustomField.find_by!(name: 'AI usage')
   attach(ai_usage_cf, task_tr)
 
-  IssuePriority.find_or_create_by!(name: 'Medium') { |p| p.is_default = true } unless IssuePriority.exists?(name: 'Medium')
+  IssuePriority.find_or_create_by!(name: 'Medium') { |p|
+ p.is_default = true } unless IssuePriority.exists?(name: 'Medium')
 
   default_role = Role.find_by(name: 'Manager') || Role.where(builtin: 0).first
   if default_role
-    [story_tr, task_tr, test_tr].each do |tr|
+    [ story_tr, task_tr, test_tr ].each do |tr|
       next if WorkflowTransition.exists?(tracker_id: tr.id, role_id: default_role.id)
 
       IssueStatus.where(is_closed: false).find_each do |from|
@@ -111,7 +112,7 @@ ActiveRecord::Base.transaction do
       pr.description = spec[:description]
       pr.is_public   = true
     end
-    p.trackers = ([story_tr, task_tr, test_tr] | p.trackers.to_a)
+    p.trackers = ([ story_tr, task_tr, test_tr ] | p.trackers.to_a)
     p.enabled_module_names = (p.enabled_module_names | %w[issue_tracking])
     p.save!
 
