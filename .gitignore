@@ -7,8 +7,9 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
+# Ignore all environment files except the example template.
 /.env*
+!/.env.example
 
 *.md
 # Ignore all logfiles and tempfiles.
@@ -48,3 +49,7 @@ config/google_credentials.json
 /.vscode
 
 mise.toml
+
+# DATN LaTeX project (local-only)
+/datn/
+/datn_overleaf.zip
