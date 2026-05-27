@@ -173,7 +173,7 @@ jobs:
 
       - name: Run Playwright tests
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.playwright.yml \
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml -f docker-compose.playwright.yml \
             run --rm playwright
 
       - name: Upload Playwright report
