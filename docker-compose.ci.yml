@@ -8,12 +8,15 @@
 
 services:
   web:
+    image: tool_test_ci_web:latest
+    pull_policy: never
     environment:
       RAILS_ENV: development
       CI: "true"
     command: >
       bash -c "
         set -e
+        chmod +x bin/* 2>/dev/null || true
         rm -f tmp/pids/server.pid
         echo '[ci] npm ci...'
         npm ci --prefer-offline --no-audit --no-fund --quiet
