@@ -13,6 +13,7 @@ services:
     environment:
       RAILS_ENV: development
       CI: "true"
+      DEV_ALLOWED_HOST: web
     command: >
       bash -c "
         set -e
