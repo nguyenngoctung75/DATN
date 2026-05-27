@@ -182,13 +182,13 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
 
-  ─────────────────────────────────────────────────────────────────────────────
-  Notify tooltest of CI result.
-  Runs after the three test jobs whether they pass or fail.
-  GATED: only POSTs the webhook when the PR description contains a Redmine
-  issue link (https://.../issues/<id>). If missing, logs a GitHub warning
-  asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
-  ─────────────────────────────────────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Notify tooltest of CI result.
+  # Runs after the three test jobs whether they pass or fail.
+  # GATED: only POSTs the webhook when the PR description contains a Redmine
+  # issue link (https://.../issues/<id>). If missing, logs a GitHub warning
+  # asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
+  # ─────────────────────────────────────────────────────────────────────────────
   notify:
     name: Notify tooltest (gated by Redmine link)
     runs-on: ubuntu-latest
