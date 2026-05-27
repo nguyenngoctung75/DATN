@@ -182,105 +182,105 @@ jobs:
         if: always()
         run: docker compose -f docker-compose.yml -f docker-compose.ci.yml down -v
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # Notify tooltest of CI result.
-  # Runs after the three test jobs whether they pass or fail.
-  # GATED: only POSTs the webhook when the PR description contains a Redmine
-  # issue link (https://.../issues/<id>). If missing, logs a GitHub warning
-  # asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
-  # ─────────────────────────────────────────────────────────────────────────────
-  # notify:
-  #   name: Notify tooltest (gated by Redmine link)
-  #   runs-on: ubuntu-latest
-  #   needs: [rubocop, rspec, e2e]
-  #   if: always()
+  ─────────────────────────────────────────────────────────────────────────────
+  Notify tooltest of CI result.
+  Runs after the three test jobs whether they pass or fail.
+  GATED: only POSTs the webhook when the PR description contains a Redmine
+  issue link (https://.../issues/<id>). If missing, logs a GitHub warning
+  asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
+  ─────────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Notify tooltest (gated by Redmine link)
+    runs-on: ubuntu-latest
+    needs: [rubocop, rspec, e2e]
+    if: always()
 
-  #   steps:
-  #     - name: Compute aggregate status
-  #       id: agg
-  #       run: |
-  #         rubocop="${{ needs.rubocop.result }}"
-  #         rspec="${{ needs.rspec.result }}"
-  #         e2e="${{ needs.e2e.result }}"
+    steps:
+      - name: Compute aggregate status
+        id: agg
+        run: |
+          rubocop="${{ needs.rubocop.result }}"
+          rspec="${{ needs.rspec.result }}"
+          e2e="${{ needs.e2e.result }}"
 
-  #         # GitHub job conclusions: success | failure | cancelled | skipped
-  #         # - any failure        → failed
-  #         # - all success        → success
-  #         # - otherwise (any skipped/cancelled and no failure) → not_run
-  #         if [[ "$rubocop" == "failure" || "$rspec" == "failure" || "$e2e" == "failure" ]]; then
-  #           echo "status=failed"  >> "$GITHUB_OUTPUT"
-  #         elif [[ "$rubocop" == "success" && "$rspec" == "success" && "$e2e" == "success" ]]; then
-  #           echo "status=success" >> "$GITHUB_OUTPUT"
-  #         else
-  #           echo "status=not_run" >> "$GITHUB_OUTPUT"
-  #         fi
+          # GitHub job conclusions: success | failure | cancelled | skipped
+          # - any failure        → failed
+          # - all success        → success
+          # - otherwise (any skipped/cancelled and no failure) → not_run
+          if [[ "$rubocop" == "failure" || "$rspec" == "failure" || "$e2e" == "failure" ]]; then
+            echo "status=failed"  >> "$GITHUB_OUTPUT"
+          elif [[ "$rubocop" == "success" && "$rspec" == "success" && "$e2e" == "success" ]]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=not_run" >> "$GITHUB_OUTPUT"
+          fi
 
-  #     - name: Extract Redmine issue link from PR body
-  #       id: redmine
-  #       if: github.event_name == 'pull_request'
-  #       env:
-  #         PR_BODY: ${{ github.event.pull_request.body }}
-  #       run: |
-  #         # Regex per spec: https?://.*/issues/<number>
-  #         link=$(printf '%s' "$PR_BODY" | grep -Eo 'https?://[^[:space:]]+/issues/[0-9]+' | head -1 || true)
-  #         if [[ -z "$link" ]]; then
-  #           echo "::warning title=Redmine link missing::PR description has no Redmine issue link (https://.../issues/<id>). Webhook to tooltest will NOT be sent. Edit the PR description to add it; CI will re-run automatically."
-  #           echo "found=false" >> "$GITHUB_OUTPUT"
-  #         else
-  #           id=$(echo "$link" | grep -Eo '[0-9]+$')
-  #           echo "Found Redmine link: $link (issue #$id)"
-  #           echo "found=true"   >> "$GITHUB_OUTPUT"
-  #           echo "link=$link"   >> "$GITHUB_OUTPUT"
-  #           echo "issue_id=$id" >> "$GITHUB_OUTPUT"
-  #         fi
+      - name: Extract Redmine issue link from PR body
+        id: redmine
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Regex per spec: https?://.*/issues/<number>
+          link=$(printf '%s' "$PR_BODY" | grep -Eo 'https?://[^[:space:]]+/issues/[0-9]+' | head -1 || true)
+          if [[ -z "$link" ]]; then
+            echo "::warning title=Redmine link missing::PR description has no Redmine issue link (https://.../issues/<id>). Webhook to tooltest will NOT be sent. Edit the PR description to add it; CI will re-run automatically."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            id=$(echo "$link" | grep -Eo '[0-9]+$')
+            echo "Found Redmine link: $link (issue #$id)"
+            echo "found=true"   >> "$GITHUB_OUTPUT"
+            echo "link=$link"   >> "$GITHUB_OUTPUT"
+            echo "issue_id=$id" >> "$GITHUB_OUTPUT"
+          fi
 
-  #     - name: Build payload
-  #       id: payload
-  #       if: github.event_name == 'pull_request' && steps.redmine.outputs.found == 'true'
-  #       env:
-  #         PR_TITLE: ${{ github.event.pull_request.title }}
-  #       run: |
-  #         # `jq -n --arg t "$PR_TITLE" '$t'` safely JSON-encodes the title
-  #         # (handles quotes, newlines, unicode, etc.)
-  #         PR_TITLE_JSON=$(jq -n --arg t "$PR_TITLE" '$t')
-  #         cat > /tmp/payload.json <<EOF
-  #         {
-  #           "commit_sha":       "${{ github.event.pull_request.head.sha }}",
-  #           "branch":           "${{ github.event.pull_request.head.ref }}",
-  #           "base_branch":      "${{ github.event.pull_request.base.ref }}",
-  #           "status":           "${{ steps.agg.outputs.status }}",
-  #           "workflow_run_id":  "${{ github.run_id }}",
-  #           "author":           "${{ github.event.pull_request.user.login }}",
-  #           "github_url":       "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-  #           "pr_url":           "${{ github.event.pull_request.html_url }}",
-  #           "pr_number":        ${{ github.event.pull_request.number }},
-  #           "pr_title":         $PR_TITLE_JSON,
-  #           "repository":       "${{ github.repository }}",
-  #           "redmine_link":     "${{ steps.redmine.outputs.link }}",
-  #           "redmine_issue_id": ${{ steps.redmine.outputs.issue_id }},
-  #           "event":            "${{ github.event_name }}",
-  #           "action":           "${{ github.event.action }}",
-  #           "timestamp":        "$(date -u +%FT%TZ)"
-  #         }
-  #         EOF
-  #         echo "Payload:"
-  #         cat /tmp/payload.json
+      - name: Build payload
+        id: payload
+        if: github.event_name == 'pull_request' && steps.redmine.outputs.found == 'true'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # `jq -n --arg t "$PR_TITLE" '$t'` safely JSON-encodes the title
+          # (handles quotes, newlines, unicode, etc.)
+          PR_TITLE_JSON=$(jq -n --arg t "$PR_TITLE" '$t')
+          cat > /tmp/payload.json <<EOF
+          {
+            "commit_sha":       "${{ github.event.pull_request.head.sha }}",
+            "branch":           "${{ github.event.pull_request.head.ref }}",
+            "base_branch":      "${{ github.event.pull_request.base.ref }}",
+            "status":           "${{ steps.agg.outputs.status }}",
+            "workflow_run_id":  "${{ github.run_id }}",
+            "author":           "${{ github.event.pull_request.user.login }}",
+            "github_url":       "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "pr_url":           "${{ github.event.pull_request.html_url }}",
+            "pr_number":        ${{ github.event.pull_request.number }},
+            "pr_title":         $PR_TITLE_JSON,
+            "repository":       "${{ github.repository }}",
+            "redmine_link":     "${{ steps.redmine.outputs.link }}",
+            "redmine_issue_id": ${{ steps.redmine.outputs.issue_id }},
+            "event":            "${{ github.event_name }}",
+            "action":           "${{ github.event.action }}",
+            "timestamp":        "$(date -u +%FT%TZ)"
+          }
+          EOF
+          echo "Payload:"
+          cat /tmp/payload.json
 
-  #     - name: Sign and POST to tooltest
-  #       if: github.event_name == 'pull_request' && steps.redmine.outputs.found == 'true'
-  #       env:
-  #         CI_WEBHOOK_SECRET: ${{ secrets.TOOLTEST_CI_WEBHOOK_SECRET }}
-  #         TOOLTEST_URL:      ${{ secrets.TOOLTEST_BASE_URL }}
-  #       run: |
-  #         # Sign the request body so the Rails app can verify origin via
-  #         # constant-time HMAC compare. Same X-Hub-Signature-256 convention
-  #         # GitHub itself uses for its own webhooks.
-  #         SIG=$(openssl dgst -sha256 -hmac "$CI_WEBHOOK_SECRET" -hex /tmp/payload.json \
-  #                 | sed 's/^[^=]*= //')
-  #         curl -fsS --max-time 30 \
-  #              -X POST "$TOOLTEST_URL/api/v1/github_webhooks/ci_result" \
-  #              -H "Content-Type: application/json" \
-  #              -H "X-Hub-Signature-256: sha256=$SIG" \
-  #              -H "User-Agent: tooltest-ci/1.0" \
-  #              --data-binary @/tmp/payload.json \
-  #           || echo "::warning::Failed to notify tooltest (CI verdict unchanged on GitHub)."
+      - name: Sign and POST to tooltest
+        if: github.event_name == 'pull_request' && steps.redmine.outputs.found == 'true'
+        env:
+          CI_WEBHOOK_SECRET: ${{ secrets.TOOLTEST_CI_WEBHOOK_SECRET }}
+          TOOLTEST_URL:      ${{ secrets.TOOLTEST_BASE_URL }}
+        run: |
+          # Sign the request body so the Rails app can verify origin via
+          # constant-time HMAC compare. Same X-Hub-Signature-256 convention
+          # GitHub itself uses for its own webhooks.
+          SIG=$(openssl dgst -sha256 -hmac "$CI_WEBHOOK_SECRET" -hex /tmp/payload.json \
+                  | sed 's/^[^=]*= //')
+          curl -fsS --max-time 30 \
+               -X POST "$TOOLTEST_URL/api/v1/github_webhooks/ci_result" \
+               -H "Content-Type: application/json" \
+               -H "X-Hub-Signature-256: sha256=$SIG" \
+               -H "User-Agent: tooltest-ci/1.0" \
+               --data-binary @/tmp/payload.json \
+            || echo "::warning::Failed to notify tooltest (CI verdict unchanged on GitHub)."
