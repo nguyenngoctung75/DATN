@@ -135,7 +135,7 @@ jobs:
             --cache-from type=local,src=/tmp/.buildx-cache \
             --cache-to   type=local,dest=/tmp/.buildx-cache-new,mode=max \
             --target development \
-            --tag tool_test_project-web:latest \
+            --tag tool_test_ci_web:latest \
             --load \
             .
           rm -rf /tmp/.buildx-cache
@@ -156,13 +156,19 @@ jobs:
         run: |
           for i in {1..90}; do
             if curl -fsS -o /dev/null http://localhost:4000/; then
-              echo "Rails is up"; exit 0
+              echo "Rails is up (after $((i*5))s)"; exit 0
             fi
             echo "Waiting... ($i/90)"
+            # In log container mỗi ~30s để thấy tiến trình boot / lỗi thật ngay lập tức
+            if [ $((i % 6)) -eq 0 ]; then
+              echo "---- docker compose logs web (tail 40) ----"
+              docker compose -f docker-compose.yml -f docker-compose.ci.yml logs --tail=40 web || true
+              echo "-------------------------------------------"
+            fi
             sleep 5
           done
           echo "Rails did not become ready in time"
-          docker compose logs web
+          docker compose -f docker-compose.yml -f docker-compose.ci.yml logs web
           exit 1
 
       - name: Run Playwright tests
