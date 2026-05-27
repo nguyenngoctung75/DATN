@@ -1,0 +1,27 @@
+# CI override — dùng với: docker compose -f docker-compose.yml -f docker-compose.ci.yml
+#
+# Thay thế command của web service để:
+#   1. Chạy npm ci (populate node_modules từ package-lock.json, không phụ thuộc named volume)
+#   2. Build CSS một lần (không watch)
+#   3. Chạy rails server trực tiếp (bỏ foreman/bin/dev vì không cần CSS watch trong CI)
+#   4. Chạy solid_queue trong background cùng process
+
+services:
+  web:
+    environment:
+      RAILS_ENV: development
+      CI: "true"
+    command: >
+      bash -c "
+        set -e
+        rm -f tmp/pids/server.pid
+        echo '[ci] npm ci...'
+        npm ci --prefer-offline --no-audit --no-fund --quiet
+        echo '[ci] build css...'
+        npm run build:css
+        echo '[ci] db:prepare...'
+        bin/rails db:prepare
+        echo '[ci] starting rails server...'
+        bin/rails solid_queue:start &
+        bin/rails server -b 0.0.0.0 -p 4000
+      "
