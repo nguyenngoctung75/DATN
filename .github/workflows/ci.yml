@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [main, master]
-    # edited so the workflow re-runs when the dev edits the PR description
+    # `edited` so the workflow re-runs when the dev edits the PR description
     # to add the Redmine link (the gating condition for notifying tooltest).
     types: [opened, edited, synchronize, reopened]
   push:
@@ -101,7 +101,7 @@ jobs:
             sleep 2
           done
 
-      # db:test:prepare chỉ load schema vào DB test, KHÔNG chạy db/seeds.rb.
+      # `db:test:prepare` chỉ load schema vào DB test, KHÔNG chạy db/seeds.rb.
       # Tránh xung đột email duplicate giữa seed users và FactoryBot sequence.
       - name: Prepare test DB (schema only, no seeds)
         run: bundle exec rails db:test:prepare
@@ -164,7 +164,7 @@ jobs:
   # Runs after the three test jobs whether they pass or fail.
   # GATED: only POSTs the webhook when the PR description contains a Redmine
   # issue link (https://.../issues/<id>). If missing, logs a GitHub warning
-  # asking the dev to edit the PR — the edited trigger above will re-fire CI.
+  # asking the dev to edit the PR — the `edited` trigger above will re-fire CI.
   # ─────────────────────────────────────────────────────────────────────────────
   notify:
     name: Notify tooltest (gated by Redmine link)
@@ -176,12 +176,20 @@ jobs:
       - name: Compute aggregate status
         id: agg
         run: |
-          if [[ "${{ needs.rubocop.result }}" == "success" \
-             && "${{ needs.rspec.result }}"   == "success" \
-             && "${{ needs.e2e.result }}"     == "success" ]]; then
+          rubocop="${{ needs.rubocop.result }}"
+          rspec="${{ needs.rspec.result }}"
+          e2e="${{ needs.e2e.result }}"
+
+          # GitHub job conclusions: success | failure | cancelled | skipped
+          # - any failure        → failed
+          # - all success        → success
+          # - otherwise (any skipped/cancelled and no failure) → not_run
+          if [[ "$rubocop" == "failure" || "$rspec" == "failure" || "$e2e" == "failure" ]]; then
+            echo "status=failed"  >> "$GITHUB_OUTPUT"
+          elif [[ "$rubocop" == "success" && "$rspec" == "success" && "$e2e" == "success" ]]; then
             echo "status=success" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failed"  >> "$GITHUB_OUTPUT"
+            echo "status=not_run" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Extract Redmine issue link from PR body
@@ -209,7 +217,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          # jq -n --arg t "$PR_TITLE" '$t' safely JSON-encodes the title
+          # `jq -n --arg t "$PR_TITLE" '$t'` safely JSON-encodes the title
           # (handles quotes, newlines, unicode, etc.)
           PR_TITLE_JSON=$(jq -n --arg t "$PR_TITLE" '$t')
           cat > /tmp/payload.json <<EOF
