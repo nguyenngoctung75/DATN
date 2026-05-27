@@ -83,6 +83,17 @@ jobs:
           ruby-version-file: .ruby-version
           bundler-cache: true
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm deps & build CSS
+        run: |
+          npm ci
+          npm run build:css
+
       - name: Wait for MySQL
         run: |
           for i in {1..30}; do
@@ -90,8 +101,10 @@ jobs:
             sleep 2
           done
 
-      - name: Prepare DB
-        run: bundle exec rails db:prepare
+      # `db:test:prepare` chỉ load schema vào DB test, KHÔNG chạy db/seeds.rb.
+      # Tránh xung đột email duplicate giữa seed users và FactoryBot sequence.
+      - name: Prepare test DB (schema only, no seeds)
+        run: bundle exec rails db:test:prepare
 
       - name: Run RSpec
         run: bundle exec rspec --format documentation
@@ -163,12 +176,20 @@ jobs:
       - name: Compute aggregate status
         id: agg
         run: |
-          if [[ "${{ needs.rubocop.result }}" == "success" \
-             && "${{ needs.rspec.result }}"   == "success" \
-             && "${{ needs.e2e.result }}"     == "success" ]]; then
+          rubocop="${{ needs.rubocop.result }}"
+          rspec="${{ needs.rspec.result }}"
+          e2e="${{ needs.e2e.result }}"
+
+          # GitHub job conclusions: success | failure | cancelled | skipped
+          # - any failure        → failed
+          # - all success        → success
+          # - otherwise (any skipped/cancelled and no failure) → not_run
+          if [[ "$rubocop" == "failure" || "$rspec" == "failure" || "$e2e" == "failure" ]]; then
+            echo "status=failed"  >> "$GITHUB_OUTPUT"
+          elif [[ "$rubocop" == "success" && "$rspec" == "success" && "$e2e" == "success" ]]; then
             echo "status=success" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failed"  >> "$GITHUB_OUTPUT"
+            echo "status=not_run" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Extract Redmine issue link from PR body
