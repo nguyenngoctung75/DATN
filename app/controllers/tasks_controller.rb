@@ -46,6 +46,8 @@ class TasksController < ApplicationController
     @paginated_test_cases = ordered_tc.offset(tc_start).limit(@test_cases_per_page).to_a
     @existing_titles = @task.test_cases.active.pluck(:title).uniq.compact.sort
 
+    @ci_builds = @task.ci_builds.recent.limit(20)
+
     respond_to do |format|
       format.html
       format.json { render json: @task.as_json(include: %i[test_cases assignee]) }

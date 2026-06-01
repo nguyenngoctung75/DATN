@@ -23,6 +23,22 @@ RSpec.describe Task, type: :model do
     end
   end
 
+  describe 'ci_builds association' do
+    it 'has many ci_builds' do
+      task = create(:task, project: project)
+      build1 = create(:ci_build, task: task, workflow_run_id: 'wf-1')
+      build2 = create(:ci_build, task: task, workflow_run_id: 'wf-2')
+      expect(task.ci_builds).to contain_exactly(build1, build2)
+    end
+
+    it 'nullifies ci_builds when task is destroyed (keep audit trail)' do
+      task = create(:task, project: project)
+      ci_build = create(:ci_build, task: task, workflow_run_id: 'wf-keep')
+      task.destroy
+      expect(ci_build.reload.task_id).to be_nil
+    end
+  end
+
   describe '#normalize_status (before_save)' do
     it 'downcases and strips status' do
       task = create(:task, project: project, status: '  In_Progress ')

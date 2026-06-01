@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class CiBuild < ApplicationRecord
-  STATUSES = %w[success failed].freeze
+  STATUSES = %w[success failed not_run].freeze
 
   belongs_to :task, optional: true
 
@@ -13,6 +13,14 @@ class CiBuild < ApplicationRecord
 
   def succeeded?
     status == 'success'
+  end
+
+  def failed?
+    status == 'failed'
+  end
+
+  def not_run?
+    status == 'not_run'
   end
 
   def short_sha

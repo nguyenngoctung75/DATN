@@ -20,6 +20,7 @@ class Task < ApplicationRecord
   has_many :test_cases, dependent: :destroy
   has_many :test_runs, dependent: :destroy
   has_many :bugs, dependent: :destroy
+  has_many :ci_builds, dependent: :nullify
 
   validates :title, presence: true
   validates :status, inclusion: { in: STATUSES, allow_nil: true }

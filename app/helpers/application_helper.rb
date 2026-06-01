@@ -5,6 +5,27 @@ module ApplicationHelper
     render partial: 'shared/toast', locals: { message: message, type: type }
   end
 
+  # CI/CD status badge mapping for CiBuild
+  CI_STATUS_BADGE = {
+    'success' => 'bg-success',
+    'failed'  => 'bg-danger',
+    'not_run' => 'bg-secondary'
+  }.freeze
+
+  CI_STATUS_LABEL = {
+    'success' => 'PASS',
+    'failed'  => 'FAIL',
+    'not_run' => 'NOT RUN'
+  }.freeze
+
+  def ci_status_badge_class(status)
+    CI_STATUS_BADGE[status.to_s] || 'bg-secondary'
+  end
+
+  def ci_status_label(status)
+    CI_STATUS_LABEL[status.to_s] || status.to_s.upcase
+  end
+
   def status_badge_color(status)
     case status.to_s.downcase
     when 'new', 'open'
