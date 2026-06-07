@@ -23,6 +23,7 @@ require 'faraday'
 require 'json'
 require 'fileutils'
 require 'date'
+require_relative '../db/seeds/content_library' # Seeds::ContentLibrary::TOOLTEST_FEATURES
 
 BASE_URL = ENV['REDMINE_BASE_URL']
 API_KEY  = ENV['REDMINE_API_KEY']
@@ -33,6 +34,8 @@ if BASE_URL.to_s.empty? || API_KEY.to_s.empty?
 end
 
 SEED_PROJECTS = [
+  { identifier: 'seed-tooltest', theme: :tooltest,
+    feature_groups: [ 'Auth', 'Project', 'Task', 'TestCase', 'TestRun', 'Bug', 'Import', 'CICD' ] },
   { identifier: 'seed-mobile-banking', theme: :banking,
     feature_groups: [ 'Auth', 'Transfer', 'Card', 'Bill', 'Savings' ] },
   { identifier: 'seed-ecommerce-shop', theme: :ecommerce,
@@ -77,7 +80,8 @@ NOUN_BANK = {
     'cấu hình ngưỡng cảnh báo', 'gửi notification broadcast', 'quản lý template email',
     'import danh sách user từ CSV', 'sao lưu database thủ công', 'khôi phục từ backup',
     'cấu hình rate limit API', 'quản lý API token', 'thu hồi API token'
-  ]
+  ],
+  tooltest: Seeds::ContentLibrary::TOOLTEST_FEATURES
 }.freeze
 
 PHASES = [
@@ -129,7 +133,7 @@ def lookup_ids
 
   {
     tracker: { 'User story' => tr['User story'], 'Task' => tr['Task'], 'Test' => tr['Test'] },
-    status:  { 'New' => st['New'] }
+    status:  { 'New' => st['New'], 'Closed' => st['Closed'] }
   }
 end
 
@@ -151,7 +155,9 @@ end
 def title_phrase(theme, seq, feature_groups)
   noun = NOUN_BANK.fetch(theme)[(seq - 1) % NOUN_BANK.fetch(theme).size]
   group = feature_groups[(seq - 1) % feature_groups.size]
-  "【#{group}】#{noun.capitalize}"
+  # Chỉ viết hoa chữ cái đầu, giữ nguyên proper noun (Devise, GitHub, Redmine...).
+  noun_cap = noun.sub(/\A./, &:upcase)
+  "【#{group}】#{noun_cap}"
 end
 
 def story_subject(github_seq, phrase) = "##{github_seq} #{phrase}"
@@ -262,16 +268,27 @@ end
 # ---------- Main ----------
 
 ids = lookup_ids
-story_tr = ids[:tracker]['User story']
-task_tr  = ids[:tracker]['Task']
-test_tr  = ids[:tracker]['Test']
-new_st   = ids[:status]['New']
+story_tr  = ids[:tracker]['User story']
+task_tr   = ids[:tracker]['Task']
+test_tr   = ids[:tracker]['Test']
+new_st    = ids[:status]['New']
+closed_st = ids[:status]['Closed'] or abort("Status 'Closed' chưa có. Chạy lại bootstrap script.")
 
-puts "IDs: User story=#{story_tr}, Task=#{task_tr}, Test=#{test_tr}, status New=#{new_st}"
+# Mỗi project: TARGET User Story, trong đó CLOSED_COUNT story đầu (+children) = Closed.
+TARGET       = Integer(ENV.fetch('SEED_TARGET', '200'))
+CLOSED_COUNT = Integer(ENV.fetch('SEED_CLOSED', '190'))
+
+# Lọc project cần seed (mặc định tất cả). Vd: SEED_PROJECT_FILTER=seed-mobile-banking,seed-ecommerce-shop
+filter = ENV['SEED_PROJECT_FILTER'].to_s.split(',').map(&:strip).reject(&:empty?)
+seed_projects = filter.empty? ? SEED_PROJECTS : SEED_PROJECTS.select { |s| filter.include?(s[:identifier]) }
+
+puts "IDs: User story=#{story_tr}, Task=#{task_tr}, Test=#{test_tr}, New=#{new_st}, Closed=#{closed_st}"
+puts "Target=#{TARGET}/project, closed đầu=#{CLOSED_COUNT}, projects=#{seed_projects.map { |s|
+ s[:identifier] }.join(', ')}"
 
 output = { 'projects' => [] }
 
-SEED_PROJECTS.each do |seed|
+seed_projects.each do |seed|
   identifier = seed[:identifier]
   project_id = project_id_for(identifier)
   version_id = version_id_for(identifier, SPRINT_NAME)
@@ -282,22 +299,21 @@ SEED_PROJECTS.each do |seed|
   puts "=== Project #{identifier} (id=#{project_id}, version=#{version_id || 'none'}) ==="
 
   stories = existing_stories(identifier, story_tr)
-  if stories.size >= 100
-    puts "  [skip] đã có #{stories.size} User Story, không tạo thêm"
-  end
+  puts "  [skip] đã có #{stories.size} User Story (reuse)" if stories.size >= TARGET
 
-  target = 100
   testing_collect = []
 
-  (1..target).each do |seq|
+  (1..TARGET).each do |seq|
     github_seq = SEQ_BASE + seq
     phrase = title_phrase(theme, seq, feature_groups)
+    closed = seq <= CLOSED_COUNT
+    st = closed ? closed_st : new_st
 
     story_subj = story_subject(github_seq, phrase)
     story = stories.find { |s| s['subject'] == story_subj }
     if story.nil?
       data = post_json('/issues.json',
-                       story_payload(project_id, story_tr, new_st, version_id, github_seq, phrase))
+                       story_payload(project_id, story_tr, st, version_id, github_seq, phrase))
       story_id = data['issue']['id']
     else
       story_id = story['id']
@@ -311,24 +327,25 @@ SEED_PROJECTS.each do |seed|
         subj = child_subject(phase, github_seq, phrase)
         if phase[:tracker] == 'Test'
           data = post_json('/issues.json',
-                           testing_child_payload(project_id, test_tr, new_st, version_id, story_id, subj, seq))
-          testing_collect << { 'id' => data['issue']['id'], 'subject' => subj }
+                           testing_child_payload(project_id, test_tr, st, version_id, story_id, subj, seq))
+          testing_collect << { 'id' => data['issue']['id'], 'subject' => subj, 'status' => closed ? 'closed' : 'open' }
         else
           post_json('/issues.json',
-                    task_child_payload(project_id, task_tr, new_st, version_id, story_id, subj))
+                    task_child_payload(project_id, task_tr, st, version_id, story_id, subj))
         end
       end
     else
       testing_collect << { 'id' => existing_children.first['id'],
-                           'subject' => existing_children.first['subject'] }
+                           'subject' => existing_children.first['subject'],
+                           'status' => closed ? 'closed' : 'open' }
     end
 
-    print "\r  story #{seq}/#{target}"
+    print "\r  story #{seq}/#{TARGET}"
     $stdout.flush
   end
   puts ''
 
-  raise "Số Testing thu được #{testing_collect.size} != #{target}" if testing_collect.size != target
+  raise "Số Testing thu được #{testing_collect.size} != #{TARGET}" if testing_collect.size != TARGET
 
   project_full = get_json("/projects/#{identifier}.json")['project']
   output['projects'] << {

@@ -9,7 +9,8 @@
 #   docker compose exec -T redmine bundle exec rails runner /dev/stdin \
 #     < script/seed_redmine_bootstrap.rb
 
-NEW_STATUS = IssueStatus.find_or_create_by!(name: 'New') { |s| s.is_closed = false }
+NEW_STATUS    = IssueStatus.find_or_create_by!(name: 'New') { |s| s.is_closed = false }
+CLOSED_STATUS = IssueStatus.find_or_create_by!(name: 'Closed') { |s| s.is_closed = true }
 
 TRACKER_SPECS = [
   { name: 'User story', position: 12 },
@@ -36,6 +37,9 @@ TEST_CF_SPECS = [
 ].freeze
 
 PROJECT_SPECS = [
+  { identifier: 'seed-tooltest',
+    name: 'Tooltest — Hệ thống Quản lý Test Case',
+    description: 'Dự án kiểm thử chính hệ thống Test Case Management Tool (Rails 8 + Hotwire + MySQL + CI/CD).' },
   { identifier: 'seed-mobile-banking',
     name: 'Ứng dụng Mobile Banking',
     description: 'Dự án kiểm thử ứng dụng ngân hàng di động.' },
@@ -103,6 +107,19 @@ ActiveRecord::Base.transaction do
           )
         end
       end
+    end
+  end
+
+  # Reset để seed lại sạch: xoá toàn bộ seed project (chỉ các identifier seed-*, KHÔNG
+  # đụng project ngoài seed) rồi tạo lại theo thứ tự PROJECT_SPECS (Tooltest đầu tiên).
+  # KHÔNG ép Tooltest = id 1: trên Redmine sạch nó tự nhận id 1; trên Redmine đã dùng
+  # nó nhận id kế tiếp — kết quả web (sau TRUNCATE) vẫn tất định, chỉ created_at khác máy.
+  # Tắt bằng SEED_REDMINE_RESET=0.
+  if ENV.fetch('SEED_REDMINE_RESET', '1') == '1'
+    seed_ids = %w[seed-tooltest seed-mobile-banking seed-ecommerce-shop seed-admin-dashboard]
+    Project.where(identifier: seed_ids).find_each do |old|
+      puts "Reset: xoá seed project #{old.identifier} (##{old.id})"
+      old.destroy
     end
   end
 
