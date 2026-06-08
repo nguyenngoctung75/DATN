@@ -25,32 +25,13 @@ class RedmineBulkImportService
 
   def import_by_issue_ids(issue_ids)
     Rails.logger.info "Start bulk import by issue_ids: #{issue_ids.inspect}"
-
     issue_ids = issue_ids.map(&:to_s).reject(&:blank?).uniq
     return true if issue_ids.empty?
 
     @found_count = issue_ids.length
     yield @found_count if block_given?
     @import_run&.update_columns(total_count: @found_count)
-
-    issue_ids.each do |issue_id|
-      issue_data = RedmineService.get_issues(issue_id)
-      unless issue_data
-        @import_run&.increment_progress!
-        next
-      end
-
-      subject = ensure_utf8(issue_data['subject'].to_s)
-      unless subject.match?(TESTING_SUBJECT_PATTERN)
-        @skipped_count += 1
-        @import_run&.increment_progress!
-        next
-      end
-
-      import_single_issue(issue_data)
-      @import_run&.increment_progress!
-    end
-
+    issue_ids.each { |id| process_issue_id(id) }
     Rails.logger.info "Bulk import by IDs completed: #{@imported_tasks.length} tasks imported"
     true
   rescue StandardError => e
@@ -86,6 +67,22 @@ class RedmineBulkImportService
   end
 
   private
+
+  def process_issue_id(issue_id)
+    issue_data = RedmineService.get_issues(issue_id)
+    unless issue_data
+      @import_run&.increment_progress!
+      return
+    end
+    subject = ensure_utf8(issue_data['subject'].to_s)
+    unless subject.match?(TESTING_SUBJECT_PATTERN)
+      @skipped_count += 1
+      @import_run&.increment_progress!
+      return
+    end
+    import_single_issue(issue_data)
+    @import_run&.increment_progress!
+  end
 
   def imported_redmine_ids_set
     @project.tasks.where.not(redmine_id: nil).where(parent_id: nil).pluck(:redmine_id).map(&:to_s).to_set

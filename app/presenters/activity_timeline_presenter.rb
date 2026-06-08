@@ -1,5 +1,6 @@
 class ActivityTimelinePresenter
-  IMPORTANT_FIELDS = %w[title description status assignee_id priority start_date due_date percent_done estimated_time spent_time device tester_id result notes].freeze
+  IMPORTANT_FIELDS = %w[title description status assignee_id priority start_date due_date percent_done estimated_time
+spent_time device tester_id result notes].freeze
   GROUP_WINDOW = 5.minutes
 
   TimelineEntry = Data.define(

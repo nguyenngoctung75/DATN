@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get "dashboards/index"
+  get 'dashboards/index'
   # Action Cable
   mount ActionCable.server => '/cable'
 
@@ -139,10 +139,11 @@ Rails.application.routes.draw do
 
   # Smoke-test routes for error notification. Remove before production deploy.
   if Rails.env.development?
-    get "_test/error",     to: ->(_env) { raise StandardError, "Test error at #{Time.current}" }
-    get "_test/error_404", to: ->(_env) { raise ActiveRecord::RecordNotFound, "Should be IGNORED" }
-    get "_test/error_dup", to: ->(_env) { raise RuntimeError, "Duplicate error message" }
-    get "_test/error_job", to: ->(_env) { TestErrorJob.perform_later; [200, { "content-type" => "text/plain" }, ["Job enqueued"]] }
+    get '_test/error',     to: ->(_env) { raise StandardError, "Test error at #{Time.current}" }
+    get '_test/error_404', to: ->(_env) { raise ActiveRecord::RecordNotFound, 'Should be IGNORED' }
+    get '_test/error_dup', to: ->(_env) { raise RuntimeError, 'Duplicate error message' }
+    get '_test/error_job', to: ->(_env) {
+ TestErrorJob.perform_later; [ 200, { 'content-type' => 'text/plain' }, [ 'Job enqueued' ] ] }
   end
 
   # Global notifications (header dropdown)

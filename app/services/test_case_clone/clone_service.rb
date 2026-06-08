@@ -67,30 +67,35 @@ module TestCaseClone
       )
       new_tc.skip_title_sync = true
       new_tc.save!
+      clone_steps(src, new_tc)
+      new_tc
+    end
 
+    def clone_steps(src, new_tc)
       src.test_steps.each do |step|
         new_step = new_tc.test_steps.create!(
           step_number: step.step_number,
           description: step.description,
           display_order: step.display_order
         )
-
-        rows = step.test_step_contents.map do |c|
-          {
-            step_id: new_step.id,
-            content_type: c.content_type,
-            content_value: c.content_value,
-            content_category: c.content_category,
-            display_order: c.display_order,
-            is_expected: c.is_expected,
-            created_at: Time.current,
-            updated_at: Time.current
-          }
-        end
-        TestStepContent.insert_all(rows) if rows.any?
+        clone_step_contents(step, new_step)
       end
+    end
 
-      new_tc
+    def clone_step_contents(step, new_step)
+      rows = step.test_step_contents.map do |c|
+        {
+          step_id: new_step.id,
+          content_type: c.content_type,
+          content_value: c.content_value,
+          content_category: c.content_category,
+          display_order: c.display_order,
+          is_expected: c.is_expected,
+          created_at: Time.current,
+          updated_at: Time.current
+        }
+      end
+      TestStepContent.insert_all(rows) if rows.any?
     end
 
     def title_for(src)

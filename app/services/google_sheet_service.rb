@@ -60,7 +60,9 @@ class GoogleSheetService
     rescue Google::Apis::RateLimitError => e
       retries += 1
       if retries <= MAX_RETRIES
-        Rails.logger.warn "GoogleSheetService [QUOTA] #{operation}: Rate limit hit. Waiting #{QUOTA_RETRY_WAIT}s... (retry #{retries}/#{MAX_RETRIES})"
+        msg = "GoogleSheetService [QUOTA] #{operation}: Rate limit hit. " \
+              "Waiting #{QUOTA_RETRY_WAIT}s... (retry #{retries}/#{MAX_RETRIES})"
+        Rails.logger.warn msg
         sleep(QUOTA_RETRY_WAIT)
         retry
       else
@@ -93,7 +95,10 @@ class GoogleSheetService
     end
 
     clean_data.concat(filtered_rows)
-    Rails.logger.debug "GoogleSheetService: Filtering completed. Total #{clean_data.length} rows (including #{header_rows_count} header rows + 1 device names row)."
+    Rails.logger.debug(
+      "GoogleSheetService: Filtering completed. Total #{clean_data.length} rows " \
+      "(including #{header_rows_count} header rows + 1 device names row)."
+    )
     clean_data
   end
 

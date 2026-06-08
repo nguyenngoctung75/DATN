@@ -11,7 +11,7 @@ class Ability
     #   return unless user.admin?
     #   can :manage, :all
     #
-    # The first argument to `can` is the action you are giving the user
+    # The first argument to can is the action you are giving the user
     # permission to do.
     # If you pass :manage it will apply to every action. Other common actions
     # here are :read, :create, :update and :destroy.
@@ -34,34 +34,25 @@ class Ability
     if user.admin?
       can :manage, :all
     elsif user.user?
-      can :read, Project
-      can %i[read create update destroy], Task
-      can :read, TestCase
-      can :read, Bug
-      can :read, TestRun
-      can :read, TestResult
-
-      can %i[create update clone clone_bulk], TestCase
-      can %i[create update], TestRun
-      can %i[create update], TestResult
-      can %i[create update], Bug
-      can %i[create update], BugComment
-      can %i[create destroy], TestStep
-
-      can :history, TestCase
-      can :history, Bug
-      can %i[start complete abort], TestRun
-
-      cannot :destroy, User
-      cannot :destroy, Project
-
-      can :read, ImportRun
-      can %i[create update destroy], TestStepContent
-      can :read, Notification, category: %w[system info warning]
-      can :manage, NotificationRead, user_id: user.id
+      define_user_abilities(user)
     else
-      # Guest user (not logged in) - no permissions
       cannot :manage, :all
     end
+  end
+
+  private
+
+  def define_user_abilities(user)
+    can :read, [ Project, TestCase, Bug, TestRun, TestResult, ImportRun ]
+    can %i[read create update destroy], Task
+    can %i[create update clone clone_bulk], TestCase
+    can %i[create update], [ TestRun, TestResult, Bug, BugComment ]
+    can %i[create destroy], TestStep
+    can %i[create update destroy], TestStepContent
+    can :history, [ TestCase, Bug ]
+    can %i[start complete abort], TestRun
+    cannot :destroy, [ User, Project ]
+    can :read, Notification, category: %w[system info warning]
+    can :manage, NotificationRead, user_id: user.id
   end
 end

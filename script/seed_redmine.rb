@@ -1,52 +1,47 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Seed data cho Redmine: tạo 3 Project, mỗi Project có 100 Issue.
+# Seed Redmine: tạo 3 Project, mỗi Project có 100 User Story (parent) + 6 children
+# (Requirement, Design, Coding, Testing, Bug fixing, Release) theo cấu trúc của
+# dev.zigexn.vn (sample issue 122608).
 #
-# Yêu cầu ENV:
-#   REDMINE_BASE_URL  (vd: http://redmine:3000 khi chạy trong container web,
-#                          http://localhost:3001 khi chạy từ máy host)
-#   REDMINE_API_KEY   (lấy ở Redmine: My Account -> API access key -> Show)
+# Yêu cầu:
+#   1) Đã chạy bootstrap để có sẵn trackers/custom fields/projects:
+#        docker compose exec -T redmine bundle exec rails runner /dev/stdin \
+#          < script/seed_redmine_bootstrap.rb
+#   2) ENV REDMINE_BASE_URL + REDMINE_API_KEY (admin)
 #
 # Chạy:
 #   docker compose exec web bundle exec ruby script/seed_redmine.rb
 #
-# Output: tmp/redmine_seed_output.json (đầu vào cho rake task seed:web)
+# Output: tmp/redmine_seed_output.json — chỉ liệt kê các "4. Testing - #..." child
+# (cái mà web app sẽ import qua RedmineBulkImportService). Schema giữ nguyên
+# nên lib/tasks/seed_data.rake không cần đổi.
 
 require 'bundler/setup'
 require 'faraday'
 require 'json'
 require 'fileutils'
+require 'date'
+require_relative '../db/seeds/content_library' # Seeds::ContentLibrary::TOOLTEST_FEATURES
 
 BASE_URL = ENV['REDMINE_BASE_URL']
 API_KEY  = ENV['REDMINE_API_KEY']
 
 if BASE_URL.to_s.empty? || API_KEY.to_s.empty?
   warn 'Thiếu REDMINE_BASE_URL hoặc REDMINE_API_KEY.'
-  warn 'Lấy API key: mở Redmine -> My Account -> "API access key" -> Show.'
-  warn 'Sau đó thêm vào .env hoặc export trực tiếp trước khi chạy.'
   exit 1
 end
 
 SEED_PROJECTS = [
-  {
-    identifier: 'seed-mobile-banking',
-    name: 'Ứng dụng Mobile Banking',
-    description: 'Dự án kiểm thử ứng dụng ngân hàng di động: đăng nhập, chuyển khoản, QR Pay, thẻ tín dụng.',
-    theme: :banking
-  },
-  {
-    identifier: 'seed-ecommerce-shop',
-    name: 'Sàn TMĐT Shop Online',
-    description: 'Dự án kiểm thử sàn thương mại điện tử: tìm kiếm, giỏ hàng, thanh toán, đơn hàng, đánh giá.',
-    theme: :ecommerce
-  },
-  {
-    identifier: 'seed-admin-dashboard',
-    name: 'Hệ thống Quản trị Admin',
-    description: 'Dự án kiểm thử trang quản trị nội bộ: phân quyền, audit log, báo cáo, cấu hình hệ thống.',
-    theme: :admin
-  }
+  { identifier: 'seed-tooltest', theme: :tooltest,
+    feature_groups: [ 'Auth', 'Project', 'Task', 'TestCase', 'TestRun', 'Bug', 'Import', 'CICD' ] },
+  { identifier: 'seed-mobile-banking', theme: :banking,
+    feature_groups: [ 'Auth', 'Transfer', 'Card', 'Bill', 'Savings' ] },
+  { identifier: 'seed-ecommerce-shop', theme: :ecommerce,
+    feature_groups: [ 'Search', 'Cart', 'Checkout', 'Order', 'Review' ] },
+  { identifier: 'seed-admin-dashboard', theme: :admin,
+    feature_groups: [ 'RBAC', 'Audit', 'Report', 'Config', 'Notification' ] }
 ].freeze
 
 NOUN_BANK = {
@@ -85,16 +80,27 @@ NOUN_BANK = {
     'cấu hình ngưỡng cảnh báo', 'gửi notification broadcast', 'quản lý template email',
     'import danh sách user từ CSV', 'sao lưu database thủ công', 'khôi phục từ backup',
     'cấu hình rate limit API', 'quản lý API token', 'thu hồi API token'
-  ]
+  ],
+  tooltest: Seeds::ContentLibrary::TOOLTEST_FEATURES
 }.freeze
 
-CATEGORY_PREFIX = ['Chức năng', 'UI/UX', 'Validate', 'Permission', 'Edge case', 'Performance'].freeze
+PHASES = [
+  { idx: 1, name: 'Requirement', tracker: 'Task' },
+  { idx: 2, name: 'Design',      tracker: 'Task' },
+  { idx: 3, name: 'Coding',      tracker: 'Task' },
+  { idx: 4, name: 'Testing',     tracker: 'Test' },
+  { idx: 5, name: 'Bug fixing',  tracker: 'Task' },
+  { idx: 6, name: 'Release',     tracker: 'Task' }
+].freeze
+
+SPRINT_NAME = '2026-05'
+SEQ_BASE    = 1000   # GitHub-style number used in subject "#1001 .. #1100"
 
 def conn
   @conn ||= Faraday.new(url: BASE_URL) do |f|
     f.headers['X-Redmine-API-Key'] = API_KEY
     f.headers['Content-Type'] = 'application/json'
-    f.options.timeout = 30
+    f.options.timeout = 60
     f.options.open_timeout = 10
     f.adapter Faraday.default_adapter
   end
@@ -110,121 +116,254 @@ end
 
 def post_json(path, payload)
   res = conn.post(path) { |r| r.body = JSON.generate(payload) }
-  raise "POST #{path} failed: #{res.status} #{res.body}" unless res.success?
+  raise "POST #{path} failed: #{res.status} #{res.body[0, 500]}" unless res.success?
 
   JSON.parse(res.body)
 end
 
-def ensure_project(seed)
-  existing = get_json("/projects/#{seed[:identifier]}.json")
-  if existing
-    puts "  [skip] Project '#{seed[:identifier]}' đã tồn tại (id=#{existing['project']['id']})"
-    return existing['project']
-  end
+# ---------- Lookup ----------
 
-  data = post_json('/projects.json', project: {
-    name: seed[:name],
-    identifier: seed[:identifier],
-    description: seed[:description],
-    is_public: true
-  })
-  puts "  [created] Project '#{seed[:identifier]}' (id=#{data['project']['id']})"
-  data['project']
+def lookup_ids
+  trackers = get_json('/trackers.json')['trackers']
+  statuses = get_json('/issue_statuses.json')['issue_statuses']
+
+  tr = ->(name) { trackers.find { |t|
+ t['name'] == name }&.dig('id') or abort("Tracker '#{name}' chưa có. Chạy bootstrap script.") }
+  st = ->(name) { statuses.find { |s| s['name'] == name }&.dig('id') or abort("Status '#{name}' chưa có.") }
+
+  {
+    tracker: { 'User story' => tr['User story'], 'Task' => tr['Task'], 'Test' => tr['Test'] },
+    status:  { 'New' => st['New'], 'Closed' => st['Closed'] }
+  }
 end
 
-def list_existing_issues(project_identifier)
+def project_id_for(identifier)
+  data = get_json("/projects/#{identifier}.json")
+  abort("Project '#{identifier}' chưa có. Chạy bootstrap script.") unless data
+
+  data['project']['id']
+end
+
+def version_id_for(project_identifier, sprint_name)
+  data = get_json("/projects/#{project_identifier}/versions.json")
+  v = data['versions'].find { |x| x['name'] == sprint_name }
+  v&.dig('id')
+end
+
+# ---------- Build subjects/payloads ----------
+
+def title_phrase(theme, seq, feature_groups)
+  noun = NOUN_BANK.fetch(theme)[(seq - 1) % NOUN_BANK.fetch(theme).size]
+  group = feature_groups[(seq - 1) % feature_groups.size]
+  # Chỉ viết hoa chữ cái đầu, giữ nguyên proper noun (Devise, GitHub, Redmine...).
+  noun_cap = noun.sub(/\A./, &:upcase)
+  "【#{group}】#{noun_cap}"
+end
+
+def story_subject(github_seq, phrase) = "##{github_seq} #{phrase}"
+
+def child_subject(phase, github_seq, phrase)
+  "#{phase[:idx]}. #{phase[:name]} - ##{github_seq} #{phrase}"
+end
+
+def story_payload(project_id, tracker_id, status_id, version_id, github_seq, phrase)
+  {
+    issue: {
+      project_id: project_id,
+      tracker_id: tracker_id,
+      status_id:  status_id,
+      subject:    story_subject(github_seq, phrase),
+      description: "Seed user story. GitHub ref: https://github.com/seed/repo/issues/#{github_seq}",
+      fixed_version_id: version_id,
+      start_date: '2026-05-08',
+      due_date:   '2026-05-22',
+      custom_fields: [
+        { id: cf_id('JP Request'),       value: "https://github.com/seed/repo/issues/#{github_seq}" },
+        { id: cf_id('PR'),               value: "https://github.com/seed/repo/pull/#{github_seq + 500}" },
+        { id: cf_id('Reviewer'),         value: '' },
+        { id: cf_id('Difficulty Level'), value: ((github_seq % 5) + 1).to_s },
+        { id: cf_id('AI usage'),         value: '' }
+      ]
+    }
+  }
+end
+
+def task_child_payload(project_id, tracker_id, status_id, version_id, parent_id, subject)
+  {
+    issue: {
+      project_id: project_id,
+      tracker_id: tracker_id,
+      status_id:  status_id,
+      parent_issue_id: parent_id,
+      subject:    subject,
+      fixed_version_id: version_id,
+      start_date: '2026-05-08',
+      due_date:   '2026-05-15'
+    }
+  }
+end
+
+def testing_child_payload(project_id, tracker_id, status_id, version_id, parent_id, subject, seq)
+  {
+    issue: {
+      project_id: project_id,
+      tracker_id: tracker_id,
+      status_id:  status_id,
+      parent_issue_id: parent_id,
+      subject:    subject,
+      fixed_version_id: version_id,
+      start_date: '2026-05-12',
+      due_date:   '2026-05-19',
+      estimated_hours: 16,
+      custom_fields: [
+        { id: cf_id('Testcase Link'),
+          value: "https://docs.google.com/spreadsheets/d/SEED_SHEET_#{seq}/edit#gid=0" },
+        { id: cf_id('Number of test cases'), value: (40 + (seq % 30)).to_s },
+        { id: cf_id('STG Bugs (VN)'),        value: (seq % 5).to_s },
+        { id: cf_id('STG Bugs (JP)'),        value: (seq % 3).to_s },
+        { id: cf_id('Production Bugs'),      value: '0' },
+        { id: cf_id('Bug Link'),             value: '' },
+        { id: cf_id('AI usage'),             value: '' }
+      ]
+    }
+  }
+end
+
+def cf_id(name)
+  @cf_cache ||= begin
+    list = get_json('/custom_fields.json')
+    raise 'Không liệt kê được custom_fields (API yêu cầu admin key)' unless list
+
+    list['custom_fields'].each_with_object({}) { |cf, h| h[cf['name']] = cf['id'] }
+  end
+  @cf_cache.fetch(name) { abort("Custom field '#{name}' chưa có. Chạy bootstrap script.") }
+end
+
+# ---------- Idempotency ----------
+
+def existing_stories(project_identifier, story_tracker_id)
   issues = []
   offset = 0
-  limit = 100
   loop do
     data = get_json('/issues.json',
-                    project_id: project_identifier,
-                    status_id: '*',
-                    limit: limit,
-                    offset: offset,
-                    sort: 'id:asc')
+                    project_id: project_identifier, tracker_id: story_tracker_id,
+                    status_id: '*', limit: 100, offset: offset, sort: 'id:asc')
     break unless data && data['issues']
 
     issues.concat(data['issues'])
-    break if data['issues'].size < limit
-    break if issues.size >= data['total_count'].to_i
+    break if data['issues'].size < 100 || issues.size >= data['total_count'].to_i
 
-    offset += limit
+    offset += 100
   end
-  issues
+  issues.select { |i| i['subject'].to_s =~ /\A#\d+ / }
 end
 
-def build_subject(theme, seq, nouns)
-  category = CATEGORY_PREFIX[(seq - 1) % CATEGORY_PREFIX.size]
-  noun = nouns[(seq - 1) % nouns.size]
-  scenario_variant = ((seq - 1) / nouns.size) + 1
-  suffix = scenario_variant > 1 ? " (kịch bản #{scenario_variant})" : ''
-  "4. Testing - ##{seq} [#{category}] #{noun}#{suffix}"
+def existing_testing_children(parent_id, test_tracker_id)
+  data = get_json('/issues.json',
+                  parent_id: parent_id, tracker_id: test_tracker_id,
+                  status_id: '*', limit: 25)
+  data ? data['issues'] : []
 end
 
-def build_description(theme, seq, noun_phrase)
-  <<~DESC
-    Mô tả nghiệp vụ: kiểm thử "#{noun_phrase}".
-    - Pre-condition: user đã đăng nhập với quyền hợp lệ.
-    - Mục tiêu: đảm bảo luồng "#{noun_phrase}" hoạt động đúng trên các trình duyệt/thiết bị chính.
-    - Theme: #{theme}.
-    - Seed seq: #{seq}.
-  DESC
-end
+# ---------- Main ----------
 
-def create_issues_for(project_record, seed)
-  nouns = NOUN_BANK.fetch(seed[:theme])
-  target = 100
+ids = lookup_ids
+story_tr  = ids[:tracker]['User story']
+task_tr   = ids[:tracker]['Task']
+test_tr   = ids[:tracker]['Test']
+new_st    = ids[:status]['New']
+closed_st = ids[:status]['Closed'] or abort("Status 'Closed' chưa có. Chạy lại bootstrap script.")
 
-  existing = list_existing_issues(seed[:identifier])
-  existing_matching = existing.select { |i| i['subject'].to_s =~ /\A4\.\s*Testing\s*-\s*#/i }
-                              .sort_by { |i| i['id'] }
-  if existing_matching.size >= target
-    puts "  [skip] đã có #{existing_matching.size} issue khớp pattern, không tạo thêm"
-    return existing_matching.first(target).map { |i| { 'id' => i['id'], 'subject' => i['subject'] } }
-  end
+# Mỗi project: TARGET User Story, trong đó CLOSED_COUNT story đầu (+children) = Closed.
+TARGET       = Integer(ENV.fetch('SEED_TARGET', '200'))
+CLOSED_COUNT = Integer(ENV.fetch('SEED_CLOSED', '190'))
 
-  created = existing_matching.map { |i| { 'id' => i['id'], 'subject' => i['subject'] } }
-  start_seq = existing_matching.size + 1
+# Lọc project cần seed (mặc định tất cả). Vd: SEED_PROJECT_FILTER=seed-mobile-banking,seed-ecommerce-shop
+filter = ENV['SEED_PROJECT_FILTER'].to_s.split(',').map(&:strip).reject(&:empty?)
+seed_projects = filter.empty? ? SEED_PROJECTS : SEED_PROJECTS.select { |s| filter.include?(s[:identifier]) }
 
-  (start_seq..target).each do |seq|
-    subject = build_subject(seed[:theme], seq, nouns)
-    payload = {
-      issue: {
-        project_id: seed[:identifier],
-        subject: subject,
-        description: build_description(seed[:theme], seq, nouns[(seq - 1) % nouns.size]),
-        tracker_id: 1
-      }
-    }
-    data = post_json('/issues.json', payload)
-    created << { 'id' => data['issue']['id'], 'subject' => subject }
-    print "\r  [issues] #{seq}/#{target}"
+puts "IDs: User story=#{story_tr}, Task=#{task_tr}, Test=#{test_tr}, New=#{new_st}, Closed=#{closed_st}"
+puts "Target=#{TARGET}/project, closed đầu=#{CLOSED_COUNT}, projects=#{seed_projects.map { |s|
+ s[:identifier] }.join(', ')}"
+
+output = { 'projects' => [] }
+
+seed_projects.each do |seed|
+  identifier = seed[:identifier]
+  project_id = project_id_for(identifier)
+  version_id = version_id_for(identifier, SPRINT_NAME)
+  feature_groups = seed[:feature_groups]
+  theme = seed[:theme]
+
+  puts ''
+  puts "=== Project #{identifier} (id=#{project_id}, version=#{version_id || 'none'}) ==="
+
+  stories = existing_stories(identifier, story_tr)
+  puts "  [skip] đã có #{stories.size} User Story (reuse)" if stories.size >= TARGET
+
+  testing_collect = []
+
+  (1..TARGET).each do |seq|
+    github_seq = SEQ_BASE + seq
+    phrase = title_phrase(theme, seq, feature_groups)
+    closed = seq <= CLOSED_COUNT
+    st = closed ? closed_st : new_st
+
+    story_subj = story_subject(github_seq, phrase)
+    story = stories.find { |s| s['subject'] == story_subj }
+    if story.nil?
+      data = post_json('/issues.json',
+                       story_payload(project_id, story_tr, st, version_id, github_seq, phrase))
+      story_id = data['issue']['id']
+    else
+      story_id = story['id']
+    end
+
+    existing_children = story_id ? existing_testing_children(story_id, test_tr) : []
+    needs_full_children = existing_children.empty?
+
+    if needs_full_children
+      PHASES.each do |phase|
+        subj = child_subject(phase, github_seq, phrase)
+        if phase[:tracker] == 'Test'
+          data = post_json('/issues.json',
+                           testing_child_payload(project_id, test_tr, st, version_id, story_id, subj, seq))
+          testing_collect << { 'id' => data['issue']['id'], 'subject' => subj, 'status' => closed ? 'closed' : 'open' }
+        else
+          post_json('/issues.json',
+                    task_child_payload(project_id, task_tr, st, version_id, story_id, subj))
+        end
+      end
+    else
+      testing_collect << { 'id' => existing_children.first['id'],
+                           'subject' => existing_children.first['subject'],
+                           'status' => closed ? 'closed' : 'open' }
+    end
+
+    print "\r  story #{seq}/#{TARGET}"
     $stdout.flush
   end
   puts ''
-  created
-end
 
-puts "Seed Redmine - base=#{BASE_URL}"
-output = { 'projects' => [] }
+  raise "Số Testing thu được #{testing_collect.size} != #{TARGET}" if testing_collect.size != TARGET
 
-SEED_PROJECTS.each do |seed|
-  puts "Project: #{seed[:identifier]}"
-  project = ensure_project(seed)
-  issues = create_issues_for(project, seed)
+  project_full = get_json("/projects/#{identifier}.json")['project']
   output['projects'] << {
-    'identifier' => seed[:identifier],
-    'redmine_id' => project['id'],
-    'name' => seed[:name],
-    'description' => seed[:description],
-    'theme' => seed[:theme].to_s,
-    'issues' => issues
+    'identifier'  => identifier,
+    'redmine_id'  => project_full['id'],
+    'name'        => project_full['name'],
+    'description' => project_full['description'],
+    'theme'       => theme.to_s,
+    'issues'      => testing_collect
   }
 end
 
 out_path = File.expand_path('../tmp/redmine_seed_output.json', __dir__)
 FileUtils.mkdir_p(File.dirname(out_path))
 File.write(out_path, JSON.pretty_generate(output))
+puts ''
 puts "Đã ghi #{out_path}"
-puts "Tổng: #{output['projects'].size} project, #{output['projects'].sum { |p| p['issues'].size }} issue"
+puts "Tổng: #{output['projects'].size} project, #{output['projects'].sum { |p| p['issues'].size }} Testing issue"
+issues_per_project = output['projects'].first['issues'].size
+total = issues_per_project * 7
+puts "(mỗi project còn có #{issues_per_project} User Story + 5 sibling task/phase khác = #{total} issue total/project)"

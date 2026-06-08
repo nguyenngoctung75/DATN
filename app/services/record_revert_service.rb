@@ -28,7 +28,7 @@ class RecordRevertService
 
   def resolve_db_field(trackable)
     snake = @field.downcase.gsub(' ', '_')
-    [@field, snake, "#{snake}_id"].find { |f| trackable.class.column_names.include?(f) }
+    [ @field, snake, "#{snake}_id" ].find { |f| trackable.class.column_names.include?(f) }
   end
 
   def failure(message)

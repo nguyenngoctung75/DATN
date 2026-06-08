@@ -66,9 +66,9 @@ RSpec.describe BugImportService do
         create(:bug, task: task_no_gid)
       end
 
-      it 'destroys existing bugs before import' do
+      it 'soft-deletes existing bugs before import' do
         service = described_class.new(task_no_gid, spreadsheet_id, wipe_existing: true)
-        expect { service.import }.to change { task_no_gid.bugs.count }.from(1).to(0)
+        expect { service.import }.to change { task_no_gid.bugs.active.count }.from(1).to(0)
       end
     end
 

@@ -13,7 +13,7 @@ class ApplicationJob < ActiveJob::Base
 
   def notify_exception_tracker(exception)
     return unless defined?(ExceptionNotifier)
-    return unless ActiveModel::Type::Boolean.new.cast(ENV.fetch("ERROR_NOTIFICATION_ENABLED", "false"))
+    return unless ActiveModel::Type::Boolean.new.cast(ENV.fetch('ERROR_NOTIFICATION_ENABLED', 'false'))
 
     ExceptionNotifier.notify_exception(
       exception,

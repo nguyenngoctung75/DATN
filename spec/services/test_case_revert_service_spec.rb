@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe TestCaseRevertService do
+RSpec.describe RecordRevertService do
   let(:project)   { create(:project) }
   let(:task)      { create(:task, project: project) }
   let(:test_case) { create(:test_case, task: task, note: 'current note') }

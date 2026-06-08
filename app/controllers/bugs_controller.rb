@@ -3,7 +3,8 @@ class BugsController < ApplicationController
   before_action :set_task
   before_action :set_bug, only: %i[show edit update destroy restore soft_delete cell_history revert]
 
-  BUG_HISTORY_FIELDS = %w[content application category bug_type priority dev_id tester_id status image_video_url notes].freeze
+  BUG_HISTORY_FIELDS = %w[content application category bug_type priority dev_id tester_id status image_video_url
+notes].freeze
   authorize_resource
 
   def index
@@ -44,7 +45,7 @@ class BugsController < ApplicationController
           bug_index = @task.bugs.active.order(id: :asc).where('id <= ?', @bug.id).count - 1
           render turbo_stream: turbo_stream.append('bugs-spreadsheet-list',
                                                    partial: 'bugs/spreadsheet_row',
-                                                   locals: { bug: @bug, index: [bug_index, 0].max + 1 })
+                                                   locals: { bug: @bug, index: [ bug_index, 0 ].max + 1 })
         end
       end
     else
@@ -92,7 +93,8 @@ class BugsController < ApplicationController
 
   def cell_history
     field = params[:field].to_s
-    return render json: { error: 'Invalid field' }, status: :unprocessable_entity unless BUG_HISTORY_FIELDS.include?(field)
+    return render json: { error: 'Invalid field' },
+status: :unprocessable_entity unless BUG_HISTORY_FIELDS.include?(field)
 
     logs = ActivityLog.where(trackable: @bug).includes(:user).order(created_at: :desc).to_a
                       .select { |l| l.metadata.is_a?(Hash) && l.metadata.key?(field) }
@@ -147,7 +149,7 @@ class BugsController < ApplicationController
       bug_index = @task.bugs.active.order(id: :asc).where('id <= ?', @bug.id).count - 1
       render turbo_stream: turbo_stream.replace("bug-row-#{@bug.id}",
                                                 partial: 'bugs/spreadsheet_row',
-                                                locals: { bug: @bug, index: [bug_index, 0].max + 1 })
+                                                locals: { bug: @bug, index: [ bug_index, 0 ].max + 1 })
     end
     format.json do
       render json: @bug.as_json.merge(

@@ -234,6 +234,9 @@
   div data-layout-toggle-target="section"
     = render 'shared/activity_timeline', logs: ActivityLog.where(trackable: @task).includes(:user).limit(50)
 
+  / CI/CD History Section
+  = render 'ci_history_section', ci_builds: @ci_builds
+
   / Import Test Cases Modal
   .modal.fade#importTestCasesModal tabindex="-1" aria-hidden="true" data-controller="import-progress"
     .modal-dialog

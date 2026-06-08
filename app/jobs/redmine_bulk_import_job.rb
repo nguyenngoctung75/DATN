@@ -14,9 +14,9 @@ class RedmineBulkImportJob < ApplicationJob
     service = RedmineBulkImportService.new(run.project_id, issues_url: issues_url, import_run: run)
     success = if issue_ids.present?
                 service.import_by_issue_ids(issue_ids)
-              else
+    else
                 service.import_all
-              end
+    end
 
     if success && service.errors.empty?
       finalize_success(run, service)

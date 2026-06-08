@@ -21,7 +21,7 @@
 #   module_function
 
 #   # Use project-scoped URL to include subprojects automatically.
-#   # Matches: 
+#   # Matches:
 #   def issues_url
 #     "#{RedmineService::BASE_URL}/projects/#{UMBRELLA_PROJECT}/issues.json"
 #   end

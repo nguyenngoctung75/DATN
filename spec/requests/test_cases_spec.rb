@@ -9,34 +9,6 @@ RSpec.describe "TestCases", type: :request do
   before { login_as admin, scope: :user }
 
   # ---------------------------------------------------------------------------
-  # GET /test_cases (standalone index)
-  # ---------------------------------------------------------------------------
-  describe "GET /test_cases" do
-    it "returns 200" do
-      get test_cases_path
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "filters by test_type" do
-      create(:test_case, task: task, test_type: "regression")
-      get test_cases_path, params: { test_type: "regression" }
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "filters by target" do
-      create(:test_case, task: task, target: "mobile")
-      get test_cases_path, params: { target: "mobile" }
-      expect(response).to have_http_status(:ok)
-    end
-
-    it "returns JSON" do
-      get test_cases_path, params: { format: :json }
-      expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to be_an(Array)
-    end
-  end
-
-  # ---------------------------------------------------------------------------
   # GET /projects/:project_id/tasks/:task_id/test_cases (scoped)
   # ---------------------------------------------------------------------------
   describe "GET /projects/:project_id/tasks/:task_id/test_cases (via task show)" do
@@ -47,11 +19,11 @@ RSpec.describe "TestCases", type: :request do
   end
 
   # ---------------------------------------------------------------------------
-  # GET .../test_cases/:id/history
+  # GET .../test_cases/:id/cell_history
   # ---------------------------------------------------------------------------
-  describe "GET .../test_cases/:id/history" do
-    it "returns 200 without layout" do
-      get history_project_task_test_case_path(project, task, test_case)
+  describe "GET .../test_cases/:id/cell_history" do
+    it "returns JSON for a valid field" do
+      get cell_history_project_task_test_case_path(project, task, test_case), params: { field: "title" }
       expect(response).to have_http_status(:ok)
     end
   end
@@ -71,7 +43,9 @@ RSpec.describe "TestCases", type: :request do
     end
 
     it "returns unprocessable on invalid params" do
-      post project_task_test_cases_path(project, task), params: invalid_params
+      post project_task_test_cases_path(project, task),
+           params: invalid_params,
+           headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:unprocessable_entity)
     end
   end

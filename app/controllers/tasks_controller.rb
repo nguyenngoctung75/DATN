@@ -13,7 +13,7 @@ class TasksController < ApplicationController
     end
 
     @stats_subtasks_count = Task.active.where.not(parent_id: nil).count
-    @stats_completed_count = Task.active.where(status: ['closed']).count
+    @stats_completed_count = Task.active.where(status: [ 'closed' ]).count
 
     # Options for status filter
     @status_options = base_scope.distinct.pluck(:status).compact.sort
@@ -45,6 +45,8 @@ class TasksController < ApplicationController
     tc_start = ((@test_cases_page - 1) * @test_cases_per_page).clamp(0, [ @total_test_cases - 1, 0 ].max)
     @paginated_test_cases = ordered_tc.offset(tc_start).limit(@test_cases_per_page).to_a
     @existing_titles = @task.test_cases.active.pluck(:title).uniq.compact.sort
+
+    @ci_builds = @task.ci_builds.recent.limit(20)
 
     respond_to do |format|
       format.html

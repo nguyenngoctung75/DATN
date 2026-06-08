@@ -75,7 +75,7 @@ RSpec.describe "Tasks", type: :request do
   # POST /projects/:project_id/tasks/:id/promote_to_subtask
   # ---------------------------------------------------------------------------
   describe "POST /projects/:project_id/tasks/:id/promote_to_subtask" do
-    let!(:tc) { create(:test_case, task: task, title: "Login", function: "Login") }
+    let!(:tc) { create(:test_case, task: task, title: "Login") }
 
     it "creates a subtask and moves matching test cases by title" do
       expect {

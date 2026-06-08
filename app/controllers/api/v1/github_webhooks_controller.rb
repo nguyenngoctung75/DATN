@@ -75,7 +75,7 @@ module Api
       def import_task_from_redmine(redmine_id)
         project_id = default_project_id
         unless project_id
-          @import_errors = ['no default project configured (set CI_DEFAULT_PROJECT_ID)']
+          @import_errors = [ 'no default project configured (set CI_DEFAULT_PROJECT_ID)' ]
           return nil
         end
 

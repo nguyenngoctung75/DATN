@@ -8,35 +8,48 @@ class BugImportJob < ApplicationJob
     task = run.project.tasks.find(run.params['task_id'])
     spreadsheet_id = run.params['spreadsheet_id']
     wipe_existing = run.params['wipe_existing']
-
     run.update!(status: 'running', started_at: Time.current)
     run.broadcast_progress(event: 'import_started')
-
     service = BugImportService.new(task, spreadsheet_id, wipe_existing: wipe_existing)
     if service.import
-      run.update!(
-        status: 'success',
-        finished_at: Time.current,
-        imported_count: service.imported_count,
-        skipped_count: service.skipped_count
-      )
-      run.broadcast_progress(event: 'import_complete')
-      Notify.info(
-        title: "Bug import done: #{task.title.truncate(60)}",
-        message: "#{service.imported_count} new, #{service.updated_count} updated",
-        link: Rails.application.routes.url_helpers.project_task_bugs_path(run.project_id, task.id)
-      )
+      handle_success(run, service, task)
     else
-      error_msg = service.errors.join(', ').truncate(2000)
-      run.update!(status: 'failed', finished_at: Time.current, error_message: error_msg)
-      run.broadcast_progress(event: 'import_failed')
-      Notify.warning(
-        title: 'Bug import failed',
-        message: error_msg.truncate(160),
-        link: Rails.application.routes.url_helpers.import_run_path(run.id)
-      )
+      handle_failure(run, service)
     end
   rescue StandardError => e
+    handle_exception(run, e)
+    raise
+  end
+
+  private
+
+  def handle_success(run, service, task)
+    run.update!(
+      status: 'success',
+      finished_at: Time.current,
+      imported_count: service.imported_count,
+      skipped_count: service.skipped_count
+    )
+    run.broadcast_progress(event: 'import_complete')
+    Notify.info(
+      title: "Bug import done: #{task.title.truncate(60)}",
+      message: "#{service.imported_count} new, #{service.updated_count} updated",
+      link: Rails.application.routes.url_helpers.project_task_bugs_path(run.project_id, task.id)
+    )
+  end
+
+  def handle_failure(run, service)
+    error_msg = service.errors.join(', ').truncate(2000)
+    run.update!(status: 'failed', finished_at: Time.current, error_message: error_msg)
+    run.broadcast_progress(event: 'import_failed')
+    Notify.warning(
+      title: 'Bug import failed',
+      message: error_msg.truncate(160),
+      link: Rails.application.routes.url_helpers.import_run_path(run.id)
+    )
+  end
+
+  def handle_exception(run, e)
     if run
       run.update!(status: 'failed', finished_at: Time.current, error_message: e.message.truncate(2000))
       run.broadcast_progress(event: 'import_failed')
@@ -46,6 +59,5 @@ class BugImportJob < ApplicationJob
       message: e.message.truncate(160),
       link: Rails.application.routes.url_helpers.import_run_path(run&.id)
     )
-    raise
   end
 end
