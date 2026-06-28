@@ -1,16 +1,16 @@
 .col-md-6.col-lg-4
-  .card.border-0.shadow-sm.h-100.hover-card.position-relative
+  .card.shadow-sm.h-100.hover-card.position-relative.overflow-hidden
     / Card Link Cover (allows the whole card to be clickable while remaining accessible)
     = link_to project_path(project), class: "stretched-link" do
       span.visually-hidden = "View #{project.name}"
 
     .card-header.border-0.p-4.gradient-purple
       .d-flex.justify-content-between.align-items-start
-        .bg-white.bg-opacity-25.rounded-circle.mb-3.d-flex.align-items-center.justify-content-center style="width: 56px; height: 56px;"
-          i.bi.bi-folder2-open.text-white.fs-4
+        .rounded-circle.mb-3.d-flex.align-items-center.justify-content-center.project-card-icon style="width: 48px; height: 48px;"
+          i.bi.bi-folder2-open.fs-5
         - if current_user&.admin?
           .dropdown.position-relative style="z-index: 2;"
-            button.btn.btn-link.text-white.p-0.opacity-75.hover-opacity-100 type="button" data-bs-toggle="dropdown"
+            button.btn.btn-link.p-0.opacity-75.hover-opacity-100.text-secondary type="button" data-bs-toggle="dropdown"
               i.bi.bi-three-dots-vertical.fs-5
             ul.dropdown-menu.dropdown-menu-end.shadow-sm
               li = link_to edit_project_path(project), class: "dropdown-item" do
@@ -20,7 +20,15 @@
                 i.bi.bi-trash.me-2
                 | Delete Project
 
-      h4.card-title.text-white.fw-bold.mb-0 = project.name
+      h4.card-title.text-white.fw-bold.mb-1 = project.name
+      - if project.product_version.present? || project.development_status.present?
+        .d-flex.flex-wrap.gap-1.mb-2
+          - if project.product_version.present?
+            span.badge.bg-white.text-dark.bg-opacity-75
+              i.bi.bi-tag.me-1
+              = project.product_version
+          - if project.development_status.present?
+            = development_status_badge(project.development_status)
       p.text-white.text-opacity-75.small.mb-0
         i.bi.bi-clock.me-1
         span.me-1 = project.created_at.strftime("%d/%m/%Y %H:%M")
@@ -46,6 +54,14 @@
             .small.text-muted.text-uppercase.fw-bold.mb-1 Progress
             .h5.mb-0.text-success.fw-bold
               = project.task_count > 0 ? "#{(project.completed_task_count.to_f / project.task_count * 100).round}%" : "0%"
+
+      / Members indicator
+      .mt-3.small.text-muted.d-flex.align-items-center.gap-2
+        i.bi.bi-people
+        - if project.open_to_all_users
+          span Open to all users
+        - else
+          span = "#{project.users.active.count} member(s)"
 
     .card-footer.bg-transparent.border-0.px-4.pb-4.pt-0
       .d-flex.align-items-center.text-primary.fw-semibold

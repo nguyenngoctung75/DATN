@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .sc-ic { width: 34px; height: 34px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 10px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .chart-card { padding: 18px 20px; }
+    .chart-card h3 { margin-bottom: 16px; font-size: 14px; }
+    .chart-center { display: flex; align-items: center; gap: 18px; }
+    .donut { width: 120px; height: 120px; border-radius: 50%; flex-shrink: 0; }
+    .donut.hole { -webkit-mask: radial-gradient(circle 36px at center, transparent 98%, #000 100%); mask: radial-gradient(circle 36px at center, transparent 98%, #000 100%); }
+    .legend { font-size: 12px; color: var(--text-secondary); }
+    .legend .li { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+    .legend .sw { width: 10px; height: 10px; border-radius: 2px; }
+    .bars { display: flex; align-items: flex-end; gap: 14px; height: 130px; padding-top: 8px; }
+    .bar-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; justify-content: flex-end; }
+    .bar { width: 100%; border-radius: 4px 4px 0 0; }
+    .bar-lbl { font-size: 11px; color: var(--text-muted); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    table.mini { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.mini th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    table.mini td { padding: 9px 10px; border-bottom: 1px solid var(--border-subtle); color: var(--text-primary); }
+    table.mini tr:hover td { background: var(--bg-muted); }
+    .role-tag { font-size: 11px; padding: 1px 8px; border-radius: 20px; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Dashboard / Test Analytics — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Management</div>
+      <div class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+      <div class="nav-item"><i class="bi bi-people"></i> Users List</div>
+      <div class="nav-item"><i class="bi bi-kanban"></i> Projects</div>
+      <div class="nav-item active"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item"><i class="bi bi-clock-history"></i> Project History</div>
+      <div class="nav-item"><i class="bi bi-gear"></i> Settings</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="page-header">
+        <div class="page-eyebrow">Mobile App QA</div>
+        <div class="page-title">Test Analytics</div>
+        <div class="page-subtitle">Tổng quan tiến độ kiểm thử và chất lượng của project.</div>
+      </div>
+
+      <!-- Summary stat cards -->
+      <div class="grid4">
+        <div class="stat-card">
+          <div class="sc-ic" style="background:var(--accent-subtle); color:var(--accent);"><i class="bi bi-check2-circle"></i></div>
+          <div class="stat-label">Closed Tasks</div>
+          <div class="stat-value">73</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ic" style="background:var(--success-subtle); color:var(--success);"><i class="bi bi-play-circle"></i></div>
+          <div class="stat-label">Device Tests Run</div>
+          <div class="stat-value">1,042</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ic" style="background:var(--success-subtle); color:var(--success);"><i class="bi bi-percent"></i></div>
+          <div class="stat-label">Pass Rate</div>
+          <div class="stat-value" style="color:var(--success)">92%</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-ic" style="background:var(--danger-subtle); color:var(--danger);"><i class="bi bi-bug"></i></div>
+          <div class="stat-label">Open Bugs</div>
+          <div class="stat-value" style="color:var(--danger)">6 <span class="muted" style="font-size:14px; font-weight:400;">/ 38 Total</span></div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid3">
+        <!-- Pie: test execution -->
+        <div class="card chart-card">
+          <h3>Test Execution Status</h3>
+          <div class="chart-center">
+            <div class="donut" style="background: conic-gradient(#10b981 0 65%, #ef4444 65% 78%, #f59e0b 78% 88%, #71717a 88% 100%);"></div>
+            <div class="legend">
+              <div class="li"><span class="sw" style="background:#10b981"></span> Pass — 65%</div>
+              <div class="li"><span class="sw" style="background:#ef4444"></span> Fail — 13%</div>
+              <div class="li"><span class="sw" style="background:#f59e0b"></span> Blocked — 10%</div>
+              <div class="li"><span class="sw" style="background:#71717a"></span> Not run — 12%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bar: bugs by priority -->
+        <div class="card chart-card">
+          <h3>Bugs By Priority</h3>
+          <div class="bars">
+            <div class="bar-col"><div class="bar" style="height:90%; background:var(--danger);"></div><div class="bar-lbl">High</div></div>
+            <div class="bar-col"><div class="bar" style="height:55%; background:var(--accent);"></div><div class="bar-lbl">Normal</div></div>
+            <div class="bar-col"><div class="bar" style="height:28%; background:var(--text-muted);"></div><div class="bar-lbl">Low</div></div>
+          </div>
+        </div>
+
+        <!-- Donut: bugs by status -->
+        <div class="card chart-card">
+          <h3>Bugs By Status</h3>
+          <div class="chart-center">
+            <div class="donut hole" style="background: conic-gradient(#71717a 0 25%, #f59e0b 25% 45%, #06b6d4 45% 65%, #c084fc 65% 80%, #10b981 80% 100%);"></div>
+            <div class="legend">
+              <div class="li"><span class="sw" style="background:#71717a"></span> New</div>
+              <div class="li"><span class="sw" style="background:#f59e0b"></span> Fixing</div>
+              <div class="li"><span class="sw" style="background:#06b6d4"></span> Testing</div>
+              <div class="li"><span class="sw" style="background:#c084fc"></span> Pending</div>
+              <div class="li"><span class="sw" style="background:#10b981"></span> Done</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin tables -->
+      <h2 style="margin-bottom:14px;">Admin Overview</h2>
+      <div class="grid4" style="grid-template-columns: repeat(3,1fr);">
+        <div class="stat-card"><div class="sc-ic" style="background:var(--accent-subtle); color:var(--accent);"><i class="bi bi-people-fill"></i></div><div class="stat-label">Total Users</div><div class="stat-value">42</div></div>
+        <div class="stat-card"><div class="sc-ic" style="background:var(--success-subtle); color:var(--success);"><i class="bi bi-folder-fill"></i></div><div class="stat-label">Total Projects</div><div class="stat-value">8</div></div>
+        <div class="stat-card"><div class="sc-ic" style="background:var(--warning-subtle); color:var(--warning);"><i class="bi bi-list-check"></i></div><div class="stat-label">Total Tasks</div><div class="stat-value">128</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card card-pad">
+          <div class="flex between items-center" style="margin-bottom:8px;"><h3>Recent Users</h3><a href="#" style="font-size:12px;">View All</a></div>
+          <table class="mini">
+            <thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Created</th></tr></thead>
+            <tbody>
+              <tr><td>lan.pham@example.com</td><td>Lan Pham</td><td><span class="role-tag badge-running">User</span></td><td class="muted">Jun 02</td></tr>
+              <tr><td>minh.tran@example.com</td><td>Minh Tran</td><td><span class="role-tag badge-running">User</span></td><td class="muted">May 28</td></tr>
+              <tr><td>tung.nguyen@example.com</td><td>Tung Nguyen</td><td><span class="role-tag badge-pass">Admin</span></td><td class="muted">May 20</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card card-pad">
+          <div class="flex between items-center" style="margin-bottom:8px;"><h3>Recent Projects</h3><a href="#" style="font-size:12px;">View All</a></div>
+          <table class="mini">
+            <thead><tr><th>Project Name</th><th>Tasks</th><th>Created</th></tr></thead>
+            <tbody>
+              <tr><td>Mobile App QA</td><td>24</td><td class="muted">May 20</td></tr>
+              <tr><td>Payment Gateway</td><td>41</td><td class="muted">Apr 02</td></tr>
+              <tr><td>Internal Dashboard</td><td>12</td><td class="muted">Jan 15</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

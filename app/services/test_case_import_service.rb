@@ -106,7 +106,7 @@ class TestCaseImportService
     @skipped_count += processor.skipped_count
     @errors.concat(processor.errors)
     processor.task_counts.each { |t, count| t.update(number_of_test_cases: count) }
-    @task.update(number_of_test_cases: processor.task_counts[@task]) unless processor.task_counts.key?(@task)
+    @task.update(number_of_test_cases: 0) unless processor.task_counts.key?(@task)
   end
 
   def process_sheet(sheet_name, sheet_data, processor)

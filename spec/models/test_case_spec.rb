@@ -89,4 +89,16 @@ RSpec.describe TestCase, type: :model do
       expect(tc.step_count).to eq(0)
     end
   end
+
+  describe 'destroy cascade' do
+    it 'destroys dependent test steps and their step contents' do
+      tc = create(:test_case, task: task)
+      step = tc.test_steps.create!(step_number: 1)
+      step.test_step_contents.create!(content_type: 'text', content_value: 'do something')
+
+      expect { tc.destroy }
+        .to change { TestStep.where(case_id: tc.id).count }.from(1).to(0)
+        .and change { TestStepContent.where(step_id: step.id).count }.from(1).to(0)
+    end
+  end
 end

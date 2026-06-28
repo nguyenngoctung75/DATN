@@ -1,6 +1,7 @@
 / Clone Test Cases Modal
 / Local: task (source), candidate_tasks (Project tasks list)
-- candidate_tasks ||= task.project.tasks.where(deleted_at: nil).where.not(id: task.id).order(:title)
+/ Only tasks still in an early test phase (Not Started / Creating Test Cases) can receive clones.
+- candidate_tasks ||= task.project.tasks.where(deleted_at: nil).where.not(id: task.id).clonable_destinations.order(:title)
 - source_count_label = task.test_cases.active.count
 
 .modal.fade#cloneTestCasesModal tabindex="-1" aria-hidden="true" data-controller="clone-test-cases" data-clone-test-cases-task-label-value=task.title data-clone-test-cases-task-id-value=task.id
@@ -37,7 +38,7 @@
                   = t.title.truncate(80)
                   - if t.id == task.id
                     | (this task)
-            .form-text Only tasks in the same project (#{task.project.name}) are listed.
+            .form-text Only tasks in #{task.project.name} that are still in the "Not Started" or "Creating Test Cases" phase are listed.
 
           / Options
           .mb-3

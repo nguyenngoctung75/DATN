@@ -1,12 +1,14 @@
 class ProjectsController < ApplicationController
   before_action :set_project, except: %i[index new create archived]
   before_action :authorize_admin, except: %i[index show archived]
+  before_action :authorize_project_read, only: :show
 
   def index
     projects_per_page = 12 # 12 projects for nice grid layout (3x4 or 4x3)
     page = (params[:page] || 1).to_i
 
     all_projects = Project.active.order(created_at: :desc)
+    all_projects = all_projects.where(id: current_user.accessible_project_ids) unless current_user.admin?
     @total_projects = all_projects.count
     @total_pages = (@total_projects.to_f / projects_per_page).ceil
     @current_page = page
@@ -26,6 +28,7 @@ class ProjectsController < ApplicationController
     page = (params[:page] || 1).to_i
 
     all_archived = Project.deleted.order(deleted_at: :desc)
+    all_archived = all_archived.where(id: current_user.accessible_project_ids) unless current_user.admin?
     @total_projects = all_archived.count
     @total_pages = (@total_projects.to_f / projects_per_page).ceil
     @current_page = page
@@ -44,7 +47,10 @@ class ProjectsController < ApplicationController
     set_show_date_range
     set_show_tasks_and_base
     date_range = @start_date&.beginning_of_day..@end_date&.end_of_day if @start_date && @end_date
-    base_tasks = @project.tasks_with_search(q: params[:q], status: params[:status], date_range: date_range)
+    base_tasks = @project.tasks_with_search(
+      q: params[:q], status: params[:status], date_range: date_range,
+      created_by: params[:created_by], assignee_id: params[:assignee_id]
+    )
     set_show_pagination(base_tasks)
     set_show_extra_data
 
@@ -75,8 +81,9 @@ class ProjectsController < ApplicationController
   def edit; end
 
   def update
+    apply_project_management_attributes
     respond_to do |format|
-      if @project.update(project_params)
+      if @project.save
         format.html { redirect_to @project, notice: 'Project has been updated successfully.' }
         format.json { render json: @project }
       else
@@ -177,6 +184,10 @@ class ProjectsController < ApplicationController
     @subtasks_count = @tasks.where.not(parent_id: nil).count
     @completed_tasks_count = @tasks.where(status: Task::COMPLETED_STATUSES).count
     @archived_tasks = @project.archived_root_tasks.order(deleted_at: :desc)
+    @created_by_options = @project.tasks.active.where.not(created_by_name: [ nil, '' ])
+                                  .distinct.pluck(:created_by_name).sort
+    @assignee_options = User.where(id: @project.tasks.active.where.not(assignee_id: nil).select(:assignee_id))
+                            .order(:name)
     @redmine_projects = can?(:manage, :all) ? cached_redmine_projects : []
   rescue StandardError
     @redmine_projects = []
@@ -193,10 +204,39 @@ class ProjectsController < ApplicationController
   end
 
   def project_params
-    params.require(:project).permit(:name, :description)
+    params.require(:project).permit(
+      :name, :description, :open_to_all_users, :product_version, :development_status,
+      user_ids: [],
+      product_info: %i[owner release_date progress summary tech_stack],
+      test_plan: %i[objective scope strategy entry_criteria exit_criteria risks]
+    )
   end
 
   def authorize_admin
     authorize! :manage, Project
+  end
+
+  def authorize_project_read
+    authorize! :read, @project
+  end
+
+  # Assigns permitted attributes, then merges the test-plan schedule which is
+  # edited as free text ("Milestone | YYYY-MM-DD" per line) into the json column.
+  def apply_project_management_attributes
+    @project.assign_attributes(project_params.to_h)
+    return unless params[:schedule_text]
+
+    plan = @project.test_plan.is_a?(Hash) ? @project.test_plan : {}
+    plan['schedule'] = parse_schedule_text(params[:schedule_text])
+    @project.test_plan = plan
+  end
+
+  def parse_schedule_text(text)
+    text.to_s.split("\n").filter_map do |line|
+      milestone, date = line.split('|', 2).map { |part| part.to_s.strip }
+      next if milestone.blank?
+
+      { 'milestone' => milestone, 'date' => date.to_s }
+    end
   end
 end

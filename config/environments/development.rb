@@ -82,5 +82,5 @@ Rails.application.configure do
   ENV['DEV_ALLOWED_HOST'].to_s.split(',').map(&:strip).reject(&:empty?).each do |host|
     config.hosts << host
   end
-  config.hosts << 'dispute-moaning-slingshot.ngrok-free.dev'
+  config.hosts << 'pyramidlike-privately-valeri.ngrok-free.dev'
 end

@@ -1,6 +1,7 @@
 class TestStepsController < ApplicationController
   before_action :set_test_case
   before_action :set_test_step, except: [ :create ]
+  before_action :require_project_membership!
   authorize_resource
 
 

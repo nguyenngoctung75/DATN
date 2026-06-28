@@ -2,7 +2,7 @@
 
 class ImportRun < ApplicationRecord
   STATUSES = %w[pending running success failed].freeze
-  IMPORT_TYPES = %w[manual redmine_bulk redmine_url manual_tc manual_bug clone_tc].freeze
+  IMPORT_TYPES = %w[manual redmine_bulk redmine_url manual_tc manual_bug clone_tc ai_generate_tc].freeze
 
   belongs_to :project
   belongs_to :triggered_by, class_name: 'User', optional: true

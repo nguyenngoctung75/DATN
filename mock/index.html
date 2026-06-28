@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Test — UI Mock Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .hero { padding: 56px 32px 32px; max-width: 1080px; margin: 0 auto; }
+    .hero h1 { font-size: 28px; }
+    .hero .lead { color: var(--text-secondary); margin-top: 8px; font-size: 15px; }
+    .swatch-row { display: flex; gap: 8px; margin-top: 18px; }
+    .swatch { width: 36px; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+    .grid-pages {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      max-width: 1080px; margin: 28px auto 64px; padding: 0 32px;
+    }
+    .page-card { padding: 18px 20px; display: block; }
+    .page-card .ico {
+      width: 38px; height: 38px; border-radius: var(--radius-md);
+      background: var(--accent-subtle); color: var(--accent);
+      display: flex; align-items: center; justify-content: center; font-size: 19px;
+      margin-bottom: 12px;
+    }
+    .page-card h3 { color: var(--text-primary); }
+    .page-card p { color: var(--text-secondary); font-size: 12.5px; margin: 6px 0 0; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb">Mock: Index Hub — Linear Dark Theme</div>
+
+  <div class="hero">
+    <h1>Tool Test — UI Mock Preview</h1>
+    <p class="lead">Bộ mock giao diện mới theo phong cách Linear/Notion Dark, accent Cyan <code>#06b6d4</code>. Mở từng trang để duyệt thiết kế trước khi implement vào Rails.</p>
+    <div class="swatch-row">
+      <div class="swatch" style="background:#0a0a0a" title="--bg-base"></div>
+      <div class="swatch" style="background:#111111" title="--bg-elevated"></div>
+      <div class="swatch" style="background:#1a1a1a" title="--bg-overlay"></div>
+      <div class="swatch" style="background:#06b6d4" title="--accent"></div>
+      <div class="swatch" style="background:#10b981" title="--success"></div>
+      <div class="swatch" style="background:#ef4444" title="--danger"></div>
+      <div class="swatch" style="background:#f59e0b" title="--warning"></div>
+    </div>
+  </div>
+
+  <div class="grid-pages">
+    <a class="card page-card" href="design-tokens.html">
+      <div class="ico"><i class="bi bi-palette"></i></div>
+      <h3>Design Tokens</h3>
+      <p>Bảng màu, typography, buttons, badges, inputs, dropdown & modal.</p>
+    </a>
+    <a class="card page-card" href="layout.html">
+      <div class="ico"><i class="bi bi-layout-sidebar"></i></div>
+      <h3>Layout Shell</h3>
+      <p>Header 52px + sidebar 240px + vùng nội dung. Nav active cyan.</p>
+    </a>
+    <a class="card page-card" href="projects.html">
+      <div class="ico"><i class="bi bi-folder"></i></div>
+      <h3>Projects</h3>
+      <p>Grid project card: stats Tasks/Progress, dropdown, empty state.</p>
+    </a>
+    <a class="card page-card" href="task-tree.html">
+      <div class="ico"><i class="bi bi-list-task"></i></div>
+      <h3>Tasks</h3>
+      <p>Stat cards + filter + task cards + subtask grid.</p>
+    </a>
+    <a class="card page-card" href="test-cases.html">
+      <div class="ico"><i class="bi bi-grid-3x3"></i></div>
+      <h3>Test Cases</h3>
+      <p>Spreadsheet dark: toolbar, formula bar, active cell, group row.</p>
+    </a>
+    <a class="card page-card" href="bugs.html">
+      <div class="ico"><i class="bi bi-bug"></i></div>
+      <h3>Bugs</h3>
+      <p>Bảng bug: category, priority, status badge màu semantic.</p>
+    </a>
+    <a class="card page-card" href="dashboard.html">
+      <div class="ico"><i class="bi bi-graph-up"></i></div>
+      <h3>Dashboard</h3>
+      <p>4 stat cards + 3 chart (pie/bar/donut) + admin tables.</p>
+    </a>
+    <a class="card page-card" href="notifications.html">
+      <div class="ico"><i class="bi bi-bell"></i></div>
+      <h3>Notifications</h3>
+      <p>Header dropdown + user menu + CI/CD toast + flash toasts.</p>
+    </a>
+  </div>
+</body>
+</html>

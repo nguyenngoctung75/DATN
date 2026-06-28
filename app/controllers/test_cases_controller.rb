@@ -1,6 +1,7 @@
 class TestCasesController < ApplicationController
   before_action :set_task
-  before_action :set_test_case, except: %i[create import_from_sheet clone_bulk]
+  before_action :set_test_case, except: %i[create import_from_sheet clone_bulk ai_generate]
+  before_action :require_project_membership!
   authorize_resource
 
   TC_HISTORY_FIELDS = %w[title test_type target note content_value group_description].freeze
@@ -200,6 +201,32 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     end
   end
 
+  # POST /projects/:project_id/tasks/:task_id/test_cases/ai_generate
+  def ai_generate
+    return respond_ai_unavailable unless ai_generation_available?
+
+    description = params[:description].to_s.strip
+    return respond_ai_error('Please provide a description.') if description.blank?
+
+    run = @task.project.import_runs.create!(
+      import_type: 'ai_generate_tc',
+      status: 'pending',
+      triggered_by: current_user,
+      params: {
+        'task_id' => @task.id,
+        'description' => description.truncate(5000),
+        'github_url' => params[:github_url].to_s.strip.presence,
+        'count' => sanitized_count
+      }
+    )
+    AiGenerateTcJob.perform_later(run.id)
+
+    respond_to do |format|
+      format.html { redirect_to import_run_path(run), notice: 'AI test case generation queued. Running in background.' }
+      format.json { render json: { import_run_id: run.id }, status: :accepted }
+    end
+  end
+
   private
 
   def clone_options_param
@@ -209,6 +236,32 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
       append_copy_suffix: ActiveModel::Type::Boolean.new.cast(raw[:append_copy_suffix]),
       place_at_top: ActiveModel::Type::Boolean.new.cast(raw[:place_at_top])
     }
+  end
+
+  def ai_generation_available?
+    AppConfiguration.instance.ai_tc_enabled? && ENV['GEMINI_API_KEY'].present?
+  end
+
+  def respond_ai_unavailable
+    respond_to do |format|
+      format.html {
+ redirect_to project_task_path(@task.project, @task), alert: 'AI generation is disabled or not configured.' }
+      format.json { render json: { error: 'AI generation disabled' }, status: :unprocessable_entity }
+    end
+  end
+
+  def sanitized_count
+    raw = params[:count].presence
+    return nil if raw.blank?
+
+    raw.to_i.clamp(1, AiTestCaseGenerationService::MAX_TEST_CASES)
+  end
+
+  def respond_ai_error(message)
+    respond_to do |format|
+      format.html { redirect_to project_task_path(@task.project, @task), alert: message }
+      format.json { render json: { error: message }, status: :unprocessable_entity }
+    end
   end
 
   def handle_clone_result(result)

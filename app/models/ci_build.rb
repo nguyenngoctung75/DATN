@@ -11,6 +11,21 @@ class CiBuild < ApplicationRecord
 
   scope :recent, -> { order(created_at: :desc) }
 
+  # Push the latest CI history to any open Task page (show / report) in realtime.
+  after_commit :broadcast_history, if: -> { task_id.present? }
+
+  def broadcast_history
+    reloaded_task = task
+    return if reloaded_task.nil?
+
+    Turbo::StreamsChannel.broadcast_replace_to(
+      reloaded_task,
+      target: "ci-history-#{reloaded_task.id}",
+      partial: 'tasks/ci_history_section',
+      locals: { ci_builds: reloaded_task.ci_builds.recent.limit(20), task: reloaded_task }
+    )
+  end
+
   def succeeded?
     status == 'success'
   end

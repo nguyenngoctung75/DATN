@@ -3,7 +3,7 @@
     h1.h4.fw-bold.mb-0
       i.bi.bi-bell.me-2
       | All Notifications
-    = link_to "Mark all as read", mark_all_read_notifications_path, method: :post, class: "btn btn-outline-primary btn-sm", data: { turbo: false }
+    = button_to "Mark all as read", mark_all_read_notifications_path, method: :post, class: "btn btn-outline-primary btn-sm", form: { class: "d-inline js-mark-all-read-form" }
 
   .card.border-0.shadow-sm
     .card-body.p-0

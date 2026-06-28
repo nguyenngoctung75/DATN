@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 32px 80px; }
+    .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+    .label-sm { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+
+    /* notification dropdown */
+    .notif-panel { width: 360px; }
+    .notif-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .notif-head h3 { font-size: 14px; }
+    .notif-head a { font-size: 12px; }
+    .notif-item { display: flex; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border-subtle); cursor: pointer; }
+    .notif-item:hover { background: var(--bg-muted); }
+    .notif-item.unread { background: rgba(6,182,212,0.05); }
+    .notif-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-top: 6px; flex-shrink: 0; }
+    .notif-dot.read { background: transparent; }
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-size: 13px; color: var(--text-primary); }
+    .notif-item.unread .notif-title { font-weight: 600; }
+    .notif-msg { font-size: 12px; color: var(--text-secondary); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .notif-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+    .cat-badge { font-size: 10px; padding: 1px 7px; border-radius: 10px; text-transform: uppercase; letter-spacing: .03em; }
+    .cat-cronjob { background: rgba(168,85,247,.14); color: #c084fc; }
+    .cat-system  { background: var(--accent-subtle); color: var(--accent); }
+    .cat-info    { background: var(--bg-muted); color: var(--text-secondary); }
+    .cat-warning { background: var(--warning-subtle); color: var(--warning); }
+    .notif-time { font-size: 11px; color: var(--text-muted); }
+    .notif-viewall { text-align: center; padding: 10px; font-size: 12px; }
+
+    /* user menu */
+    .user-menu { width: 240px; }
+    .um-head { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    .um-name { font-weight: 600; font-size: 13px; }
+    .um-role { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+    /* toasts */
+    .toast {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--bg-overlay); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+      padding: 12px 14px; margin-bottom: 12px; width: 360px;
+      color: var(--text-primary); font-size: 13px;
+    }
+    .toast .ic { font-size: 16px; margin-top: 1px; }
+    .toast .x { margin-left: auto; color: var(--text-muted); cursor: pointer; }
+    .toast-success { border-left: 3px solid var(--success); } .toast-success .ic { color: var(--success); }
+    .toast-error   { border-left: 3px solid var(--danger); }  .toast-error .ic { color: var(--danger); }
+    .toast-warning { border-left: 3px solid var(--warning); } .toast-warning .ic { color: var(--warning); }
+    .toast-info    { border-left: 3px solid var(--accent); }  .toast-info .ic { color: var(--accent); }
+    .toast .sub { color: var(--text-secondary); font-size: 12px; margin-top: 2px; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Notifications & Toasts — Linear Dark Theme</div>
+
+  <div class="wrap">
+    <div class="page-header">
+      <div class="page-eyebrow">Realtime</div>
+      <div class="page-title">Notifications &amp; Toasts</div>
+      <div class="page-subtitle">Header dropdown, user menu, CI/CD toast và 4 loại flash toast.</div>
+    </div>
+
+    <div class="demo-grid">
+      <!-- left: dropdowns -->
+      <div>
+        <div class="label-sm">Header — Notification dropdown</div>
+        <div class="dropdown-menu notif-panel" id="notif-dropdown" style="padding:0;">
+          <div class="notif-head">
+            <h3>Thông báo</h3>
+            <a href="#">Mark all as read</a>
+          </div>
+          <div class="notif-item unread">
+            <span class="notif-dot"></span>
+            <div class="notif-body">
+              <div class="notif-title">CI build thành công cho PR #142</div>
+              <div class="notif-msg">rubocop ✓ · rspec ✓ · e2e ✓ — Login &amp; Authentication Flow</div>
+              <div class="notif-foot"><span class="cat-badge cat-system">system</span><span class="notif-time">2 phút trước</span></div>
+            </div>
+          </div>
+          <div class="notif-item unread">
+            <span class="notif-dot"></span>
+            <div class="notif-body">
+              <div class="notif-title">Import test case hoàn tất</div>
+              <div class="notif-msg">Đã nhập 48 test case từ Google Sheet</div>
+              <div class="notif-foot"><span class="cat-badge cat-info">info</span><span class="notif-time">15 phút trước</span></div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <span class="notif-dot read"></span>
+            <div class="notif-body">
+              <div class="notif-title">Daily Redmine sync</div>
+              <div class="notif-msg">Đồng bộ 12 issue mới từ Redmine lúc 06:00</div>
+              <div class="notif-foot"><span class="cat-badge cat-cronjob">cronjob</span><span class="notif-time">5 giờ trước</span></div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <span class="notif-dot read"></span>
+            <div class="notif-body">
+              <div class="notif-title">Dung lượng đính kèm gần đạt giới hạn</div>
+              <div class="notif-msg">Bộ nhớ evidence còn 8% trống</div>
+              <div class="notif-foot"><span class="cat-badge cat-warning">warning</span><span class="notif-time">Hôm qua</span></div>
+            </div>
+          </div>
+          <div class="notif-viewall"><a href="#">View all notifications</a></div>
+        </div>
+
+        <div class="label-sm" style="margin-top:28px;">Header — User menu</div>
+        <div class="dropdown-menu user-menu" style="padding:0;">
+          <div class="um-head">
+            <div class="flex items-center gap-2">
+              <span class="avatar">TN</span>
+              <div>
+                <div class="um-name">Tung Nguyen</div>
+                <div class="um-role">👑 Admin</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:6px;">
+            <div class="dropdown-item"><i class="bi bi-key"></i> Change Password</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item text-danger"><i class="bi bi-box-arrow-right"></i> Sign Out</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: toasts -->
+      <div>
+        <div class="label-sm">CI/CD toast (realtime qua Action Cable)</div>
+        <div id="ci-toasts" style="display:inline-block;">
+          <div class="toast toast-success">
+            <i class="bi bi-check-circle-fill ic"></i>
+            <div>
+              <div>✅ CI passed — PR #142</div>
+              <div class="sub">rubocop · rspec · e2e đều xanh</div>
+            </div>
+            <i class="bi bi-x-lg x"></i>
+          </div>
+          <div class="toast toast-error" style="margin-bottom:0;">
+            <i class="bi bi-x-circle-fill ic"></i>
+            <div>
+              <div>❌ CI failed — PR #139</div>
+              <div class="sub">rspec: 3 examples, 1 failure</div>
+            </div>
+            <i class="bi bi-x-lg x"></i>
+          </div>
+        </div>
+
+        <div class="label-sm" style="margin-top:28px;">Flash toasts</div>
+        <div class="toast toast-success">
+          <i class="bi bi-check-circle-fill ic"></i>
+          <div>Test case đã được lưu thành công.</div>
+          <i class="bi bi-x-lg x"></i>
+        </div>
+        <div class="toast toast-error">
+          <i class="bi bi-x-circle-fill ic"></i>
+          <div>Không thể xoá project: vẫn còn task đang mở.</div>
+          <i class="bi bi-x-lg x"></i>
+        </div>
+        <div class="toast toast-warning">
+          <i class="bi bi-exclamation-triangle-fill ic"></i>
+          <div>Phiên làm việc sắp hết hạn sau 5 phút.</div>
+          <i class="bi bi-x-lg x"></i>
+        </div>
+        <div class="toast toast-info">
+          <i class="bi bi-info-circle-fill ic"></i>
+          <div>Đang đồng bộ dữ liệu từ Redmine…</div>
+          <i class="bi bi-x-lg x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

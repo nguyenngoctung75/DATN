@@ -1,5 +1,5 @@
 doctype html
-html
+html data-bs-theme="dark"
   head
     title= content_for(:title) || "Tool Test"
     meta name="viewport" content="width=device-width,initial-scale=1"
@@ -48,7 +48,7 @@ html
       .container-fluid
         .row.g-0.flex-nowrap
           / === Sidebar ===
-          .sidebar.px-0.bg-white.border-end.min-vh-100 data-layout-target="sidebar" style="transition: all 0.3s ease-in-out; width: 260px; min-width: 260px; flex: 0 0 260px;"
+          .sidebar.px-0.border-end.min-vh-100 data-layout-target="sidebar" style="transition: all 0.3s ease-in-out; width: 240px; min-width: 240px; flex: 0 0 240px;"
             = render "shared/sidebar"
 
           / === Main content ===

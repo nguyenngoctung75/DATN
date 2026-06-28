@@ -1,6 +1,12 @@
 class ActivityTimelinePresenter
-  IMPORTANT_FIELDS = %w[title description status assignee_id priority start_date due_date percent_done estimated_time
-spent_time device tester_id result notes].freeze
+  # Internal / auto-maintained fields that should NOT appear in the activity
+  # history. Everything else a user edits is shown.
+  IGNORED_FIELDS = %w[
+    created_at updated_at deleted_at
+    number_of_test_cases subtasks_count subtask_id position redmine_id
+    created_by_name reviewed_by_name stg_bugs_vn stg_bugs_jp prod_bugs
+    generated_by_ai display_order step_number
+  ].freeze
   GROUP_WINDOW = 5.minutes
 
   TimelineEntry = Data.define(
@@ -33,7 +39,7 @@ spent_time device tester_id result notes].freeze
     return false if log.metadata.blank?
 
     log.metadata.any? do |field, values|
-      next false unless IMPORTANT_FIELDS.include?(field)
+      next false if IGNORED_FIELDS.include?(field)
       next false if trivial_diff?(values)
 
       true
@@ -112,7 +118,7 @@ spent_time device tester_id result notes].freeze
     return [] if log.metadata.blank? || log.action_type != 'update'
 
     log.metadata.filter_map do |field, values|
-      next unless IMPORTANT_FIELDS.include?(field)
+      next if IGNORED_FIELDS.include?(field)
       next unless values.is_a?(Array) && values.size == 2
       next if trivial_diff?(values)
 

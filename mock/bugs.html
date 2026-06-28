@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bugs — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+    .content-wrap { padding: 20px 24px; }
+
+    .breadcrumb-row { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    .breadcrumb-row a { color: var(--text-secondary); }
+    .breadcrumb-row .bi { font-size: 10px; opacity: .6; margin: 0 4px; }
+
+    .sheet-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    table.sheet { width: 100%; border-collapse: collapse; background: var(--bg-elevated); font-size: 13px; }
+    .sheet thead th {
+      background: var(--bg-overlay); color: var(--text-secondary);
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+      padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+    .sheet tbody td { padding: 8px 10px; border: 1px solid var(--border-subtle); color: var(--text-primary); vertical-align: top; }
+    .sheet tbody tr:hover td { background: var(--bg-muted); }
+    .col-id { width: 84px; text-align: center; color: var(--accent); font-family: monospace; font-weight: 600; }
+    .col-center { text-align: center; }
+
+    .pill { font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+    /* priority */
+    .pr-high   { background: var(--danger-subtle);  color: var(--danger); }
+    .pr-normal { background: var(--accent-subtle);  color: var(--accent); }
+    .pr-low    { background: var(--bg-muted);       color: var(--text-secondary); }
+    /* status */
+    .st-new     { background: var(--bg-muted);       color: var(--text-secondary); }
+    .st-fixing  { background: var(--warning-subtle); color: var(--warning); }
+    .st-testing { background: var(--accent-subtle);  color: var(--accent); }
+    .st-pending { background: rgba(168,85,247,.14);  color: #c084fc; }
+    .st-done    { background: var(--success-subtle); color: var(--success); }
+    .cat { font-size: 11px; color: var(--text-secondary); }
+    .media-link { color: var(--accent); }
+    .row-foot { padding: 12px; background: var(--bg-elevated); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Bugs — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item"><i class="bi bi-folder2-open"></i> Projects</div>
+      <div class="nav-item"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item active"><i class="bi bi-list-task"></i> Tasks</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="breadcrumb-row">
+        <a href="projects.html">Projects</a><i class="bi bi-chevron-right"></i>
+        <a href="#">Mobile App QA</a><i class="bi bi-chevron-right"></i>
+        <a href="#">Login &amp; Authentication Flow</a><i class="bi bi-chevron-right"></i>
+        <span style="color:var(--text-secondary)">Bugs</span>
+      </div>
+
+      <div class="page-header flex between items-center">
+        <div>
+          <div class="page-title">🐛 Bugs list <span class="badge badge-fail" style="vertical-align:middle;">6</span></div>
+          <div class="page-subtitle">Associated with: Login &amp; Authentication Flow</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm"><i class="bi bi-cloud-download"></i> Sync from Sheet</button>
+          <button class="btn btn-secondary btn-sm"><i class="bi bi-box-arrow-up-right"></i> Open Sheet</button>
+          <button class="btn btn-secondary btn-sm"><i class="bi bi-archive"></i> Archived (2)</button>
+        </div>
+      </div>
+
+      <div class="sheet-wrap">
+        <table class="sheet">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th>Content</th>
+              <th class="col-center">App</th>
+              <th class="col-center">Category</th>
+              <th class="col-center">Bug Type</th>
+              <th class="col-center">Priority</th>
+              <th>Dev</th>
+              <th>Test</th>
+              <th class="col-center">Status</th>
+              <th class="col-center">Media</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-id">BUG-012</td>
+              <td>Thông báo lỗi email không hiển thị trên SP khi nhập sai định dạng</td>
+              <td class="col-center cat">SP</td>
+              <td class="col-center cat">STG VN</td>
+              <td class="col-center cat">new_bug</td>
+              <td class="col-center"><span class="pill pr-high">High</span></td>
+              <td>Lan Pham</td>
+              <td>Tung Nguyen</td>
+              <td class="col-center"><span class="pill st-fixing">Fixing</span></td>
+              <td class="col-center"><a class="media-link" href="#"><i class="bi bi-image"></i></a></td>
+              <td class="muted">Repro 100%</td>
+            </tr>
+            <tr>
+              <td class="col-id">BUG-013</td>
+              <td>Session không hết hạn sau 24h như spec</td>
+              <td class="col-center cat">PC</td>
+              <td class="col-center cat">STG JP</td>
+              <td class="col-center cat">old_bug</td>
+              <td class="col-center"><span class="pill pr-normal">Normal</span></td>
+              <td>Minh Tran</td>
+              <td>Tung Nguyen</td>
+              <td class="col-center"><span class="pill st-testing">Testing</span></td>
+              <td class="col-center"><a class="media-link" href="#"><i class="bi bi-camera-video"></i></a></td>
+              <td class="muted"></td>
+            </tr>
+            <tr>
+              <td class="col-id">BUG-014</td>
+              <td>Nút "Sign in with Google" bị lệch trên màn 13 inch</td>
+              <td class="col-center cat">PC</td>
+              <td class="col-center cat">New Req</td>
+              <td class="col-center cat">improve</td>
+              <td class="col-center"><span class="pill pr-low">Low</span></td>
+              <td class="muted">Unassigned</td>
+              <td>Lan Pham</td>
+              <td class="col-center"><span class="pill st-new">New</span></td>
+              <td class="col-center muted">—</td>
+              <td class="muted">UI minor</td>
+            </tr>
+            <tr>
+              <td class="col-id">BUG-015</td>
+              <td>Crash khi đăng nhập OAuth lần đầu trên Android 12</td>
+              <td class="col-center cat">APP</td>
+              <td class="col-center cat">Prod</td>
+              <td class="col-center cat">new_bug</td>
+              <td class="col-center"><span class="pill pr-high">High</span></td>
+              <td>Minh Tran</td>
+              <td>Tung Nguyen</td>
+              <td class="col-center"><span class="pill st-pending">Pending</span></td>
+              <td class="col-center"><a class="media-link" href="#"><i class="bi bi-camera-video"></i></a></td>
+              <td style="color:var(--danger)">Hotfix needed</td>
+            </tr>
+            <tr>
+              <td class="col-id">BUG-016</td>
+              <td>Remember me checkbox không lưu trạng thái</td>
+              <td class="col-center cat">PC</td>
+              <td class="col-center cat">STG VN</td>
+              <td class="col-center cat">old_bug</td>
+              <td class="col-center"><span class="pill pr-normal">Normal</span></td>
+              <td>Lan Pham</td>
+              <td>Tung Nguyen</td>
+              <td class="col-center"><span class="pill st-done">Done</span></td>
+              <td class="col-center muted">—</td>
+              <td class="muted">Verified</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="row-foot">
+        <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Create New Bug</button>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

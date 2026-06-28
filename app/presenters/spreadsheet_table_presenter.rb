@@ -28,30 +28,33 @@ class SpreadsheetTablePresenter
 
   def build_row_metadata
     metadata = {}
-    current_title = nil
-    row_start_index = 0
-    total_tr_span = 0
+    return metadata if @test_cases.empty?
+
+    run_start = 0
+    prev_group = nil
 
     @test_cases.each_with_index do |tc, i|
-      title = tc.title.to_s.strip
+      group = tc.group_description.to_s.strip
+      # A group-description header row is injected before this row when its
+      # group changes (see #rows). That header is a full-width (colspan) <tr>,
+      # so a title-merge rowspan must NOT span across it — break the run here.
+      header_before = group.present? && group != prev_group
 
-      if title != current_title
-        metadata[row_start_index] = { rowspan: total_tr_span } if i > 0
-        current_title = title
-        row_start_index = i
-        total_tr_span = 0
+      if i.positive? && (tc.title.to_s.strip != @test_cases[i - 1].title.to_s.strip || header_before)
+        finalize_run(metadata, run_start, i - 1)
+        run_start = i
       end
 
-      total_tr_span += 1
-
-      if i == @test_cases.size - 1
-        metadata[row_start_index] = { rowspan: total_tr_span }
-        ((row_start_index + 1)..i).each { |k| metadata[k] = { hide: true } }
-      elsif @test_cases[i + 1]&.title.to_s.strip != current_title
-        ((row_start_index + 1)..i).each { |k| metadata[k] = { hide: true } }
-      end
+      prev_group = group
     end
 
+    finalize_run(metadata, run_start, @test_cases.size - 1)
     metadata
+  end
+
+  def finalize_run(metadata, start_index, end_index)
+    span = end_index - start_index + 1
+    metadata[start_index] = { rowspan: span }
+    ((start_index + 1)..end_index).each { |k| metadata[k] = { hide: true } }
   end
 end

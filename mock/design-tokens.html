@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Tokens — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 32px 80px; }
+    .section { margin-bottom: 40px; }
+    .section > h2 { margin-bottom: 16px; }
+    .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .sw { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .sw .chip { height: 64px; }
+    .sw .meta { padding: 8px 10px; background: var(--bg-elevated); }
+    .sw .meta .name { font-size: 12px; color: var(--text-primary); }
+    .sw .meta .val { font-size: 11px; color: var(--text-muted); font-family: monospace; }
+    .type-row { display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border-subtle); }
+    .type-row .tag { width: 120px; color: var(--text-muted); font-size: 12px; font-family: monospace; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Design Tokens — Linear Dark Theme</div>
+
+  <div class="wrap">
+    <div class="page-header">
+      <div class="page-eyebrow">Design System</div>
+      <div class="page-title">Design Tokens</div>
+      <div class="page-subtitle">Bảng màu, typography và component cơ sở cho toàn bộ giao diện.</div>
+    </div>
+
+    <!-- Colors -->
+    <div class="section">
+      <h2>Màu nền & Accent</h2>
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:#0a0a0a"></div><div class="meta"><div class="name">bg-base</div><div class="val">#0a0a0a</div></div></div>
+        <div class="sw"><div class="chip" style="background:#111111"></div><div class="meta"><div class="name">bg-elevated</div><div class="val">#111111</div></div></div>
+        <div class="sw"><div class="chip" style="background:#1a1a1a"></div><div class="meta"><div class="name">bg-overlay</div><div class="val">#1a1a1a</div></div></div>
+        <div class="sw"><div class="chip" style="background:#222222"></div><div class="meta"><div class="name">bg-muted</div><div class="val">#222222</div></div></div>
+        <div class="sw"><div class="chip" style="background:#06b6d4"></div><div class="meta"><div class="name">accent</div><div class="val">#06b6d4</div></div></div>
+        <div class="sw"><div class="chip" style="background:#0891b2"></div><div class="meta"><div class="name">accent-hover</div><div class="val">#0891b2</div></div></div>
+        <div class="sw"><div class="chip" style="background:rgba(6,182,212,0.12)"></div><div class="meta"><div class="name">accent-subtle</div><div class="val">rgba(6,182,212,.12)</div></div></div>
+        <div class="sw"><div class="chip" style="background:#27272a"></div><div class="meta"><div class="name">border</div><div class="val">#27272a</div></div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Màu semantic & text</h2>
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:#10b981"></div><div class="meta"><div class="name">success</div><div class="val">#10b981</div></div></div>
+        <div class="sw"><div class="chip" style="background:#ef4444"></div><div class="meta"><div class="name">danger</div><div class="val">#ef4444</div></div></div>
+        <div class="sw"><div class="chip" style="background:#f59e0b"></div><div class="meta"><div class="name">warning</div><div class="val">#f59e0b</div></div></div>
+        <div class="sw"><div class="chip" style="background:#06b6d4"></div><div class="meta"><div class="name">info</div><div class="val">#06b6d4</div></div></div>
+        <div class="sw"><div class="chip" style="background:#f4f4f5"></div><div class="meta"><div class="name">text-primary</div><div class="val">#f4f4f5</div></div></div>
+        <div class="sw"><div class="chip" style="background:#a1a1aa"></div><div class="meta"><div class="name">text-secondary</div><div class="val">#a1a1aa</div></div></div>
+        <div class="sw"><div class="chip" style="background:#71717a"></div><div class="meta"><div class="name">text-muted</div><div class="val">#71717a</div></div></div>
+        <div class="sw"><div class="chip" style="background:#09090b"></div><div class="meta"><div class="name">text-inverse</div><div class="val">#09090b</div></div></div>
+      </div>
+    </div>
+
+    <!-- Typography -->
+    <div class="section">
+      <h2>Typography — Inter</h2>
+      <div class="panel">
+        <div class="type-row"><span class="tag">h1 / 1.5rem</span><h1>Heading lớn — Workspace Projects</h1></div>
+        <div class="type-row"><span class="tag">h2 / 1.25rem</span><h2>Heading vừa — Test Execution</h2></div>
+        <div class="type-row"><span class="tag">h3 / 1rem</span><h3>Heading nhỏ — Task Details</h3></div>
+        <div class="type-row"><span class="tag">body / 14px</span><span>Văn bản thường — quản lý ca kiểm thử theo cấu trúc phân cấp.</span></div>
+        <div class="type-row"><span class="tag">secondary</span><span class="secondary">Văn bản phụ — mô tả, nhãn, caption.</span></div>
+        <div class="type-row"><span class="tag">muted</span><span class="muted">Văn bản mờ — placeholder, disabled, timestamp.</span></div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="section">
+      <h2>Buttons</h2>
+      <div class="panel">
+        <div class="row">
+          <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Project</button>
+          <button class="btn btn-secondary"><i class="bi bi-funnel"></i> Filter</button>
+          <button class="btn btn-danger"><i class="bi bi-trash"></i> Delete</button>
+          <button class="btn btn-secondary btn-sm">Small</button>
+          <button class="btn-icon"><i class="bi bi-three-dots"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="section">
+      <h2>Status Badges</h2>
+      <div class="panel">
+        <div class="row">
+          <span class="badge badge-pass"><i class="bi bi-check-circle-fill"></i> PASSED</span>
+          <span class="badge badge-fail"><i class="bi bi-x-circle-fill"></i> FAILED</span>
+          <span class="badge badge-pending"><i class="bi bi-clock-fill"></i> PENDING</span>
+          <span class="badge badge-running"><i class="bi bi-play-circle-fill"></i> RUNNING</span>
+          <span class="badge badge-neutral">NOT RUN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forms + Dropdown/Modal -->
+    <div class="section">
+      <h2>Inputs, Dropdown & Modal</h2>
+      <div class="grid2">
+        <div class="panel">
+          <label class="form-label">Search</label>
+          <input class="form-control" placeholder="Search tasks by title, Redmine ID...">
+          <label class="form-label" style="margin-top:14px">Status</label>
+          <select class="form-select">
+            <option>All</option><option>In Progress</option><option>Resolved</option>
+          </select>
+          <div style="margin-top:14px" class="dropdown-menu">
+            <div class="dropdown-item"><i class="bi bi-pencil"></i> Edit</div>
+            <div class="dropdown-item"><i class="bi bi-files"></i> Clone</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item text-danger"><i class="bi bi-trash"></i> Delete Project</div>
+          </div>
+        </div>
+        <div class="panel" style="display:flex; align-items:center; justify-content:center;">
+          <div style="width:100%; max-width:360px; background:var(--bg-overlay); border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow-lg);">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+              <h3>Create Subtask</h3>
+              <i class="bi bi-x-lg muted"></i>
+            </div>
+            <div style="padding:16px 20px;">
+              <label class="form-label">Title</label>
+              <input class="form-control" value="Login validation">
+            </div>
+            <div style="padding:14px 20px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end;">
+              <button class="btn btn-secondary">Cancel</button>
+              <button class="btn btn-primary">Create</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+- counts = project.task_status_counts
+.card.border-0.shadow-sm.mb-4
+  .card-body
+    .d-flex.align-items-center.gap-2.mb-3
+      i.bi.bi-bar-chart-fill.text-primary
+      h6.fw-bold.mb-0 Task Status Overview
+      span.text-muted.small.ms-2 Number of tasks by status
+    .row.g-2
+      - Task::STATUSES.each do |st|
+        .col-6.col-md-2
+          .p-3.rounded.text-center.border.h-100
+            div class=("h3 fw-bold mb-0 " + task_status_text_class(st))
+              = counts[st]
+            .small.text-muted= st.titleize

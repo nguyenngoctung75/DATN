@@ -13,6 +13,16 @@ class User < ApplicationRecord
   has_many :dev_bugs, class_name: 'Bug', foreign_key: 'dev_id', dependent: :nullify
   has_many :tester_bugs, class_name: 'Bug', foreign_key: 'tester_id', dependent: :nullify
 
+  # Project membership (which projects this user is assigned to)
+  has_many :project_users, dependent: :destroy
+  has_many :projects, through: :project_users
+
+  # Project ids this user can access: projects they are a member of,
+  # plus any project marked open to all users. Admins bypass this entirely.
+  def accessible_project_ids
+    Project.where(open_to_all_users: true).ids | project_ids
+  end
+
   # Enum for roles: 0 = admin, 1 = user
   enum :role, { admin: 0, user: 1 }, default: :user
 

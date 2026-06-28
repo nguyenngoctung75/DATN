@@ -1,50 +1,51 @@
-/ CI/CD History Section — danh sách CiBuild gần nhất của task hiện tại
-.card.mb-4 data-layout-toggle-target="section"
-  .card-header.bg-white.border-bottom.d-flex.justify-content-between.align-items-center
-    h5.mb-0
-      i.bi.bi-rocket-takeoff.me-2.text-primary
-      | CI/CD History
-      span.badge.bg-secondary.ms-2 = ci_builds.size
-    - if ci_builds.any?
-      small.text-muted Showing latest #{ci_builds.size} run(s)
+/ CI/CD History Section — latest CiBuild list for this task (live-updated via Turbo Stream)
+div id="ci-history-#{task.id}"
+  .card.mb-4 data-layout-toggle-target="section"
+    .card-header.bg-white.border-bottom.d-flex.justify-content-between.align-items-center
+      h5.mb-0
+        i.bi.bi-rocket-takeoff.me-2.text-primary
+        | CI/CD History
+        span.badge.bg-secondary.ms-2 = ci_builds.size
+      - if ci_builds.any?
+        small.text-muted Showing latest #{ci_builds.size} run(s)
 
-  - if ci_builds.empty?
-    .card-body.text-center.text-muted.py-4
-      i.bi.bi-inbox.fs-3.d-block.mb-2
-      | No CI/CD runs recorded yet for this task.
-      .small.mt-1 Pipeline will appear here once a PR linked to this Redmine issue completes.
-  - else
-    .table-responsive
-      table.table.table-hover.align-middle.mb-0
-        thead.table-light
-          tr
-            th.ps-3 Status
-            th Commit
-            th Branch
-            th PR
-            th Author
-            th.pe-3 When
-        tbody
-          - ci_builds.each do |build|
+    - if ci_builds.empty?
+      .card-body.text-center.text-muted.py-4
+        i.bi.bi-inbox.fs-3.d-block.mb-2
+        | No CI/CD runs recorded yet for this task.
+        .small.mt-1 Pipeline will appear here once a PR linked to this Redmine issue completes.
+    - else
+      .table-responsive
+        table.table.table-hover.align-middle.mb-0
+          thead.table-light
             tr
-              td.ps-3
-                span class="badge #{ci_status_badge_class(build.status)}" = ci_status_label(build.status)
-              td
-                - if build.github_url.present?
-                  = link_to build.short_sha, build.github_url, target: '_blank', rel: 'noopener noreferrer', class: 'font-monospace text-decoration-none'
-                - else
-                  span.font-monospace.text-muted = build.short_sha
-              td
-                span.text-muted.small = build.branch
-                - if build.base_branch.present?
-                  span.text-muted.small.ms-1 = "→ #{build.base_branch}"
-              td
-                - if build.pr_url.present?
-                  = link_to "##{build.pr_number}", build.pr_url, target: '_blank', rel: 'noopener noreferrer'
-                - else
-                  span.text-muted —
-              td
-                span.text-muted = build.author.presence || '—'
-              td.pe-3
-                span.text-muted title=(build.created_at.strftime('%d %b %Y %H:%M'))
-                  = "#{time_ago_in_words(build.created_at)} ago"
+              th.ps-3 Status
+              th Commit
+              th Branch
+              th PR
+              th Author
+              th.pe-3 When
+          tbody
+            - ci_builds.each do |build|
+              tr
+                td.ps-3
+                  span class="badge #{ci_status_badge_class(build.status)}" = ci_status_label(build.status)
+                td
+                  - if build.github_url.present?
+                    = link_to build.short_sha, build.github_url, target: '_blank', rel: 'noopener noreferrer', class: 'font-monospace text-decoration-none'
+                  - else
+                    span.font-monospace.text-muted = build.short_sha
+                td
+                  span.text-muted.small = build.branch
+                  - if build.base_branch.present?
+                    span.text-muted.small.ms-1 = "→ #{build.base_branch}"
+                td
+                  - if build.pr_url.present?
+                    = link_to "##{build.pr_number}", build.pr_url, target: '_blank', rel: 'noopener noreferrer'
+                  - else
+                    span.text-muted —
+                td
+                  span.text-muted = build.author.presence || '—'
+                td.pe-3
+                  span.text-muted title=(build.created_at.strftime('%d %b %Y %H:%M'))
+                    = "#{time_ago_in_words(build.created_at)} ago"

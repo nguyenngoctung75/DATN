@@ -1,0 +1,22 @@
+.card.border-0.shadow-sm.mb-4
+  .card-body
+    .d-flex.align-items-center.justify-content-between.mb-3
+      .d-flex.align-items-center.gap-2
+        i.bi.bi-people-fill.text-primary
+        h6.fw-bold.mb-0 Assigned Members
+      - if current_user&.admin?
+        = link_to edit_project_path(project), class: "btn btn-sm btn-outline-secondary" do
+          i.bi.bi-gear.me-1
+          | Manage
+    - if project.open_to_all_users
+      span.badge.bg-success.bg-opacity-75.py-2.px-3
+        i.bi.bi-globe.me-1
+        | Open to all users
+    - elsif project.users.active.any?
+      .d-flex.flex-wrap.gap-2
+        - project.users.active.order(:name).each do |member|
+          span.badge.bg-light.text-dark.border.d-inline-flex.align-items-center.gap-1.py-2.px-3
+            i.bi.bi-person-circle.text-secondary
+            = member_display_name(member)
+    - else
+      .text-muted.small No members assigned to this project yet.

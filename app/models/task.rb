@@ -12,6 +12,61 @@ class Task < ApplicationRecord
   ].freeze
   COMPLETED_STATUSES = %w[resolved closed].freeze
 
+  # Testing activity workflow (independent from `status`, which mirrors Redmine).
+  TEST_PHASES = %w[not_started creating_testcases executing reporting completed].freeze
+  TEST_PHASE_LABELS = {
+    'not_started' => 'Not Started',
+    'creating_testcases' => 'Creating Test Cases',
+    'executing' => 'Executing Test Cases',
+    'reporting' => 'Reporting',
+    'completed' => 'Completed'
+  }.freeze
+
+  # Test cases may only be cloned INTO a task still in an early test phase
+  # (before execution starts), so cloning never disturbs an in-progress run.
+  CLONABLE_DEST_PHASES = %w[not_started creating_testcases].freeze
+
+  # Classification of the kind of testing this task represents.
+  TESTING_TYPES = %w[new_feature regression retest smoke integration performance other].freeze
+  TESTING_TYPE_LABELS = {
+    'new_feature' => 'New Feature Testing',
+    'regression' => 'Regression Testing',
+    'retest' => 'Retest (after fix)',
+    'smoke' => 'Smoke Testing',
+    'integration' => 'Integration Testing',
+    'performance' => 'Performance Testing',
+    'other' => 'Other'
+  }.freeze
+
+  # KPI definitions for tester performance. Targets are stored in `kpi_targets`
+  # (json); actual values are computed on the fly from task data (#kpi_actuals).
+  KPIS = {
+    'test_execution_rate' => {
+      label: 'Test Execution Rate', unit: '%', higher_is_better: true, default_target: 100,
+      hint: 'Percentage of test cases executed out of the total test cases. Formula: executed TC / total TC × 100.'
+    },
+    'defect_detection_efficiency' => {
+      label: 'Defect Detection Efficiency', unit: '%', higher_is_better: true, default_target: 90,
+      hint: 'Share of bugs found during testing vs all bugs. Formula: bugs found in testing / total bugs × 100.'
+    },
+    'test_case_effectiveness' => {
+      label: 'Test Case Effectiveness', unit: '%', higher_is_better: true, default_target: 30,
+      hint: 'Percentage of test cases that found at least one bug. Higher means more valuable test cases.'
+    },
+    'on_time_completion' => {
+      label: 'On-time Completion', unit: '%', higher_is_better: true, default_target: 100,
+      hint: 'Whether testing finished on time: 100 if completed on or before the due date, otherwise 0.'
+    },
+    'defect_leakage' => {
+      label: 'Defect Leakage', unit: '%', higher_is_better: false, default_target: 5,
+      hint: 'Bugs that escaped to production: production bugs / total bugs × 100 (lower is better).'
+    },
+    'tc_design_productivity' => {
+      label: 'TC Design Productivity', unit: 'TC/h', higher_is_better: true, default_target: 5,
+      hint: 'Number of test cases designed per spent hour. Formula: total test cases / spent time (hours).'
+    }
+  }.freeze
+
   belongs_to :project
   belongs_to :assignee, class_name: 'User', foreign_key: 'assignee_id', optional: true
   belongs_to :parent, class_name: 'Task', foreign_key: 'parent_id', counter_cache: :subtasks_count, optional: true
@@ -24,6 +79,8 @@ class Task < ApplicationRecord
 
   validates :title, presence: true
   validates :status, inclusion: { in: STATUSES, allow_nil: true }
+  validates :test_phase, inclusion: { in: TEST_PHASES, allow_nil: true }
+  validates :testing_type, inclusion: { in: TESTING_TYPES, allow_blank: true }
   validates :estimated_time, :spent_time, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
   validates :percent_done, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100, allow_nil: true }
   validate :due_date_after_start_date
@@ -60,6 +117,7 @@ class Task < ApplicationRecord
     )
   }
   scope :with_status, ->(s) { where(status: s.to_s.downcase.tr('_', ' ')) }
+  scope :clonable_destinations, -> { where(test_phase: CLONABLE_DEST_PHASES) }
 
   SORT_DIRECTIONS = { 'asc' => 'ASC', 'desc' => 'DESC' }.freeze
 
@@ -80,7 +138,7 @@ class Task < ApplicationRecord
         status: 'new',
         created_by_name: created_by_name
       )
-      tcs = test_cases.where(title: function_name)
+      tcs = test_cases.active.where(title: function_name)
       count = tcs.count
       tcs.update_all(task_id: subtask.id)
       update_column(:number_of_test_cases, test_cases.active.count)
@@ -149,5 +207,65 @@ class Task < ApplicationRecord
     own_count = test_cases.active.count
     sub_count = TestCase.active.where(task_id: subtasks.select(:id)).count
     own_count + sub_count
+  end
+
+  # Number of test cases that have at least one recorded test result.
+  def executed_test_cases_count
+    TestResult.where(case_id: test_cases.active.select(:id)).distinct.count(:case_id)
+  end
+
+  def test_phase_label
+    TEST_PHASE_LABELS[test_phase] || 'Not Started'
+  end
+
+  def testing_type_label
+    TESTING_TYPE_LABELS[testing_type]
+  end
+
+  # Target value (number) for a given KPI key, falling back to its default.
+  def kpi_target(key)
+    stored = kpi_targets.is_a?(Hash) ? kpi_targets[key.to_s] : nil
+    value = stored.presence || KPIS.dig(key.to_s, :default_target)
+    value&.to_f
+  end
+
+  # Actual (computed) values for each KPI. Returns a hash keyed by KPI key;
+  # a value of nil means there is not enough data to compute that KPI.
+  def kpi_actuals
+    total_tc = total_test_cases_count
+    executed = executed_test_cases_count
+    stg = (stg_bugs_vn || 0) + (stg_bugs_jp || 0)
+    prod = prod_bugs || 0
+    total_bugs = stg + prod
+
+    {
+      'test_execution_rate' => percentage(executed, total_tc),
+      'defect_detection_efficiency' => percentage(stg, total_bugs),
+      'test_case_effectiveness' => percentage([ stg, total_tc ].min, total_tc),
+      'on_time_completion' => on_time_completion_value,
+      'defect_leakage' => percentage(prod, total_bugs),
+      'tc_design_productivity' => productivity_value(total_tc)
+    }
+  end
+
+  private
+
+  def percentage(part, total)
+    return nil if total.nil? || total.zero?
+
+    (part.to_f / total * 100).round(1)
+  end
+
+  def productivity_value(total_tc)
+    return nil if spent_time.nil? || spent_time.to_f.zero?
+
+    (total_tc / spent_time.to_f).round(2)
+  end
+
+  def on_time_completion_value
+    return nil if due_date.blank?
+    return nil unless test_phase == 'completed'
+
+    updated_at.to_date <= due_date ? 100.0 : 0.0
   end
 end

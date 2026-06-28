@@ -9,7 +9,12 @@
 #   docker compose exec -T redmine bundle exec rails runner /dev/stdin \
 #     < script/seed_redmine_bootstrap.rb
 
+# Issue statuses mirroring the app task statuses (only 'Closed' is a closed state).
 NEW_STATUS    = IssueStatus.find_or_create_by!(name: 'New') { |s| s.is_closed = false }
+IssueStatus.find_or_create_by!(name: 'Pending') { |s| s.is_closed = false }
+IssueStatus.find_or_create_by!(name: 'In Progress') { |s| s.is_closed = false }
+IssueStatus.find_or_create_by!(name: 'Resolved') { |s| s.is_closed = false }
+IssueStatus.find_or_create_by!(name: 'Waiting Release') { |s| s.is_closed = false }
 CLOSED_STATUS = IssueStatus.find_or_create_by!(name: 'Closed') { |s| s.is_closed = true }
 
 TRACKER_SPECS = [
@@ -92,17 +97,19 @@ ActiveRecord::Base.transaction do
   IssuePriority.find_or_create_by!(name: 'Medium') { |p|
  p.is_default = true } unless IssuePriority.exists?(name: 'Medium')
 
-  default_role = Role.find_by(name: 'Manager') || Role.where(builtin: 0).first
-  if default_role
-    [ story_tr, task_tr, test_tr ].each do |tr|
-      next if WorkflowTransition.exists?(tracker_id: tr.id, role_id: default_role.id)
-
+  # Ensure any-status -> any-status workflow transitions exist for the real roles
+  # so every app status (incl. custom Pending / Waiting Release) is assignable.
+  # Idempotent (find_or_create) — runs every time, no early-exit guard.
+  workflow_roles = Role.where(builtin: 0).to_a
+  workflow_roles = Role.all.to_a if workflow_roles.empty?
+  [ story_tr, task_tr, test_tr ].each do |tr|
+    workflow_roles.each do |role|
       IssueStatus.where(is_closed: false).find_each do |from|
         IssueStatus.find_each do |to|
           next if from.id == to.id
 
           WorkflowTransition.find_or_create_by!(
-            tracker_id: tr.id, role_id: default_role.id,
+            tracker_id: tr.id, role_id: role.id,
             old_status_id: from.id, new_status_id: to.id
           )
         end

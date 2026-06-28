@@ -123,18 +123,29 @@ end
 
 # ---------- Lookup ----------
 
+# app task status -> Redmine status name (statuses created by bootstrap script).
+APP_TO_REDMINE_STATUS = {
+  'closed' => 'Closed', 'new' => 'New', 'pending' => 'Pending',
+  'in progress' => 'In Progress', 'resolved' => 'Resolved', 'waiting release' => 'Waiting Release'
+}.freeze
+
+# Status distribution per story sequence: 150 closed, then 10 each of the rest.
+def app_status_for(seq)
+  return 'closed' if seq <= 150
+
+  [ 'new', 'pending', 'in progress', 'resolved', 'waiting release' ][(seq - 151) / 10]
+end
+
 def lookup_ids
   trackers = get_json('/trackers.json')['trackers']
   statuses = get_json('/issue_statuses.json')['issue_statuses']
 
   tr = ->(name) { trackers.find { |t|
  t['name'] == name }&.dig('id') or abort("Tracker '#{name}' chưa có. Chạy bootstrap script.") }
-  st = ->(name) { statuses.find { |s| s['name'] == name }&.dig('id') or abort("Status '#{name}' chưa có.") }
+  st = ->(name) { statuses.find { |s| s['name'] == name }&.dig('id') or abort("Status '#{name}' thiếu (bootstrap).") }
 
-  {
-    tracker: { 'User story' => tr['User story'], 'Task' => tr['Task'], 'Test' => tr['Test'] },
-    status:  { 'New' => st['New'], 'Closed' => st['Closed'] }
-  }
+  status_map = APP_TO_REDMINE_STATUS.values.uniq.to_h { |name| [ name, st[name] ] }
+  { tracker: { 'User story' => tr['User story'], 'Task' => tr['Task'], 'Test' => tr['Test'] }, status: status_map }
 end
 
 def project_id_for(identifier)
@@ -265,26 +276,89 @@ def existing_testing_children(parent_id, test_tracker_id)
   data ? data['issues'] : []
 end
 
+# ---------- Users & memberships ----------
+
+# Create Redmine users user1..user17 (matching the app's seed users). Returns
+# { index => redmine_user_id }. Idempotent: reuses users that already exist.
+def ensure_seed_users
+  existing = {}
+  offset = 0
+  loop do
+    data = get_json('/users.json', limit: 100, offset: offset, status: '*')
+    break unless data && data['users']
+
+    data['users'].each { |u| existing[u['login']] = u['id'] }
+    break if data['users'].size < 100
+
+    offset += 100
+  end
+
+  (1..17).each_with_object({}) do |i, logins|
+    login = "user#{i}"
+    logins[i] = existing[login] || create_redmine_user(login, i)
+  end
+end
+
+def create_redmine_user(login, idx)
+  res = conn.post('/users.json') do |r|
+    r.body = JSON.generate(
+      user: { login: login, firstname: 'User', lastname: idx.to_s,
+              mail: "user#{idx}@example.com", password: 'Password123',
+              must_change_passwd: false, mail_notification: 'none' },
+      send_information: false
+    )
+  end
+  raise "Tạo user #{login} lỗi: #{res.status} #{res.body[0, 300]}" unless res.success?
+
+  JSON.parse(res.body)['user']['id']
+end
+
+def membership_role_id
+  roles = get_json('/roles.json')['roles']
+  (roles.find { |r| r['name'] == 'Manager' } || roles.first)['id']
+end
+
+# Idempotent-ish: a duplicate membership returns 422, which we ignore.
+def ensure_membership(project_identifier, user_id, role_id)
+  res = conn.post("/projects/#{project_identifier}/memberships.json") do |r|
+    r.body = JSON.generate(membership: { user_id: user_id, role_ids: [ role_id ] })
+  end
+  return if res.success? || res.status == 422
+
+  warn "  [member] #{project_identifier} user##{user_id}: #{res.status}"
+end
+
 # ---------- Main ----------
 
 ids = lookup_ids
 story_tr  = ids[:tracker]['User story']
 task_tr   = ids[:tracker]['Task']
 test_tr   = ids[:tracker]['Test']
-new_st    = ids[:status]['New']
-closed_st = ids[:status]['Closed'] or abort("Status 'Closed' chưa có. Chạy lại bootstrap script.")
+status_ids = ids[:status]
+status_for_seq = ->(seq) { status_ids.fetch(APP_TO_REDMINE_STATUS.fetch(app_status_for(seq))) }
 
-# Mỗi project: TARGET User Story, trong đó CLOSED_COUNT story đầu (+children) = Closed.
-TARGET       = Integer(ENV.fetch('SEED_TARGET', '200'))
-CLOSED_COUNT = Integer(ENV.fetch('SEED_CLOSED', '190'))
+# Mỗi project: TARGET User Story. Status phân bố qua app_status_for (150 closed + 50 khác).
+TARGET = Integer(ENV.fetch('SEED_TARGET', '200'))
 
 # Lọc project cần seed (mặc định tất cả). Vd: SEED_PROJECT_FILTER=seed-mobile-banking,seed-ecommerce-shop
 filter = ENV['SEED_PROJECT_FILTER'].to_s.split(',').map(&:strip).reject(&:empty?)
 seed_projects = filter.empty? ? SEED_PROJECTS : SEED_PROJECTS.select { |s| filter.include?(s[:identifier]) }
 
-puts "IDs: User story=#{story_tr}, Task=#{task_tr}, Test=#{test_tr}, New=#{new_st}, Closed=#{closed_st}"
-puts "Target=#{TARGET}/project, closed đầu=#{CLOSED_COUNT}, projects=#{seed_projects.map { |s|
+puts "IDs: User story=#{story_tr}, Task=#{task_tr}, Test=#{test_tr}, statuses=#{status_ids}"
+puts "Target=#{TARGET}/project (150 closed + 10 mỗi status khác), projects=#{seed_projects.map { |s|
  s[:identifier] }.join(', ')}"
+
+puts "\n=== Seed Redmine users + memberships ==="
+user_logins = ensure_seed_users
+role_id = membership_role_id
+require_relative '../db/seeds/content_library'
+Seeds::ContentLibrary::PROJECT_MEMBERS.each do |identifier, idxs|
+  next unless seed_projects.any? { |s| s[:identifier] == identifier }
+
+  idxs.each { |i| ensure_membership(identifier, user_logins[i], role_id) }
+  puts "  #{identifier}: #{idxs.size} thành viên"
+end
+puts "Đã đảm bảo #{user_logins.size} user Redmine + memberships."
 
 output = { 'projects' => [] }
 
@@ -306,8 +380,8 @@ seed_projects.each do |seed|
   (1..TARGET).each do |seq|
     github_seq = SEQ_BASE + seq
     phrase = title_phrase(theme, seq, feature_groups)
-    closed = seq <= CLOSED_COUNT
-    st = closed ? closed_st : new_st
+    app_status = app_status_for(seq)
+    st = status_for_seq.call(seq)
 
     story_subj = story_subject(github_seq, phrase)
     story = stories.find { |s| s['subject'] == story_subj }
@@ -328,7 +402,7 @@ seed_projects.each do |seed|
         if phase[:tracker] == 'Test'
           data = post_json('/issues.json',
                            testing_child_payload(project_id, test_tr, st, version_id, story_id, subj, seq))
-          testing_collect << { 'id' => data['issue']['id'], 'subject' => subj, 'status' => closed ? 'closed' : 'open' }
+          testing_collect << { 'id' => data['issue']['id'], 'subject' => subj, 'status' => app_status }
         else
           post_json('/issues.json',
                     task_child_payload(project_id, task_tr, st, version_id, story_id, subj))
@@ -337,7 +411,7 @@ seed_projects.each do |seed|
     else
       testing_collect << { 'id' => existing_children.first['id'],
                            'subject' => existing_children.first['subject'],
-                           'status' => closed ? 'closed' : 'open' }
+                           'status' => app_status }
     end
 
     print "\r  story #{seq}/#{TARGET}"

@@ -5,6 +5,7 @@ class BugsController < ApplicationController
 
   BUG_HISTORY_FIELDS = %w[content application category bug_type priority dev_id tester_id status image_video_url
 notes].freeze
+  before_action :require_project_membership!
   authorize_resource
 
   def index
@@ -26,6 +27,9 @@ notes].freeze
 
     # Archived (soft-deleted) bugs for restoration modal
     @archived_bugs = @task.bugs.deleted.order(deleted_at: :desc)
+
+    # Preload user list once for dev/tester dropdowns (avoid N+1 in row partial)
+    @users = User.active.order(:name)
   end
 
   def show; end

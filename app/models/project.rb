@@ -2,10 +2,16 @@ class Project < ApplicationRecord
   include SoftDeletable
   include Loggable
 
+  DEVELOPMENT_STATUSES = %w[planning in_development testing released maintenance].freeze
+
   has_many :tasks, dependent: :destroy
   has_many :activity_logs, as: :trackable, dependent: :destroy
   has_many :daily_import_runs, dependent: :destroy
   has_many :import_runs, dependent: :destroy
+
+  # Project membership
+  has_many :project_users, dependent: :destroy
+  has_many :users, through: :project_users
 
   # Override soft_delete! to cascade to tasks
   def soft_delete!
@@ -24,6 +30,7 @@ class Project < ApplicationRecord
   end
 
   validates :name, presence: true, length: { maximum: 50 }, uniqueness: { case_sensitive: false }
+  validates :development_status, inclusion: { in: DEVELOPMENT_STATUSES, allow_blank: true }
 
   # redmine_project_id (string, optional): Redmine project identifier for daily import.
   # When set and daily import is enabled, tasks are imported from this Redmine project into this local project.
@@ -42,7 +49,7 @@ class Project < ApplicationRecord
     tasks.active.where('parent_id IS NULL OR parent_id NOT IN (SELECT id FROM tasks WHERE project_id = ?)', id)
   end
 
-  def tasks_with_search(q: nil, status: nil, date_range: nil)
+  def tasks_with_search(q: nil, status: nil, date_range: nil, created_by: nil, assignee_id: nil)
     scope = root_tasks.includes(:project, :assignee, :test_cases, :subtasks)
     scope = scope.where(created_at: date_range) if date_range
     if q.present?
@@ -53,7 +60,14 @@ class Project < ApplicationRecord
         q: like_q, raw_q: "%#{q.to_s.strip}%"
       )
     end
-    scope = scope.where('LOWER(status) = ?', status.to_s.downcase.tr('_', ' ')) if status.present?
+    if status.present?
+      scope = scope.where('LOWER(status) = ?', status.to_s.downcase.tr('_', ' '))
+    else
+      # Hide closed tasks by default; they are only shown when explicitly filtered.
+      scope = scope.where("status IS NULL OR LOWER(status) <> 'closed'")
+    end
+    scope = scope.where(created_by_name: created_by) if created_by.present?
+    scope = scope.where(assignee_id: assignee_id) if assignee_id.present?
     scope
   end
 
@@ -61,5 +75,20 @@ class Project < ApplicationRecord
     tasks.deleted
          .where('parent_id IS NULL OR parent_id NOT IN (SELECT id FROM tasks WHERE project_id = ?)', id)
          .includes(:project, :subtasks)
+  end
+
+  # Count of root tasks grouped by each known status (always returns all
+  # statuses, defaulting missing ones to 0). Used by the status statistics UI.
+  def task_status_counts
+    counts = root_tasks.group(:status).count
+    Task::STATUSES.index_with { |status| counts[status] || 0 }
+  end
+
+  # True if the given user may access this project (admins always can).
+  def accessible_to?(user)
+    return false if user.nil?
+    return true if user.admin?
+
+    open_to_all_users || project_users.exists?(user_id: user.id)
   end
 end

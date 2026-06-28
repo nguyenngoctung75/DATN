@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_13_000003) do
   create_table "activity_logs", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "trackable_type", null: false
@@ -26,6 +26,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
   create_table "app_configurations", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "ai_tc_enabled", default: false, null: false
+    t.string "ai_model", default: "gemini-2.0-flash"
+    t.text "ai_tc_system_prompt"
   end
 
   create_table "bug_comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -169,6 +172,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
     t.index ["created_at"], name: "index_notifications_on_created_at", order: :desc
   end
 
+  create_table "project_users", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "project_id", null: false
+    t.bigint "user_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["project_id", "user_id"], name: "index_project_users_on_project_id_and_user_id", unique: true
+    t.index ["project_id"], name: "index_project_users_on_project_id"
+    t.index ["user_id"], name: "index_project_users_on_user_id"
+  end
+
   create_table "projects", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.string "name", null: false
     t.text "description"
@@ -177,6 +190,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
     t.datetime "updated_at", null: false
     t.string "redmine_project_id"
     t.boolean "daily_import_enabled", default: false, null: false
+    t.boolean "open_to_all_users", default: false, null: false
+    t.string "product_version"
+    t.string "development_status"
+    t.json "product_info"
+    t.json "test_plan"
     t.index ["deleted_at"], name: "index_projects_on_deleted_at"
   end
 
@@ -329,12 +347,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
     t.string "issue_link"
     t.string "device_config"
     t.integer "subtasks_count", default: 0, null: false
+    t.string "test_phase", default: "not_started", null: false
+    t.string "testing_type"
+    t.json "kpi_targets"
     t.index ["assignee_id"], name: "index_tasks_on_assignee_id"
     t.index ["parent_id"], name: "index_tasks_on_parent_id"
     t.index ["project_id", "created_at"], name: "index_tasks_on_project_id_and_created_at"
     t.index ["project_id", "deleted_at"], name: "index_tasks_on_project_id_and_deleted_at"
     t.index ["project_id"], name: "index_tasks_on_project_id"
     t.index ["status"], name: "index_tasks_on_status"
+    t.index ["test_phase"], name: "index_tasks_on_test_phase"
+    t.index ["testing_type"], name: "index_tasks_on_testing_type"
   end
 
   create_table "test_cases", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -350,6 +373,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
     t.text "note"
     t.integer "position"
     t.text "group_description"
+    t.boolean "generated_by_ai", default: false, null: false
     t.index ["created_by_id"], name: "index_test_cases_on_created_by_id"
     t.index ["deleted_at"], name: "index_test_cases_on_deleted_at"
     t.index ["target"], name: "index_test_cases_on_target"
@@ -456,6 +480,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_20_000001) do
   add_foreign_key "import_runs", "users", column: "triggered_by_id"
   add_foreign_key "notification_reads", "notifications"
   add_foreign_key "notification_reads", "users"
+  add_foreign_key "project_users", "projects"
+  add_foreign_key "project_users", "users"
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_claimed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_failed_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

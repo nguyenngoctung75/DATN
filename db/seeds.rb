@@ -100,18 +100,29 @@ if File.exist?(json_path)
     end
 
     root_specs = issues.map do |iss|
-      { title: iss['subject'], redmine_id: iss['id'], closed: iss['status'].to_s == 'closed' }
+      { title: iss['subject'], redmine_id: iss['id'], status: iss['status'].to_s }
     end
 
     puts "\n=== Project ##{idx + 1}: #{proj['name']} (#{cfg[:mode]}, redmine=#{cfg[:identifier]}) ==="
     ActiveRecord::Base.transaction do
+      profile = Seeds::ContentLibrary::PROJECT_PROFILES[cfg[:identifier]] || {}
       project = Project.create!(
         name: proj['name'],
         description: proj['description'].presence || "Project kiểm thử đồng bộ từ Redmine (#{cfg[:identifier]}).",
-        redmine_project_id: cfg[:identifier]
+        redmine_project_id: cfg[:identifier],
+        product_version: profile[:product_version],
+        development_status: profile[:development_status],
+        product_info: profile[:product_info],
+        test_plan: profile[:test_plan]
       )
+
+      # Gán thành viên (project_users) theo PROJECT_MEMBERS — không project nào "all".
+      member_idxs = Seeds::ContentLibrary::PROJECT_MEMBERS[cfg[:identifier]] || []
+      project.users = member_idxs.map { |i| users[i] }
+      puts "  Thành viên: #{member_idxs.size} user (#{member_idxs.map { |i| "user#{i}" }.join(', ')})"
+
       stats = Seeds::ProjectBuilder.new(
-        project: project, mode: cfg[:mode], users: users,
+        project: project, mode: cfg[:mode], users: project.users.to_a,
         time_window: TIME_WINDOW, root_specs: root_specs
       ).build!
       summarize(project.name, stats)

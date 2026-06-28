@@ -1,6 +1,7 @@
 class DashboardsController < ApplicationController
   def index
     @projects = Project.active.order(created_at: :desc)
+    @projects = @projects.where(id: current_user.accessible_project_ids) unless current_user.admin?
 
     if params[:project_id].present?
       @project = @projects.find_by(id: params[:project_id])
@@ -20,6 +21,7 @@ class DashboardsController < ApplicationController
 
   def project_dashboard
     @projects = Project.active.order(created_at: :desc)
+    @projects = @projects.where(id: current_user.accessible_project_ids) unless current_user.admin?
     @project = @projects.find(params[:id])
     authorize! :read, @project
     load_dashboard_data(@project)
@@ -59,8 +61,9 @@ class DashboardsController < ApplicationController
     @test_results_stats = scope.group('test_results.status').count
     pass_count = @test_results_stats['pass'] || 0
     fail_count = @test_results_stats['fail'] || 0
-    total_executed = pass_count + fail_count
-    @pass_rate = total_executed.positive? ? ((pass_count.to_f / total_executed) * 100).round(1) : 0
+    not_run_count = @test_results_stats['not_run'] || 0
+    total = pass_count + fail_count + not_run_count
+    @pass_rate = total.positive? ? ((pass_count.to_f / total) * 100).round(2) : 0
   end
 
   def load_bugs_stats(closed_tasks, start_time)

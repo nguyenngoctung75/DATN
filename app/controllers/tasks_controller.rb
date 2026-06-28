@@ -1,6 +1,7 @@
 class TasksController < ApplicationController
   before_action :set_project, only: %i[new create]
   before_action :set_task, except: %i[index new create]
+  before_action :require_project_membership!
   authorize_resource
 
   # GET /tasks or /projects/:project_id/tasks
@@ -8,8 +9,11 @@ class TasksController < ApplicationController
     if params[:project_id]
       @project = Project.find(params[:project_id])
       base_scope = @project.tasks.active.root_tasks
-    else
+    elsif current_user.admin?
       base_scope = Task.active.root_tasks
+    else
+      # Global task list for a non-admin: limit to accessible projects only.
+      base_scope = Task.active.root_tasks.where(project_id: current_user.accessible_project_ids)
     end
 
     @stats_subtasks_count = Task.active.where.not(parent_id: nil).count
@@ -52,6 +56,13 @@ class TasksController < ApplicationController
       format.html
       format.json { render json: @task.as_json(include: %i[test_cases assignee]) }
     end
+  end
+
+  # GET /projects/:project_id/tasks/:id/report
+  def report
+    @ci_builds = @task.ci_builds.recent.limit(20)
+    @active_bugs_count = @task.bugs.active.count
+    @total_test_cases = @task.total_test_cases_count
   end
 
   # GET /projects/:project_id/tasks/new
@@ -217,7 +228,9 @@ alert: "Failed to create subtask: #{@subtask.errors.full_messages.join(', ')}"
     params.require(:task).permit(
       :title, :description, :status, :assignee_id, :parent_id,
       :estimated_time, :spent_time, :percent_done, :start_date, :due_date,
-      :testcase_link, :bug_link, :issue_link, :device_config
+      :testcase_link, :bug_link, :issue_link, :device_config,
+      :test_phase, :testing_type,
+      kpi_targets: Task::KPIS.keys
     )
   end
 end

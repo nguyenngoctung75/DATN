@@ -1,6 +1,12 @@
+/* ============================================================
+   Sidebar + App Header — Linear/Notion Dark
+   ============================================================ */
+
 .sidebar {
   transition: all 0.3s ease-in-out;
   overflow-x: hidden;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border) !important;
 
   &.collapsed {
     width: 0 !important;
@@ -13,28 +19,96 @@
   }
 }
 
-/* Existing styles */
-.hover-bg-light:hover {
-  background-color: #f8f9fa;
+.sidebar-inner {
+  padding: 16px 12px;
+  min-height: calc(100vh - var(--header-height));
 }
-.hover-bg-primary-light:hover {
-  background-color: rgba(102, 126, 234, 0.1);
+
+.sidebar .nav { gap: 2px; }
+
+.sidebar-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 16px 0 6px 12px;
+  font-weight: 600;
 }
-.hover-bg-success-light:hover {
-  background-color: rgba(25, 135, 84, 0.1);
+.sidebar-label:first-child { margin-top: 4px; }
+
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 8px;
 }
-.nav-link {
-  transition: all 0.2s ease;
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 13px;
   font-weight: 500;
-  border-radius: 8px;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  .bi { font-size: 16px; }
+
+  &:hover {
+    background: var(--bg-muted);
+    color: var(--text-primary);
+  }
+
+  &.active {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border-left: 2px solid var(--accent);
+  }
 }
 
-.nav-link:hover {
-  background-color: rgba(102, 126, 234, 0.1);
-  transform: translateX(5px);
+/* ============================================================
+   App Header
+   ============================================================ */
+.app-header {
+  min-height: var(--header-height);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
-.nav-link.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white !important;
+.app-brand {
+  color: var(--text-primary) !important;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  .bi { color: var(--accent); }
+}
+
+.app-header-toggle {
+  color: var(--text-secondary) !important;
+  text-decoration: none;
+  &:hover { color: var(--text-primary) !important; }
+}
+
+.app-header .nav-link {
+  color: var(--text-secondary);
+  &:hover { color: var(--text-primary); }
+}
+
+.app-header .navbar-nav .nav-link.dropdown-toggle { color: var(--text-secondary); }
+
+/* User avatar circle in header */
+.user-avatar-circle {
+  width: 28px;
+  height: 28px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-size: 13px;
+  .bi { color: var(--accent); }
 }

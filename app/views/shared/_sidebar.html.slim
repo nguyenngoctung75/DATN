@@ -1,70 +1,70 @@
-.d-flex.flex-column.p-4.bg-white.flex-grow-1 style="min-height: calc(100vh - 64px);"
+.d-flex.flex-column.flex-grow-1.sidebar-inner
   / Dashboard Links
-  ul.nav.nav-pills.flex-column.mb-auto
+  ul.nav.flex-column.mb-auto
     - if current_user&.admin?
       / Admin Section
-      .small.text-uppercase.fw-bold.text-muted.mb-3 Management
+      .sidebar-label Management
 
-      li.nav-item.mb-2
-        = link_to admin_dashboard_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'dashboard' && action_name == 'admin' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-grid-1x2-fill.me-3
+      li.nav-item
+        = link_to admin_dashboard_path, class: "sidebar-link #{'active' if controller_name == 'dashboard' && action_name == 'admin'}" do
+          i.bi.bi-grid-1x2-fill
           span Dashboard
 
-      li.nav-item.mb-2
-        = link_to users_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'users' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-people-fill.me-3
+      li.nav-item
+        = link_to users_path, class: "sidebar-link #{'active' if controller_name == 'users'}" do
+          i.bi.bi-people-fill
           span Users List
 
-      li.nav-item.mb-2
-        = link_to projects_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'projects' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-kanban-fill.me-3
+      li.nav-item
+        = link_to projects_path, class: "sidebar-link #{'active' if controller_name == 'projects'}" do
+          i.bi.bi-kanban-fill
           span Projects
-      
-      li.nav-item.mb-2
-        = link_to dashboards_index_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'dashboards' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-graph-up-arrow.me-3
+
+      li.nav-item
+        = link_to dashboards_index_path, class: "sidebar-link #{'active' if controller_name == 'dashboards'}" do
+          i.bi.bi-graph-up-arrow
           span Test Analytics
 
-      li.nav-item.mb-2
-        = link_to project_histories_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'project_histories' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-clock-history.me-3
+      li.nav-item
+        = link_to project_histories_path, class: "sidebar-link #{'active' if controller_name == 'project_histories'}" do
+          i.bi.bi-clock-history
           span Project History
-      
-      li.nav-item.mb-2
-        = link_to edit_app_configuration_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'app_configurations' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-gear-fill.me-3
+
+      li.nav-item
+        = link_to edit_app_configuration_path, class: "sidebar-link #{'active' if controller_name == 'app_configurations'}" do
+          i.bi.bi-gear-fill
           span Settings
 
-      hr.my-4.text-muted.opacity-25
+      .sidebar-divider
 
       / Quick Actions for Admin
-      .small.text-uppercase.fw-bold.text-muted.mb-3 Actions
+      .sidebar-label Actions
 
-      li.nav-item.mb-2
-        = link_to new_user_path, class: "nav-link d-flex align-items-center rounded-3 p-3 text-primary hover-bg-primary-light" do
-          i.bi.bi-person-plus-fill.me-3
+      li.nav-item
+        = link_to new_user_path, class: "sidebar-link" do
+          i.bi.bi-person-plus-fill
           span New User
 
-      li.nav-item.mb-2
-        = link_to new_project_path, class: "nav-link d-flex align-items-center rounded-3 p-3 text-success hover-bg-success-light" do
-          i.bi.bi-folder-plus.me-3
+      li.nav-item
+        = link_to new_project_path, class: "sidebar-link" do
+          i.bi.bi-folder-plus
           span New Project
 
     - else
       / User Section
-      .small.text-uppercase.fw-bold.text-muted.mb-3 Workspace
+      .sidebar-label Workspace
 
-      li.nav-item.mb-2
-        = link_to projects_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'projects' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-folder2-open.me-3
+      li.nav-item
+        = link_to projects_path, class: "sidebar-link #{'active' if controller_name == 'projects'}" do
+          i.bi.bi-folder2-open
           span Projects
 
-      li.nav-item.mb-2
-        = link_to dashboards_index_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'dashboards' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-graph-up-arrow.me-3
+      li.nav-item
+        = link_to dashboards_index_path, class: "sidebar-link #{'active' if controller_name == 'dashboards'}" do
+          i.bi.bi-graph-up-arrow
           span Test Analytics
-          
-      li.nav-item.mb-2
-        = link_to tasks_path, class: "nav-link d-flex align-items-center rounded-3 p-3 #{controller_name == 'tasks' ? 'active shadow-sm' : 'text-secondary hover-bg-light'}" do
-          i.bi.bi-list-ul.me-3
+
+      li.nav-item
+        = link_to tasks_path, class: "sidebar-link #{'active' if controller_name == 'tasks'}" do
+          i.bi.bi-list-ul
           span Tasks

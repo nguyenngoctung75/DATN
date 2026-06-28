@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout Shell — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; cursor: pointer; }
+    .bell:hover { color: var(--text-primary); }
+    .bell .dot {
+      position: absolute; top: -4px; right: -6px;
+      background: var(--accent); color: var(--text-inverse);
+      font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px;
+    }
+    .user-chip { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+    .empty-content {
+      border: 1px dashed var(--border-strong); border-radius: var(--radius-lg);
+      padding: 60px; text-align: center; color: var(--text-muted);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Layout Shell — Linear Dark Theme</div>
+
+  <!-- Header -->
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px; cursor:pointer;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip">
+        <span class="avatar">TN</span>
+        <span>tungnguyenngoc</span>
+        <i class="bi bi-chevron-down" style="font-size:11px;"></i>
+      </div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <!-- Sidebar (admin view) -->
+    <aside class="sidebar">
+      <div class="sidebar-label">Management</div>
+      <div class="nav-item active"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+      <div class="nav-item"><i class="bi bi-people"></i> Users List</div>
+      <div class="nav-item"><i class="bi bi-kanban"></i> Projects</div>
+      <div class="nav-item"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item"><i class="bi bi-clock-history"></i> Project History</div>
+      <div class="nav-item"><i class="bi bi-gear"></i> Settings</div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Actions</div>
+      <div class="nav-item"><i class="bi bi-person-plus"></i> New User</div>
+      <div class="nav-item"><i class="bi bi-folder-plus"></i> New Project</div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main content-wrap">
+      <div class="page-header">
+        <div class="page-eyebrow">Workspace</div>
+        <div class="page-title">Vùng nội dung trang</div>
+        <div class="page-subtitle">Header 52px sticky + sidebar 240px. Mỗi trang con render nội dung tại đây.</div>
+      </div>
+      <div class="empty-content">
+        <i class="bi bi-window-stack" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+        Content area — xem các trang con: Projects, Tasks, Test Cases, Bugs, Dashboard.
+      </div>
+    </main>
+  </div>
+</body>
+</html>

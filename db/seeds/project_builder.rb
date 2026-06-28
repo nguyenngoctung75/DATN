@@ -26,8 +26,6 @@ module Seeds
     SUB_OPEN = 5   # Nhóm C
     NO_SUB_OPEN = 5 # Nhóm D
 
-    OPEN_STATUS = 'in progress'
-    CLOSED_STATUS = 'closed'
     BUG_OPEN_STATUSES = %w[new fixing testing pending].freeze
 
     Leaf = Struct.new(:task, :feature, :has_bug, :is_open, keyword_init: true)
@@ -35,20 +33,22 @@ module Seeds
     def initialize(project:, mode:, users:, time_window:, root_specs:)
       @project = project
       @mode = mode
-      @users = users
+      @users = users.presence || [ User.first ].compact
       @tw = time_window
-      @closed_specs = root_specs.select { |s| s[:closed] }
-      @open_specs = root_specs.reject { |s| s[:closed] }
+      @specs = root_specs
+      @order = 0
       @leaves = []
       @stats = Hash.new(0)
     end
 
     def build!
       validate_specs!
-      build_closed_no_subtask
-      build_closed_with_subtask
-      build_open_with_subtask   # Nhóm C
-      build_open_no_subtask     # Nhóm D
+      # Structural layout (subtask & bug placement) unchanged; statuses come from
+      # each spec (150 closed + 10 each of new/pending/in progress/resolved/waiting release).
+      build_group(@specs[0...NO_SUB_CLOSED], with_subtask: false, bug_count: 10)
+      build_group(@specs[NO_SUB_CLOSED...(NO_SUB_CLOSED + SUB_CLOSED)], with_subtask: true, bug_count: 10)
+      build_group(@specs[190...195], with_subtask: true, bug_count: 5)
+      build_group(@specs[195...200], with_subtask: false, bug_count: 0)
       build_test_cases
       build_full_details if @mode == :full
       build_bugs
@@ -59,79 +59,69 @@ module Seeds
     private
 
     def validate_specs!
-      return if @closed_specs.size == 190 && @open_specs.size == 10
+      return if @specs.size == 200
 
-      raise "Project #{@project.name}: cần 190 closed + 10 open, đang có " \
-            "#{@closed_specs.size} closed / #{@open_specs.size} open"
+      raise "Project #{@project.name}: cần 200 root spec, đang có #{@specs.size}"
     end
 
     # ---------- Tasks ----------
 
-    def build_closed_no_subtask
-      specs = @closed_specs[0...NO_SUB_CLOSED]
+    def build_group(specs, with_subtask:, bug_count:)
       specs.each_with_index do |spec, i|
-        task = create_root(spec, closed: true, order_index: i, order_total: 190)
-        # Nhóm A: 10 task đầu nhánh này có bug
-        @leaves << Leaf.new(task: task, feature: feature_for(spec), has_bug: i < 10, is_open: false)
+        root = create_root(spec)
+        if with_subtask
+          build_subtasks(root, feature_for(spec), bug_on_first: i < bug_count)
+        else
+          @leaves << Leaf.new(task: root, feature: feature_for(spec),
+                              has_bug: i < bug_count, is_open: open_status?(root.status))
+        end
       end
     end
 
-    def build_closed_with_subtask
-      specs = @closed_specs[NO_SUB_CLOSED, SUB_CLOSED]
-      specs.each_with_index do |spec, i|
-        parent = create_root(spec, closed: true, order_index: NO_SUB_CLOSED + i, order_total: 190)
-        # Nhóm A: 10 task đầu nhánh này có bug (bug gắn vào subtask đầu tiên)
-        parent_has_bug = i < 10
-        build_subtasks(parent, feature_for(spec), closed: true, bug_on_first: parent_has_bug, is_open: false)
-      end
-    end
-
-    def build_open_with_subtask
-      @open_specs[0...SUB_OPEN].each_with_index do |spec, i|
-        parent = create_root(spec, closed: false, order_index: i, order_total: 10)
-        # Nhóm C: mỗi task open này có bug (gắn vào subtask đầu tiên)
-        build_subtasks(parent, feature_for(spec), closed: false, bug_on_first: true, is_open: true)
-      end
-    end
-
-    def build_open_no_subtask
-      @open_specs[SUB_OPEN, NO_SUB_OPEN].each_with_index do |spec, i|
-        task = create_root(spec, closed: false, order_index: SUB_OPEN + i, order_total: 10)
-        # Nhóm D: không bug
-        @leaves << Leaf.new(task: task, feature: feature_for(spec), has_bug: false, is_open: true)
-      end
-    end
-
-    def build_subtasks(parent, feature, closed:, bug_on_first:, is_open:)
+    def build_subtasks(parent, feature, bug_on_first:)
+      status = parent.status
+      pct = percent_for(status)
       SUBTASKS_PER_PARENT.times do |k|
         sub = @project.tasks.create!(
           parent: parent,
           title: "#{parent.title} — Subtask #{k + 1}",
-          status: closed ? CLOSED_STATUS : OPEN_STATUS,
+          status: status,
           description: "Subtask #{k + 1} thuộc task ##{parent.id} (#{feature}).",
           assignee: pick_user(parent.id + k),
-          percent_done: closed ? 100 : (k * 15),
+          percent_done: pct,
+          test_phase: test_phase_for(status),
+          testing_type: parent.testing_type,
           created_at: parent.created_at + (k + 1) * 60,
           updated_at: parent.created_at + (k + 1) * 60
         )
-        @leaves << Leaf.new(task: sub, feature: feature, has_bug: bug_on_first && k.zero?, is_open: is_open)
+        @leaves << Leaf.new(task: sub, feature: feature,
+                            has_bug: bug_on_first && k.zero?, is_open: open_status?(status))
       end
     end
 
-    def create_root(spec, closed:, order_index:, order_total:)
-      created = created_at_for(closed: closed, index: order_index, total: order_total)
-      desc = if spec[:redmine_id]
-        "Đồng bộ từ Redmine issue ##{spec[:redmine_id]}."
-      else
-        'Task nội bộ của hệ thống Tooltest.'
-      end
+    # Root task with the full set of management fields (Title, Description, Issue
+    # Link, Status, Estimated/Spent, Assignee, %, Test Phase, dates, Testing Type, KPI).
+    def create_root(spec)
+      order = next_order
+      status = sanitize_status(spec[:status])
+      created = created_at_for(closed: status == 'closed', index: order, total: 200)
+      est = 8 + (order % 6) * 4
+      pct = percent_for(status)
+      spent = pct >= 100 ? est : (est * pct / 100.0).round(1)
+
       @project.tasks.create!(
         redmine_id: spec[:redmine_id],
         title: spec[:title],
-        status: closed ? CLOSED_STATUS : OPEN_STATUS,
-        description: desc,
-        assignee: pick_user(order_index),
-        percent_done: closed ? 100 : (10 + order_index % 80),
+        status: status,
+        description: root_description(spec, status),
+        issue_link: redmine_issue_link(spec[:redmine_id]),
+        assignee: pick_user(order),
+        estimated_time: est,
+        spent_time: spent,
+        percent_done: pct,
+        test_phase: test_phase_for(status),
+        testing_type: Task::TESTING_TYPES[order % Task::TESTING_TYPES.size],
+        kpi_targets: kpi_targets,
         start_date: created.to_date,
         due_date: created.to_date + 14,
         created_at: created,
@@ -139,12 +129,72 @@ module Seeds
       )
     end
 
-    # closed: trải từ tw[:closed_from] → tw[:closed_to]; open: tw[:open_from] → tw[:open_to].
-    # Đảm bảo mọi open > mọi closed (hai cửa sổ không giao nhau).
+    # closed: trải từ tw[:closed_from] → tw[:closed_to]; non-closed: tw[:open_from] → tw[:open_to].
+    # Đảm bảo mọi task chưa đóng có created_at > mọi task đã đóng.
     def created_at_for(closed:, index:, total:)
       from, to = closed ? [ @tw[:closed_from], @tw[:closed_to] ] : [ @tw[:open_from], @tw[:open_to] ]
       span = to - from
       from + (span * index / [ total - 1, 1 ].max)
+    end
+
+    # ---------- Status-derived attributes ----------
+
+    def next_order
+      o = @order
+      @order += 1
+      o
+    end
+
+    def open_status?(status)
+      status.to_s != 'closed'
+    end
+
+    def sanitize_status(status)
+      s = status.to_s.strip
+      Task::STATUSES.include?(s) ? s : 'new'
+    end
+
+    # In Progress / Resolved / Waiting Release / Closed = 100%; Pending = 40%; New = 0%.
+    def percent_for(status)
+      case status
+      when 'closed', 'in progress', 'resolved', 'waiting release' then 100
+      when 'pending' then 40
+      else 0
+      end
+    end
+
+    def test_phase_for(status)
+      case status
+      when 'closed', 'resolved' then 'completed'
+      when 'waiting release' then 'reporting'
+      when 'in progress' then 'executing'
+      when 'pending' then 'creating_testcases'
+      else 'not_started'
+      end
+    end
+
+    def kpi_targets
+      @kpi_targets ||= Task::KPIS.transform_values { |meta| meta[:default_target] }
+    end
+
+    def redmine_issue_link(redmine_id)
+      return nil if redmine_id.blank?
+
+      # Browser-facing URL (see ProjectsHelper#redmine_base_url).
+      base = ENV['REDMINE_PUBLIC_URL'].presence ||
+             ENV.fetch('REDMINE_BASE_URL', 'http://localhost:3001').sub('redmine:3000', 'localhost:3001')
+      "#{base}/issues/#{redmine_id}"
+    end
+
+    def root_description(spec, status)
+      feature = feature_for(spec)
+      origin = spec[:redmine_id] ? "Đồng bộ từ Redmine issue ##{spec[:redmine_id]}." : 'Task nội bộ Tooltest.'
+      [
+        origin,
+        "Chức năng kiểm thử: #{feature}.",
+        "Mục tiêu: đảm bảo \"#{feature}\" hoạt động đúng đặc tả trên các thiết bị/trình duyệt hỗ trợ.",
+        "Trạng thái hiện tại: #{status}."
+      ].join("\n")
     end
 
     # ---------- Test cases ----------
@@ -334,6 +384,18 @@ module Seeds
         )
         WHERE t.project_id = #{@project.id.to_i}
       SQL
+
+      # Aggregate bug counts (subtree) onto each root task so the app and Redmine
+      # show equivalent figures (pushed to Redmine by script/sync_redmine_indices.rb).
+      @project.tasks.where(parent_id: nil).find_each do |root|
+        ids = [ root.id ] + root.subtasks.pluck(:id)
+        scope = Bug.where(task_id: ids)
+        root.update_columns(
+          stg_bugs_vn: scope.where(category: 'stg_vn').count,
+          stg_bugs_jp: scope.where(category: 'stg_jp').count,
+          prod_bugs: scope.where(category: 'prod').count
+        )
+      end
     end
 
     def pick_user(seed)

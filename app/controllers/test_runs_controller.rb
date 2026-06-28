@@ -1,6 +1,7 @@
 class TestRunsController < ApplicationController
   before_action :set_task
   before_action :set_test_run, except: %i[index new create]
+  before_action :require_project_membership!
   authorize_resource
 
   # GET /projects/:project_id/tasks/:task_id/test_runs

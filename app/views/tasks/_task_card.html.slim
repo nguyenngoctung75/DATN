@@ -17,9 +17,13 @@
                 i.bi.bi-folder.me-1
                 = task.project.name
             span •
-            span
+            span title="Created by"
               i.bi.bi-person.me-1
-              = task.created_by_name || 'N/A'
+              | By: #{task.created_by_name.presence || 'N/A'}
+            span •
+            span title="Assigned to"
+              i.bi.bi-person-check.me-1
+              | To: #{task.assignee&.name.presence || 'N/A'}
             span •
             span.badge.bg-light.text-dark.border.rounded-pill.px-2
               i.bi.bi-diagram-2.me-1

@@ -16,10 +16,15 @@ class AppConfigurationsController < ApplicationController
       return
     end
     update_project_redmine_links
+    @configuration.update(ai_config_params)
     redirect_to edit_app_configuration_path, notice: 'Configuration updated successfully.'
   end
 
   private
+
+  def ai_config_params
+    params.fetch(:app_configuration, {}).permit(:ai_tc_enabled, :ai_model, :ai_tc_system_prompt)
+  end
 
   def set_edit_vars
     @projects = Project.all

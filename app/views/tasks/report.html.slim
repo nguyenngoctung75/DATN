@@ -1,0 +1,81 @@
+.container-fluid.px-4.py-4
+  = turbo_stream_from @task
+
+  / Breadcrumb
+  nav.mb-4 aria-label="breadcrumb"
+    ol.breadcrumb
+      li.breadcrumb-item
+        = link_to "Projects", projects_path
+      li.breadcrumb-item
+        = link_to @task.project.name, project_path(@task.project)
+      li.breadcrumb-item
+        = link_to @task.title.truncate(40), project_task_path(@task.project, @task)
+      li.breadcrumb-item.active aria-current="page" Report
+
+  / Header
+  .card.border-0.shadow-sm.mb-4
+    .card-header.text-white.p-4.gradient-purple
+      .d-flex.justify-content-between.align-items-start.flex-wrap.gap-2
+        div
+          h1.h4.fw-bold.mb-2
+            i.bi.bi-clipboard-data.me-2
+            | Task Report
+          = link_to project_task_path(@task.project, @task), class: "text-white text-decoration-none small d-inline-flex align-items-center" do
+            i.bi.bi-link-45deg.me-1
+            span.font-monospace= "#{@task.project.name} / task / #{@task.id}"
+        .d-flex.gap-2.flex-wrap
+          span.badge.rounded-pill.py-2.px-3 class=test_phase_badge_class(@task.test_phase)
+            = @task.test_phase_label
+          - if @task.testing_type.present?
+            span.badge.bg-light.text-dark.py-2.px-3= @task.testing_type_label
+
+  / Summary cards
+  .row.g-3.mb-4
+    .col-md-3
+      .card.border-0.shadow-sm.h-100
+        .card-body.text-center
+          .small.text-muted.text-uppercase Test Cases
+          .h2.fw-bold.text-primary.mb-0= @total_test_cases
+    .col-md-3
+      .card.border-0.shadow-sm.h-100
+        .card-body.text-center
+          .small.text-muted.text-uppercase Active Bugs
+          .h2.fw-bold.text-danger.mb-0= @active_bugs_count
+          = link_to "View bugs", project_task_bugs_path(@task.project, @task), class: "small text-decoration-none"
+    .col-md-3
+      .card.border-0.shadow-sm.h-100
+        .card-body.text-center
+          .small.text-muted.text-uppercase Progress
+          .h2.fw-bold.text-info.mb-0= "#{@task.percent_done || 0}%"
+    .col-md-3
+      .card.border-0.shadow-sm.h-100
+        .card-body.text-center
+          .small.text-muted.text-uppercase Status
+          .mt-2
+            span.badge.rounded-pill.py-2.px-3 class=task_status_bg_class(@task.status)
+              = @task.status || 'N/A'
+
+  / Links
+  .card.border-0.shadow-sm.mb-4
+    .card-body
+      h6.fw-bold.mb-3 Links
+      .d-flex.flex-wrap.gap-3
+        = link_to project_task_path(@task.project, @task), class: "btn btn-sm btn-outline-primary" do
+          i.bi.bi-card-list.me-1
+          | Task detail
+        - if @task.bug_link.present?
+          = link_to @task.bug_link, target: "_blank", rel: "noopener", class: "btn btn-sm btn-outline-danger" do
+            i.bi.bi-bug.me-1
+            | Bug sheet
+        - else
+          span.text-muted.small.align-self-center No external bug link
+        - if @task.testcase_link.present?
+          = link_to @task.testcase_link, target: "_blank", rel: "noopener", class: "btn btn-sm btn-outline-success" do
+            i.bi.bi-table.me-1
+            | Test case sheet
+
+  / Tester KPIs
+  = render 'kpi_panel', task: @task
+
+  / CI/CD History (realtime — synced with the task's CI/CD history)
+  = render 'ci_history_section', ci_builds: @ci_builds, task: @task

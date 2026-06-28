@@ -1,11 +1,11 @@
-nav.navbar.navbar-expand-lg.navbar-dark.shadow-sm style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"
+nav.navbar.navbar-expand-lg.app-header
   .container-fluid.px-4
-    = link_to root_path, class: "navbar-brand fw-bold fs-4 d-flex align-items-center" do
+    = link_to root_path, class: "navbar-brand fw-semibold d-flex align-items-center app-brand" do
       i.bi.bi-gear-fill.me-2
       | Tool Test
-    
-    button.btn.btn-link.text-white.p-0.ms-2 data-action="click->layout#toggle" title="Toggle Sidebar"
-      i.bi.bi-layout-sidebar-inset.fs-4 data-layout-target="toggleIcon"
+
+    button.btn.btn-link.p-0.ms-2.app-header-toggle data-action="click->layout#toggle" title="Toggle Sidebar"
+      i.bi.bi-layout-sidebar-inset.fs-5 data-layout-target="toggleIcon"
 
     button.navbar-toggler type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"
       span.navbar-toggler-icon
@@ -55,8 +55,8 @@ nav.navbar.navbar-expand-lg.navbar-dark.shadow-sm style="background: linear-grad
           / User info
           li.nav-item.dropdown
             a.nav-link.dropdown-toggle.d-flex.align-items-center href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-turbo="false"
-              .bg-white.rounded-circle.d-flex.align-items-center.justify-content-center.me-2.user-avatar-circle
-                i.bi.bi-person-fill.text-primary
+              .rounded-circle.d-flex.align-items-center.justify-content-center.me-2.user-avatar-circle
+                i.bi.bi-person-fill
               span.fw-semibold = current_user.email
             ul.dropdown-menu.dropdown-menu-end aria-labelledby="userDropdown"
               li

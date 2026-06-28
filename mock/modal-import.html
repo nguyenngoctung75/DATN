@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Google Sheet — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .backdrop {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(10,10,10,0.78), rgba(10,10,10,0.78)),
+        repeating-linear-gradient(0deg, var(--bg-elevated) 0, var(--bg-elevated) 36px, var(--border-subtle) 36px, var(--border-subtle) 37px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 50px 20px;
+    }
+    .modal-box {
+      width: 480px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .modal-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .modal-head h3 { font-size: 15px; flex: 1; }
+    .modal-head .x { color: var(--text-muted); cursor: pointer; font-size: 16px; }
+    .modal-body { padding: 20px; }
+    .src-row { display: flex; align-items: center; gap: 10px; background: var(--bg-base); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 12px; font-size: 12px; color: var(--text-secondary); margin-bottom: 20px; }
+    .src-row .bi { color: var(--success); font-size: 15px; }
+    .src-row code { font-size: 11px; }
+
+    .prog-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 8px; }
+    .prog-label .pct { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .progress {
+      height: 10px; background: var(--bg-muted); border-radius: 20px; overflow: hidden;
+    }
+    .progress > span {
+      display: block; height: 100%;
+      background: linear-gradient(90deg, var(--accent), #22d3ee);
+      width: 68%; border-radius: 20px;
+    }
+    .prog-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+    .steps { margin-top: 22px; display: grid; gap: 10px; }
+    .step { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .step .ic { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+    .step.done .ic { background: var(--success-subtle); color: var(--success); }
+    .step.active .ic { background: var(--accent-subtle); color: var(--accent); }
+    .step.todo .ic { background: var(--bg-muted); color: var(--text-muted); }
+    .step.done span { color: var(--text-secondary); }
+    .step.active span { color: var(--text-primary); font-weight: 500; }
+    .step.todo span { color: var(--text-muted); }
+    .live-tag { font-size: 10px; color: var(--accent); border: 1px solid var(--accent-border); border-radius: 10px; padding: 0 7px; margin-left: auto; }
+
+    .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg-elevated); }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Modal nhập từ Google Sheet — Linear Dark Theme</div>
+
+  <div class="backdrop">
+    <div class="modal-box" id="modal">
+      <div class="modal-head">
+        <i class="bi bi-cloud-download" style="color:var(--accent); font-size:17px;"></i>
+        <h3>Nhập Test Case từ Google Sheet</h3>
+        <i class="bi bi-x-lg x"></i>
+      </div>
+      <div class="modal-body">
+        <div class="src-row">
+          <i class="bi bi-file-earmark-spreadsheet"></i>
+          <span>Nguồn: <code>QA_LoginFlow_2026.xlsx</code> · sheet <b>TestCases</b></span>
+        </div>
+
+        <div class="prog-label">
+          <span>Đang nhập dữ liệu…</span>
+          <span class="pct">68%</span>
+        </div>
+        <div class="progress"><span></span></div>
+        <div class="prog-meta">
+          <span>Đã xử lý 33 / 48 dòng</span>
+          <span><i class="bi bi-broadcast"></i> Cập nhật realtime qua Action Cable</span>
+        </div>
+
+        <div class="steps">
+          <div class="step done"><span class="ic"><i class="bi bi-check-lg"></i></span><span>Kết nối Google Sheets API</span></div>
+          <div class="step done"><span class="ic"><i class="bi bi-check-lg"></i></span><span>Đọc &amp; xác thực cấu trúc cột</span></div>
+          <div class="step active"><span class="ic"><i class="bi bi-arrow-repeat"></i></span><span>Ghi Test Case vào cơ sở dữ liệu</span><span class="live-tag">đang chạy</span></div>
+          <div class="step todo"><span class="ic"><i class="bi bi-three-dots"></i></span><span>Tạo thông báo &amp; hoàn tất</span></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary btn-sm">Chạy nền</button>
+        <button class="btn btn-danger btn-sm"><i class="bi bi-x-circle"></i> Huỷ nhập</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

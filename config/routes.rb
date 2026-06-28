@@ -61,6 +61,7 @@ Rails.application.routes.draw do
     post 'redmine_issues/import_selected',  to: 'tasks/redmine_issues#import_selected'
     resources :tasks do
       member do
+        get :report
         patch :soft_delete
         patch :restore
         post :create_subtask
@@ -79,6 +80,7 @@ Rails.application.routes.draw do
         collection do
           post :import_from_sheet
           post :clone_bulk
+          post :ai_generate
         end
         resources :test_steps, only: [ :create, :destroy ]
         resources :test_results, only: [ :new, :create, :edit, :update, :destroy ] do

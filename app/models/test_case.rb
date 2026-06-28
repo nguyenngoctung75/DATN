@@ -6,7 +6,7 @@ class TestCase < ApplicationRecord
   belongs_to :created_by, class_name: 'User', foreign_key: 'created_by_id', optional: true
 
   has_one :test_step, -> { order(:step_number) }, foreign_key: 'case_id', inverse_of: :test_case
-  has_many :test_steps, foreign_key: 'case_id', dependent: :delete_all, inverse_of: :test_case
+  has_many :test_steps, foreign_key: 'case_id', dependent: :destroy, inverse_of: :test_case
   has_many :test_results, foreign_key: 'case_id', dependent: :delete_all
 
   # Nested attributes for creating single test step

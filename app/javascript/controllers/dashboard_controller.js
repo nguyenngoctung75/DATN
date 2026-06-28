@@ -9,6 +9,11 @@ export default class extends Controller {
   }
 
   connect() {
+    // Dark-theme defaults for Chart.js (readable on dark surfaces)
+    if (window.Chart) {
+      window.Chart.defaults.color = "#a1a1aa"
+      window.Chart.defaults.borderColor = "rgba(255, 255, 255, 0.06)"
+    }
     this.renderTestStatusChart()
     this.renderBugPriorityChart()
     this.renderBugStatusChart()
@@ -47,6 +52,7 @@ export default class extends Controller {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { position: "right" }
         }
@@ -77,8 +83,17 @@ export default class extends Controller {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: "#a1a1aa" },
+            grid: { color: "rgba(255, 255, 255, 0.06)" }
+          },
+          x: {
+            ticks: { color: "#a1a1aa" },
+            grid: { display: false }
+          }
         },
         plugins: {
           legend: { display: false }
@@ -111,6 +126,7 @@ export default class extends Controller {
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: { position: "right" }
         }

@@ -64,7 +64,7 @@
         tbody#bugs-spreadsheet-list
           - offset = (@page - 1) * @per_page
           - @bugs.each_with_index do |bug, index|
-            = render partial: 'bugs/spreadsheet_row', locals: { bug: bug, index: offset + index + 1 }
+            = render partial: 'bugs/spreadsheet_row', locals: { bug: bug, index: offset + index + 1, users: @users }
 
     / Inline Create Button
     .d-flex.justify-content-center.mt-3

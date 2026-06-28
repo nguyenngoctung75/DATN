@@ -9,17 +9,24 @@
 }
 
 .gradient-purple {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.10) 0%, var(--bg-elevated) 60%);
+  border-bottom: 1px solid var(--border);
+}
+
+.project-card-icon {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 .hover-card {
-  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   animation: fadeIn 0.5s ease-out;
 }
 
 .hover-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+  transform: translateY(-4px);
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow-lg) !important;
 }
 
 @keyframes fadeIn {
@@ -974,10 +981,10 @@
 }
 
 /* Purple theme utilities (moved from inline <style> in tasks/show) */
-.text-purple { color: #764ba2 !important; }
-.bg-purple { background-color: #764ba2 !important; }
-.btn-purple { background-color: #764ba2 !important; border-color: #764ba2 !important; color: white; }
-.btn-purple:hover { background-color: #667eea !important; border-color: #667eea !important; }
+.text-purple { color: var(--accent) !important; }
+.bg-purple { background-color: var(--accent) !important; }
+.btn-purple { background-color: var(--accent) !important; border-color: var(--accent) !important; color: var(--text-inverse) !important; }
+.btn-purple:hover { background-color: var(--accent-hover) !important; border-color: var(--accent-hover) !important; }
 .btn-outline-purple { color: #764ba2; border-color: #764ba2; }
 .btn-outline-purple:hover { background-color: #764ba2; color: white; }
 .btn-xs { padding: 0.1rem 0.25rem; font-size: 0.75rem; border-radius: 0.2rem; }
@@ -1180,4 +1187,195 @@
     margin-top: 2px;
     padding-top: 2px;
   }
+}
+
+/* ============================================================================
+   DARK THEME OVERRIDES (Linear/Notion Dark) — keeps all class names intact
+   so Stimulus controllers keep working; only colors/surfaces change.
+   ============================================================================ */
+[data-bs-theme="dark"] {
+
+  /* ---- Spreadsheet table ---- */
+  .spreadsheet-table {
+    background: var(--bg-elevated);
+    border-color: var(--border);
+    color: var(--text-primary);
+
+    thead th {
+      background: var(--bg-overlay);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border-subtle);
+    }
+
+    tbody td {
+      border-bottom: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    tbody td .form-control:focus,
+    tbody td .form-select:focus {
+      background-color: var(--bg-base);
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    tbody tr:nth-child(even) td { background-color: #141414; }
+    tbody tr:hover td { background-color: var(--bg-muted) !important; }
+    tbody td:focus-within { outline: 2px solid var(--accent); }
+
+    .step-number { background: var(--bg-overlay); color: var(--text-secondary); }
+
+    .table tr { border-bottom: 1px solid var(--border-subtle); }
+
+    /* sticky first column + freeze header */
+    thead th:first-child { background: var(--bg-overlay); }
+    tbody tr:nth-child(even) td:first-child { background: #141414; }
+    tbody tr:hover td:first-child { background: var(--bg-muted) !important; }
+
+    /* merged group left accent */
+    tbody td[rowspan] { border-left: 3px solid var(--accent-border) !important; }
+    td .rich-content + .rich-content { border-top: 1px dashed var(--border-subtle); }
+  }
+
+  .table-responsive {
+    &::-webkit-scrollbar-track { background: var(--bg-overlay); }
+    &::-webkit-scrollbar-thumb { background: var(--border-strong); &:hover { background: var(--text-muted); } }
+  }
+
+  /* ---- Toolbar ---- */
+  .spreadsheet-toolbar {
+    background: var(--bg-overlay) !important;
+    border: 1px solid var(--border) !important;
+    .btn { color: var(--text-secondary); &:hover { background: var(--bg-muted); } }
+    .small.text-muted { color: var(--text-muted) !important; }
+  }
+  .toolbar-btn {
+    color: var(--text-secondary);
+    &:hover  { background: var(--bg-muted); }
+    &:active { background: var(--bg-subtle); }
+    &.active { background: var(--accent-subtle); color: var(--accent); }
+  }
+  .toolbar-sep { background: var(--border); }
+  .toolbar-fontsize {
+    background: var(--bg-base);
+    color: var(--text-primary);
+    border-color: var(--border);
+    &:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  }
+  .toolbar-color-palette p { color: var(--text-muted); }
+  .toolbar-swatch { border-color: rgba(255,255,255,0.18); &:hover { border-color: rgba(255,255,255,0.5); } }
+  .toolbar-link-popover {
+    background: var(--bg-overlay); border-color: var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+  .toolbar-link-input {
+    background: var(--bg-base); color: var(--text-primary); border-color: var(--border);
+    &:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  }
+  .toolbar-link-ok { background: var(--accent); color: var(--text-inverse); &:hover { background: var(--accent-hover); } }
+
+  /* ---- Rich editor / container ---- */
+  .rich-editor:empty:before { color: var(--text-muted); }
+  .spreadsheet-container { background: var(--bg-elevated); box-shadow: var(--shadow-md); }
+  .rich-content {
+    &:hover:not([contenteditable="true"]) { background-color: var(--accent-subtle); }
+    &:focus-visible { outline: 2px solid var(--accent); }
+  }
+
+  /* ---- Active cell + inline editor ---- */
+  .spreadsheet-cell-active {
+    background-color: var(--accent-subtle) !important;
+    outline: 2px solid var(--accent);
+  }
+  .test-case-row:has(.spreadsheet-cell-active) {
+    td { background-color: rgba(6,182,212,0.05) !important; }
+    td:first-child { background-color: var(--accent-subtle) !important; border-left: 3px solid var(--accent); }
+    td[rowspan] { border-left-color: var(--accent) !important; }
+  }
+  .spreadsheet-inline-editor {
+    background-color: var(--bg-base) !important;
+    border: 2px solid var(--accent) !important;
+    box-shadow: 0 0 0 3px var(--accent-subtle), var(--shadow-lg) !important;
+    color: var(--text-primary);
+  }
+  .split-input-wrapper {
+    .split-inline-input {
+      background: var(--bg-base); color: var(--text-primary);
+      border: 2px solid var(--accent) !important;
+      box-shadow: 0 0 0 3px var(--accent-subtle) !important;
+    }
+    .split-input-hint { color: var(--text-muted); }
+  }
+  .col-resize-handle:hover { background: var(--accent); }
+  @keyframes cellSaveFlash { 0% { background-color: var(--success-subtle); } 100% { background-color: transparent; } }
+  @keyframes cellErrorFlash { 0% { background-color: var(--danger-subtle); } 100% { background-color: transparent; } }
+  .cell-copied { outline: 2px dashed var(--accent) !important; }
+
+  /* ---- Group header row ---- */
+  .test-case-group-header-row {
+    td.spreadsheet-group-header-cell {
+      background-color: rgba(6,182,212,0.10);
+      border-top: 2px solid var(--accent-border);
+      color: var(--text-primary);
+    }
+    &:hover td.spreadsheet-group-header-cell { background-color: rgba(6,182,212,0.16); }
+  }
+
+  /* ---- Formula bar ---- */
+  .formula-bar {
+    background: var(--bg-overlay);
+    border-color: var(--border);
+    .formula-bar-ref { color: var(--accent); border-right-color: var(--border); }
+    .formula-bar-fx  { color: var(--text-muted); border-right-color: var(--border); }
+    .formula-bar-input { color: var(--text-primary); &[contenteditable="false"] { color: var(--text-muted); } }
+  }
+
+  /* ---- Context menu ---- */
+  .spreadsheet-context-menu {
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    .ctx-item { color: var(--text-primary); &:hover { background: var(--bg-muted); } i { color: var(--text-secondary); } }
+    .ctx-danger { color: var(--danger); i { color: var(--danger); } &:hover { background: var(--danger-subtle); } }
+    .ctx-divider { background: var(--border); }
+    kbd { color: var(--text-muted); background: var(--bg-base); border-color: var(--border); }
+  }
+
+  /* ---- Cell history popover ---- */
+  .cell-history-popover {
+    .ch-header, .ch-nav { border-color: var(--border); }
+    .ch-avatar { background: var(--accent); color: var(--text-inverse); }
+    .ch-time, .ch-label, .ch-pos { color: var(--text-muted); }
+    .ch-old { background: var(--danger-subtle); color: #fca5a5; }
+    .ch-new { background: var(--success-subtle); color: #6ee7b7; }
+    .ch-nav button[data-ch] { border-color: var(--border); color: var(--text-secondary);
+      &:not(:disabled):hover { border-color: var(--accent); color: var(--accent); } }
+  }
+
+  /* ---- Activity timeline / history ---- */
+  .changes-details { background: linear-gradient(to right, var(--accent-subtle), transparent); }
+  .timeline-group-badge { background: var(--accent-subtle); color: var(--accent); }
+  .activity-history .timeline-rail::before { background: var(--border); }
+  .timeline-dot {
+    background: var(--bg-elevated); border-color: var(--text-muted);
+    &.dot-create  { border-color: var(--success); background: var(--success-subtle); }
+    &.dot-update  { border-color: var(--accent);  background: var(--accent-subtle); }
+    &.dot-delete  { border-color: var(--danger);  background: var(--danger-subtle); }
+    &.dot-restore { border-color: var(--warning); background: var(--warning-subtle); }
+  }
+  .timeline-timestamps { .ts-relative { color: var(--text-secondary); } .ts-separator { color: var(--text-muted); } .ts-absolute { color: var(--text-muted); } }
+  .history-tabs .nav-tabs .nav-item .nav-link {
+    color: var(--text-secondary);
+    &:hover { border-bottom-color: var(--border-strong); color: var(--text-primary); }
+    &.active { color: var(--accent); border-bottom-color: var(--accent); }
+  }
+  .pagination-wrapper .pagination .page-item {
+    .page-link { color: var(--text-secondary); &:hover { background-color: var(--accent-subtle); color: var(--accent); } }
+    &.active .page-link { background-color: var(--accent); color: var(--text-inverse); }
+    &.disabled .page-link { color: var(--text-muted); }
+  }
+
+  /* ---- Spreadsheet toast (already dark, nudge to tokens) ---- */
+  .spreadsheet-toast { background: var(--bg-subtle); color: var(--text-primary); }
 }

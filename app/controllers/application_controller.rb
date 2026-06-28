@@ -29,6 +29,19 @@ class ApplicationController < ActionController::Base
     Current.user = current_user
   end
 
+  # Ensure the current user is allowed to work within the project referenced by
+  # params[:project_id]. Admins bypass. Non-project-scoped (global) actions —
+  # where there is no project_id — are scoped at the query level instead.
+  def require_project_membership!
+    return if current_user&.admin?
+    return if params[:project_id].blank?
+
+    project = Project.find_by(id: params[:project_id])
+    return if project.nil? || project.accessible_to?(current_user)
+
+    raise CanCan::AccessDenied.new('You are not assigned to this project.', :read, Project)
+  end
+
   # Handle exception CanCan::AccessDenied
   rescue_from CanCan::AccessDenied do |exception|
     respond_to do |format|

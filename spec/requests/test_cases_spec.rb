@@ -75,4 +75,70 @@ RSpec.describe "TestCases", type: :request do
       expect(test_case.deleted_at).to be_nil
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # DELETE .../test_cases/:id (hard delete from archived view)
+  # ---------------------------------------------------------------------------
+  describe "DELETE .../test_cases/:id" do
+    let!(:step) { test_case.test_steps.create!(step_number: 1) }
+    let!(:content) { step.test_step_contents.create!(content_type: "text", content_value: "do it") }
+
+    it "hard-deletes the test case and cascades to steps and contents" do
+      expect {
+        delete project_task_test_case_path(project, task, test_case),
+               params: { show_archived: "1" },
+               headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      }.to change(TestCase, :count).by(-1)
+
+      expect(response).to have_http_status(:ok)
+      expect(TestStep.where(id: step.id)).to be_empty
+      expect(TestStepContent.where(id: content.id)).to be_empty
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # POST .../test_cases/ai_generate
+  # ---------------------------------------------------------------------------
+  describe "POST .../test_cases/ai_generate" do
+    before { AppConfiguration.instance.update!(ai_tc_enabled: true) }
+
+    around do |example|
+      if defined?(ClimateControl)
+        ClimateControl.modify(GEMINI_API_KEY: "test-key") { example.run }
+      else
+        original = ENV["GEMINI_API_KEY"]
+        ENV["GEMINI_API_KEY"] = "test-key"
+        begin
+          example.run
+        ensure
+          ENV["GEMINI_API_KEY"] = original
+        end
+      end
+    end
+
+    it "creates an ImportRun and enqueues the job" do
+      allow(AiGenerateTcJob).to receive(:perform_later)
+      expect {
+        post ai_generate_project_task_test_cases_path(project, task),
+             params: { description: "Login feature", count: 5 }
+      }.to change { ImportRun.where(import_type: "ai_generate_tc").count }.by(1)
+      expect(AiGenerateTcJob).to have_received(:perform_later).with(ImportRun.last.id)
+      expect(response).to redirect_to(import_run_path(ImportRun.last))
+    end
+
+    it "rejects a blank description" do
+      post ai_generate_project_task_test_cases_path(project, task),
+           params: { description: "" },
+           headers: { "Accept" => "application/json" }
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+
+    it "rejects when the feature is disabled" do
+      AppConfiguration.instance.update!(ai_tc_enabled: false)
+      post ai_generate_project_task_test_cases_path(project, task),
+           params: { description: "Login feature" },
+           headers: { "Accept" => "application/json" }
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
 end

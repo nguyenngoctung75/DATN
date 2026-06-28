@@ -24,7 +24,7 @@ module BugImport
     def find_user(name)
       return nil if name.blank?
 
-      User.where('name LIKE ?', "%#{name}%").first
+      User.active.where('name LIKE ?', "%#{name}%").first
     end
 
     def normalize_application(app)

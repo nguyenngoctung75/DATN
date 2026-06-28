@@ -1,0 +1,44 @@
+- info = project.product_info.is_a?(Hash) ? project.product_info : {}
+- has_any = project.product_version.present? || project.development_status.present? || info.values.any?(&:present?)
+.border-top.pt-3.mt-3
+  .d-flex.align-items-center.gap-2.mb-3
+    i.bi.bi-box-seam.text-primary
+    h6.fw-bold.mb-0.text-uppercase.small Product Information
+    - if current_user&.admin?
+      = link_to edit_project_path(project), class: "ms-auto small text-decoration-none" do
+        i.bi.bi-pencil.me-1
+        | Edit
+  - if has_any
+    .row.g-3
+      .col-6.col-md-3
+        .small.text-muted Version
+        .fw-semibold= project.product_version.presence || 'N/A'
+      .col-6.col-md-3
+        .small.text-muted Status
+        div= development_status_badge(project.development_status)
+      .col-6.col-md-3
+        .small.text-muted Owner
+        .fw-semibold= info['owner'].presence || 'N/A'
+      .col-6.col-md-3
+        .small.text-muted Release date
+        .fw-semibold= info['release_date'].presence || 'N/A'
+    - if info['progress'].present?
+      .mt-3
+        .d-flex.justify-content-between.small.text-muted.mb-1
+          span Development progress
+          span= "#{info['progress']}%"
+        .progress style="height: 8px;"
+          .progress-bar.bg-primary role="progressbar" style="width: #{info['progress']}%"
+    - if info['tech_stack'].present?
+      .mt-3
+        .small.text-muted.mb-1 Tech stack
+        - techs = info['tech_stack'].is_a?(Array) ? info['tech_stack'] : info['tech_stack'].to_s.split(',')
+        - techs.map(&:strip).reject(&:blank?).each do |tech|
+          span.badge.bg-light.text-dark.border.me-1.mb-1= tech
+    - if info['summary'].present?
+      .mt-3.text-muted.small style="white-space: pre-wrap;"= info['summary']
+  - else
+    .text-muted.small
+      | No product information yet.
+      - if current_user&.admin?
+        |  Admin can add it in project settings.

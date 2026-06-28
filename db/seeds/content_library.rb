@@ -7,6 +7,98 @@
 # "%{feature}" — ProjectBuilder thay bằng tên chức năng thực tế của task.
 module Seeds
   module ContentLibrary
+    # Membership map — user indices (1..17, admin excluded) assigned to each seed
+    # project. Shared by script/seed_redmine.rb (Redmine memberships) and
+    # db/seeds.rb (app project_users) so both sides stay consistent.
+    # Overlap is intentional (a tester may work on several projects). No project
+    # is open to all users.
+    PROJECT_MEMBERS = {
+      'seed-tooltest'       => [ 1, 2, 3, 4, 5, 6, 7 ],
+      'seed-mobile-banking' => [ 6, 7, 8, 9, 10, 11, 12 ],
+      'seed-ecommerce-shop' => [ 11, 12, 13, 14, 15, 16, 17 ]
+    }.freeze
+
+    # Fake Product Information + Test Plan per seed project (shown on the project page).
+    # rubocop:disable Layout/LineLength
+    PROJECT_PROFILES = {
+      'seed-tooltest' => {
+        product_version: 'v1.4.2',
+        development_status: 'testing',
+        product_info: {
+          'owner' => 'QA Team Lead',
+          'release_date' => '2026-07-15',
+          'progress' => 72,
+          'tech_stack' => 'Rails 8, Hotwire, MySQL 8, Solid Queue, Bootstrap 5',
+          'summary' => 'Internal test case management tool integrating Redmine, Google Sheets and CI/CD pipelines.'
+        },
+        test_plan: {
+          'objective' => 'Verify all core test-management features work correctly across supported browsers before the v1.4 release.',
+          'scope' => 'Authentication, project/task management, spreadsheet test cases, bug tracking, Redmine import and CI/CD webhooks.',
+          'strategy' => 'Risk-based functional testing, regression on each release, automated RSpec + Playwright in CI, manual exploratory for new features.',
+          'schedule' => [
+            { 'milestone' => 'Test design', 'date' => '2026-06-20' },
+            { 'milestone' => 'Test execution', 'date' => '2026-07-01' },
+            { 'milestone' => 'Regression', 'date' => '2026-07-10' },
+            { 'milestone' => 'Sign-off', 'date' => '2026-07-14' }
+          ],
+          'entry_criteria' => 'Build deployed to staging; test cases reviewed; seed test data available.',
+          'exit_criteria' => 'All critical/high test cases passed; no open blocker/critical bugs; pass rate >= 95%.',
+          'risks' => 'Tight release timeline; Redmine API instability; limited device coverage.'
+        }
+      },
+      'seed-mobile-banking' => {
+        product_version: 'v2.0.0',
+        development_status: 'in_development',
+        product_info: {
+          'owner' => 'Mobile QA Lead',
+          'release_date' => '2026-08-30',
+          'progress' => 55,
+          'tech_stack' => 'Kotlin (Android), Swift (iOS), REST API',
+          'summary' => 'Mobile banking application: transfers, cards, bill payment and savings.'
+        },
+        test_plan: {
+          'objective' => 'Ensure secure and correct money-movement flows on both iOS and Android.',
+          'scope' => 'Login/biometrics, internal & interbank transfers, QR pay, bill payment, card management, savings.',
+          'strategy' => 'Security-focused testing, transaction-integrity checks, cross-device matrix, performance under load.',
+          'schedule' => [
+            { 'milestone' => 'Test design', 'date' => '2026-07-25' },
+            { 'milestone' => 'Functional execution', 'date' => '2026-08-05' },
+            { 'milestone' => 'Security & performance', 'date' => '2026-08-15' },
+            { 'milestone' => 'UAT', 'date' => '2026-08-25' }
+          ],
+          'entry_criteria' => 'API contracts frozen; test accounts provisioned; staging gateway available.',
+          'exit_criteria' => 'Zero open high/critical defects; security checklist passed; UAT signed off.',
+          'risks' => 'Third-party payment gateway downtime; regulatory changes; device fragmentation.'
+        }
+      },
+      'seed-ecommerce-shop' => {
+        product_version: 'v3.1.0',
+        development_status: 'released',
+        product_info: {
+          'owner' => 'E-commerce QA Lead',
+          'release_date' => '2026-06-01',
+          'progress' => 88,
+          'tech_stack' => 'Next.js, Node.js, PostgreSQL',
+          'summary' => 'Online marketplace: search, cart, checkout, order tracking and reviews.'
+        },
+        test_plan: {
+          'objective' => 'Validate the end-to-end shopping journey and payment options before the peak-sale season.',
+          'scope' => 'Product search/filter, cart, vouchers, multiple payment methods, order tracking, returns/refunds, reviews.',
+          'strategy' => 'End-to-end journey testing, payment sandbox verification, load testing for sale events, regression suite.',
+          'schedule' => [
+            { 'milestone' => 'Test design', 'date' => '2026-05-10' },
+            { 'milestone' => 'Execution', 'date' => '2026-05-20' },
+            { 'milestone' => 'Load test', 'date' => '2026-05-26' },
+            { 'milestone' => 'Go-live check', 'date' => '2026-05-31' }
+          ],
+          'entry_criteria' => 'Catalog data loaded; payment sandbox keys ready; staging stable.',
+          'exit_criteria' => 'Checkout success rate >= 99%; no open critical defects; load test meets SLA.',
+          'risks' => 'Payment provider rate limits; inventory sync lag; high traffic spikes.'
+        }
+      }
+    }.freeze
+    # rubocop:enable Layout/LineLength
+
     # 40 chức năng có thật của hệ thống Test Case Management Tool (project Tooltest).
     TOOLTEST_FEATURES = [
       'Đăng nhập Devise giới hạn domain @zigexn.vn',

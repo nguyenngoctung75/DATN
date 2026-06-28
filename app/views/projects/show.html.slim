@@ -30,8 +30,17 @@
         .border-top.pt-3.pb-3.mt-3.text-muted style="white-space: pre-wrap; max-width: 1000px; font-size: 0.95rem; line-height: 1.6;"
           = @project.description
 
+      / Product Information (fake/inferred — admin editable)
+      = render 'product_info', project: @project
+
+      / Redmine connection box (above filters)
+      = render 'redmine_connection', project: @project
+
       / Unified Filter & Statistics Section
       = form_with url: project_path(@project), method: :get, local: true, id: "task-filters-form" do |f|
+        / Preserve status & date preset across form submits (set via dropdown/preset links)
+        = hidden_field_tag :status, params[:status]
+        = hidden_field_tag :date_preset, params[:date_preset]
         .border-top.pt-3.mt-3
           / 1. Date Presets (Simple buttons like Bulk Import)
           .mb-3
@@ -39,7 +48,7 @@
             .d-flex.flex-wrap.gap-2.mb-2
               - presets = [['Today', 'today'], ['Yesterday', 'yesterday'], ['Last 7 days', 'last_7_days'], ['Last 30 days', 'last_30_days'], ['This month', 'this_month'], ['Last month', 'last_month'], ['This quarter', 'this_quarter'], ['This year', 'this_year']]
               - presets.each do |label, preset|
-                = link_to label, project_path(@project, date_preset: preset, q: params[:q], status: params[:status]), class: "btn btn-sm #{@selected_preset == preset ? 'btn-primary' : 'btn-outline-secondary'}"
+                = link_to label, project_path(@project, date_preset: preset, q: params[:q], status: params[:status], created_by: params[:created_by], assignee_id: params[:assignee_id]), class: "btn btn-sm #{@selected_preset == preset ? 'btn-primary' : 'btn-outline-secondary'}"
             
             / Custom Date Range
             .row.g-2
@@ -66,14 +75,14 @@
                 
                 ul.dropdown-menu.shadow.w-100
                   li
-                    = link_to project_path(@project, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status].blank? ? 'active' : ''}" do
+                    = link_to project_path(@project, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date], created_by: params[:created_by], assignee_id: params[:assignee_id]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status].blank? ? 'active' : ''}" do
                       span All statuses
                       - if params[:status].blank?
                         i.bi.bi-check-lg
-                  
+
                   - @status_options.each do |status|
                     li
-                      = link_to project_path(@project, status: status, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status] == status ? 'active' : ''}" do
+                      = link_to project_path(@project, status: status, q: params[:q], date_preset: params[:date_preset], start_date: params[:start_date], end_date: params[:end_date], created_by: params[:created_by], assignee_id: params[:assignee_id]), class: "dropdown-item d-flex align-items-center justify-content-between #{params[:status] == status ? 'active' : ''}" do
                         span.badge class=status_badge_color(status).gsub('bg-', 'text-bg-') = status.titleize
                         - if params[:status] == status
                           i.bi.bi-check-lg
@@ -90,6 +99,15 @@
             .col-md-2
               = button_tag type: "submit", class: "btn btn-primary w-100" do
                 | Search
+
+          / 2b. People Filters (Created by + Assigned to)
+          .row.g-2.mb-4
+            .col-md-6
+              label.form-label.small.fw-bold.text-muted.mb-1 Created by
+              = select_tag :created_by, options_for_select([ [ 'All creators', '' ] ] + @created_by_options.map { |n| [ n, n ] }, params[:created_by].to_s), class: "form-select form-select-sm", onchange: "this.form.submit()"
+            .col-md-6
+              label.form-label.small.fw-bold.text-muted.mb-1 Assigned to
+              = select_tag :assignee_id, options_for_select([ [ 'All assignees', '' ] ] + @assignee_options.map { |u| [ member_display_name(u), u.id ] }, params[:assignee_id].to_s), class: "form-select form-select-sm", onchange: "this.form.submit()"
 
         / 3. Statistics Cards
         .row.g-3
@@ -110,13 +128,20 @@
               .h2.fw-bold.text-warning.mb-0= @completed_tasks_count
               .small.text-muted Completed
       
-      - if params[:q].present? || params[:status].present? || (params[:date_preset].present? && params[:date_preset] != 'all')
+      - if params[:q].present? || params[:status].present? || params[:created_by].present? || params[:assignee_id].present? || (params[:date_preset].present? && params[:date_preset] != 'all')
         .text-end.mt-3
           = link_to project_path(@project), class: "small text-muted text-decoration-none" do
             i.bi.bi-arrow-counterclockwise.me-1
             | Reset filters
 
+  / Test Plan (highlighted) — below filters + stat cards
+  = render 'test_plan', project: @project
 
+  / Task status statistics (6 statuses)
+  = render 'status_stats', project: @project
+
+  / Assigned members of this project
+  = render 'members', project: @project
 
   / Tasks List - Only Parent Tasks (Clickable to view details)
   - if @root_tasks.any?

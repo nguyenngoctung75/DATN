@@ -1,0 +1,44 @@
+- plan = project.test_plan.is_a?(Hash) ? project.test_plan : {}
+.card.border-0.shadow-sm.mb-4
+  .card-header.bg-white.border-bottom.d-flex.align-items-center.gap-2
+    i.bi.bi-clipboard-check.text-primary.fs-5
+    h5.fw-bold.mb-0 Test Plan
+    - if current_user&.admin?
+      = link_to edit_project_path(project), class: "ms-auto btn btn-sm btn-outline-secondary" do
+        i.bi.bi-pencil.me-1
+        | Edit
+  .card-body
+    - if plan.values.none?(&:present?)
+      .text-muted.small
+        | No test plan defined for this project yet.
+        - if current_user&.admin?
+          |  Admin can add it in the project settings.
+    - else
+      .row.g-4
+        .col-md-6
+          h6.text-uppercase.small.text-muted.fw-bold Objective
+          p.mb-3 style="white-space: pre-wrap;"= plan['objective'].presence || '—'
+          h6.text-uppercase.small.text-muted.fw-bold Scope
+          p.mb-3 style="white-space: pre-wrap;"= plan['scope'].presence || '—'
+          h6.text-uppercase.small.text-muted.fw-bold Strategy
+          p.mb-0 style="white-space: pre-wrap;"= plan['strategy'].presence || '—'
+        .col-md-6
+          h6.text-uppercase.small.text-muted.fw-bold Schedule
+          - schedule = Array(plan['schedule'])
+          - if schedule.any?
+            ul.list-group.list-group-flush.mb-3
+              - schedule.each do |milestone|
+                li.list-group-item.d-flex.justify-content-between.align-items-center.px-0
+                  span= milestone['milestone']
+                  span.badge.bg-light.text-dark.border= milestone['date']
+          - else
+            p.text-muted.mb-3 —
+          .row.g-3.mb-2
+            .col-6
+              h6.text-uppercase.small.text-muted.fw-bold Entry Criteria
+              p.small.mb-0 style="white-space: pre-wrap;"= plan['entry_criteria'].presence || '—'
+            .col-6
+              h6.text-uppercase.small.text-muted.fw-bold Exit Criteria
+              p.small.mb-0 style="white-space: pre-wrap;"= plan['exit_criteria'].presence || '—'
+          h6.text-uppercase.small.text-muted.fw-bold.mt-2 Risks
+          p.small.mb-0 style="white-space: pre-wrap;"= plan['risks'].presence || '—'

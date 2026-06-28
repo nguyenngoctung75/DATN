@@ -19,6 +19,7 @@ module TestCaseClone
     def call
       destination = find_destination_task
       validate_same_project!(destination)
+      validate_destination_phase!(destination)
 
       sources = source_relation
       return Result.failure(error: 'No test cases selected to clone.') if sources.empty?
@@ -46,6 +47,13 @@ module TestCaseClone
       return if destination.project_id == @source_task.project_id
 
       raise DispatchError, 'Cross-project cloning is not supported yet.'
+    end
+
+    def validate_destination_phase!(destination)
+      return if Task::CLONABLE_DEST_PHASES.include?(destination.test_phase)
+
+      raise DispatchError,
+            'Destination task must be in the "Not Started" or "Creating Test Cases" phase.'
     end
 
     def source_relation

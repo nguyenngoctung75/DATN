@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Import — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+    .content-wrap { padding: 20px 24px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+
+    .sheet-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    table.sheet { width: 100%; border-collapse: collapse; background: var(--bg-elevated); font-size: 13px; }
+    .sheet thead th {
+      background: var(--bg-overlay); color: var(--text-secondary);
+      font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+      padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .sheet tbody td { padding: 10px 12px; border-top: 1px solid var(--border-subtle); color: var(--text-primary); }
+    .sheet tbody tr:hover td { background: var(--bg-muted); }
+    .mono { font-family: monospace; font-size: 12px; color: var(--text-secondary); }
+    .dur { color: var(--text-muted); font-size: 12px; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Lịch sử Daily Import — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Management</div>
+      <div class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+      <div class="nav-item"><i class="bi bi-people"></i> Users List</div>
+      <div class="nav-item"><i class="bi bi-kanban"></i> Projects</div>
+      <div class="nav-item active"><i class="bi bi-clock-history"></i> Daily Import</div>
+      <div class="nav-item"><i class="bi bi-gear"></i> Settings</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="page-header flex between items-center">
+        <div>
+          <div class="page-eyebrow">Cronjob · Solid Queue</div>
+          <div class="page-title">Lịch sử Daily Import từ Redmine</div>
+          <div class="page-subtitle">Tác vụ định kỳ chạy mỗi ngày lúc 06:00 (Asia/Ho_Chi_Minh).</div>
+        </div>
+        <button class="btn btn-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> Chạy lại thủ công</button>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">Lần chạy gần nhất</div><div class="stat-value" style="font-size:18px;">06:00 hôm nay</div><div class="stat-change">Thành công</div></div>
+        <div class="stat-card"><div class="stat-label">Tỉ lệ thành công (30 ngày)</div><div class="stat-value">97%</div><div class="stat-change">29 / 30 lần</div></div>
+        <div class="stat-card"><div class="stat-label">Issue đồng bộ hôm nay</div><div class="stat-value">12</div><div class="stat-change">+12 mới</div></div>
+        <div class="stat-card"><div class="stat-label">Thời lượng trung bình</div><div class="stat-value" style="font-size:18px;">8,4 giây</div><div class="stat-change">&nbsp;</div></div>
+      </div>
+
+      <div class="sheet-wrap">
+        <table class="sheet">
+          <thead>
+            <tr>
+              <th>Thời điểm chạy</th>
+              <th class="col-center">Trạng thái</th>
+              <th class="num">Issue nhập</th>
+              <th class="num">Cập nhật</th>
+              <th class="num">Bỏ qua</th>
+              <th>Thời lượng</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">16/06/2026 06:00</td>
+              <td class="col-center"><span class="badge badge-pass"><i class="bi bi-check-circle"></i> Success</span></td>
+              <td class="num">12</td><td class="num">4</td><td class="num">0</td>
+              <td class="dur">8,1s</td><td class="muted">—</td>
+            </tr>
+            <tr>
+              <td class="mono">15/06/2026 06:00</td>
+              <td class="col-center"><span class="badge badge-pass"><i class="bi bi-check-circle"></i> Success</span></td>
+              <td class="num">7</td><td class="num">9</td><td class="num">1</td>
+              <td class="dur">7,6s</td><td class="muted">1 issue trùng đã bỏ qua</td>
+            </tr>
+            <tr>
+              <td class="mono">14/06/2026 06:00</td>
+              <td class="col-center"><span class="badge badge-fail"><i class="bi bi-x-circle"></i> Failed</span></td>
+              <td class="num">0</td><td class="num">0</td><td class="num">0</td>
+              <td class="dur">31,2s</td><td style="color:var(--danger)">Redmine API timeout — đã tự thử lại 09:00</td>
+            </tr>
+            <tr>
+              <td class="mono">13/06/2026 06:00</td>
+              <td class="col-center"><span class="badge badge-pass"><i class="bi bi-check-circle"></i> Success</span></td>
+              <td class="num">15</td><td class="num">3</td><td class="num">2</td>
+              <td class="dur">9,8s</td><td class="muted">—</td>
+            </tr>
+            <tr>
+              <td class="mono">12/06/2026 06:00</td>
+              <td class="col-center"><span class="badge badge-pass"><i class="bi bi-check-circle"></i> Success</span></td>
+              <td class="num">9</td><td class="num">6</td><td class="num">0</td>
+              <td class="dur">8,0s</td><td class="muted">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

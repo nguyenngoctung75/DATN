@@ -45,9 +45,13 @@ export default class extends Controller {
     const canMerge = !!row.querySelector('[data-action*="function-group#merge"]')
     const canSplit  = !!row.querySelector('[data-action*="function-group#split"]')
 
+    // Archived rows render a restore button instead of an archive one; in that
+    // view the destructive action permanently deletes the test case.
+    const isArchived = !!row.querySelector(".bi-arrow-counterclockwise")
+
     this.menu = document.createElement("div")
     this.menu.className = "spreadsheet-context-menu"
-    this.menu.innerHTML = buildMenuHTML(hasCellCopy, hasRowCopy, { canMerge, canSplit })
+    this.menu.innerHTML = buildMenuHTML(hasCellCopy, hasRowCopy, { canMerge, canSplit, isArchived })
     this.menu.style.position = "fixed"
     this.menu.style.zIndex = "9999"
     document.body.appendChild(this.menu)
@@ -147,6 +151,11 @@ export default class extends Controller {
 
       case "archive": {
         clickFormOrIcon(this.activeRow.querySelector(".bi-archive"))
+        break
+      }
+
+      case "delete": {
+        this.deleteRow()
         break
       }
 
@@ -285,6 +294,37 @@ export default class extends Controller {
       console.error("Failed to load cell_history_popover:", err)
       this.showToast("Failed to load history module")
     })
+  }
+
+  deleteRow() {
+    const row = this.activeRow
+    if (!row) return
+
+    const tcId = row.dataset.testCaseId
+    const projectId = row.dataset.projectId
+    const taskId = row.dataset.taskId
+    if (!tcId || !projectId || !taskId) { this.showToast("Cannot delete this row"); return }
+
+    if (!window.confirm("Xoá vĩnh viễn test case này? Hành động này không thể hoàn tác.")) return
+
+    // Preserve the archived view + current page so the rebuilt table matches.
+    const search = new URLSearchParams(window.location.search)
+    const showArchived = search.get("show_archived") || "1"
+    const tcPage = search.get("tc_page") || "1"
+    const url = `/projects/${projectId}/tasks/${taskId}/test_cases/${tcId}` +
+                `?show_archived=${showArchived}&tc_page=${tcPage}`
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+
+    fetch(url, {
+      method: "DELETE",
+      headers: { "X-CSRF-Token": csrfToken, "Accept": "text/vnd.turbo-stream.html" }
+    })
+      .then(response => {
+        if (!response.ok) throw new Error("Delete failed")
+        return response.text()
+      })
+      .then(html => { window.Turbo?.renderStreamMessage(html) })
+      .catch(() => this.showToast("Xoá test case thất bại"))
   }
 
   resolveRowData() {

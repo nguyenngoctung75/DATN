@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch sử cell — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .backdrop {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(10,10,10,0.78), rgba(10,10,10,0.78)),
+        repeating-linear-gradient(0deg, var(--bg-elevated) 0, var(--bg-elevated) 36px, var(--border-subtle) 36px, var(--border-subtle) 37px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 50px 20px;
+    }
+    .modal-box {
+      width: 560px;
+      background: var(--bg-overlay);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+    .modal-head { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .modal-head h3 { font-size: 15px; flex: 1; }
+    .modal-head .ref { font-family: monospace; color: var(--accent); font-size: 12px; background: var(--accent-subtle); padding: 2px 8px; border-radius: var(--radius-sm); }
+    .modal-head .x { color: var(--text-muted); cursor: pointer; font-size: 16px; }
+    .cell-context { padding: 12px 20px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; color: var(--text-secondary); }
+    .cell-context b { color: var(--text-primary); }
+    .timeline { padding: 8px 20px 16px; max-height: 360px; overflow-y: auto; }
+    .ver {
+      position: relative; padding: 14px 0 14px 26px; border-left: 2px solid var(--border);
+    }
+    .ver:last-child { border-left-color: transparent; }
+    .ver::before { content: ''; position: absolute; left: -6px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: var(--border-strong); border: 2px solid var(--bg-overlay); }
+    .ver.current::before { background: var(--accent); }
+    .ver-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .ver-author { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+    .ver-time { font-size: 11px; color: var(--text-muted); }
+    .ver-cur-tag { font-size: 10px; background: var(--accent-subtle); color: var(--accent); padding: 1px 8px; border-radius: 10px; text-transform: uppercase; }
+    .ver-val {
+      font-size: 13px; color: var(--text-primary);
+      background: var(--bg-base); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); padding: 8px 11px;
+    }
+    .ver-val.old { color: var(--text-secondary); text-decoration: none; }
+    .ver-actions { margin-top: 8px; }
+    .modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg-elevated); }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Modal lịch sử &amp; khôi phục cell — Linear Dark Theme</div>
+
+  <div class="backdrop">
+    <div class="modal-box" id="modal">
+      <div class="modal-head">
+        <i class="bi bi-clock-history" style="color:var(--accent); font-size:17px;"></i>
+        <h3>Lịch sử chỉnh sửa ô</h3>
+        <span class="ref">C3</span>
+        <i class="bi bi-x-lg x"></i>
+      </div>
+      <div class="cell-context">
+        Test case <b>TC-003</b> · cột <b>Test Steps (Actions)</b> · 4 phiên bản
+      </div>
+      <div class="timeline">
+        <div class="ver current">
+          <div class="ver-top">
+            <span class="avatar" style="width:22px;height:22px;font-size:10px;">TN</span>
+            <span class="ver-author">Tung Nguyen</span>
+            <span class="ver-cur-tag">Hiện tại</span>
+            <span class="ver-time">· 16/06/2026 14:32</span>
+          </div>
+          <div class="ver-val">Nhập email không hợp lệ và nhấn nút Đăng nhập</div>
+        </div>
+        <div class="ver">
+          <div class="ver-top">
+            <span class="avatar" style="width:22px;height:22px;font-size:10px;">LP</span>
+            <span class="ver-author">Lan Pham</span>
+            <span class="ver-time">· 15/06/2026 09:10</span>
+          </div>
+          <div class="ver-val old">Nhập email sai định dạng rồi đăng nhập</div>
+          <div class="ver-actions"><button class="btn btn-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục phiên bản này</button></div>
+        </div>
+        <div class="ver">
+          <div class="ver-top">
+            <span class="avatar" style="width:22px;height:22px;font-size:10px;">LP</span>
+            <span class="ver-author">Lan Pham</span>
+            <span class="ver-time">· 14/06/2026 16:48</span>
+          </div>
+          <div class="ver-val old">Nhập email và bấm login</div>
+          <div class="ver-actions"><button class="btn btn-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục phiên bản này</button></div>
+        </div>
+        <div class="ver">
+          <div class="ver-top">
+            <span class="avatar" style="width:22px;height:22px;font-size:10px;">TN</span>
+            <span class="ver-author">Tung Nguyen</span>
+            <span class="ver-time">· 14/06/2026 11:02 · tạo mới</span>
+          </div>
+          <div class="ver-val old">(ô trống)</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary btn-sm">Đóng</button>
+        <button class="btn btn-primary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Khôi phục phiên bản đã chọn</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

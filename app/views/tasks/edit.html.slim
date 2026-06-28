@@ -42,10 +42,22 @@
                   = f.label :status, "Status", class: 'form-label fw-semibold'
                   = f.select :status, options_for_select([['New', 'new'], ['Pending', 'pending'], ['In Progress', 'in progress'], ['Resolved', 'resolved'], ['Waiting Release', 'waiting release'], ['Closed', 'closed']], @task.status), {}, class: 'form-select'
 
-                / Assignee
+                / Assignee — limited to members of this project
+                - assignable_users = @task.project&.open_to_all_users ? User.active.order(:name) : (@task.project ? @task.project.users.active.order(:name) : User.none)
                 .mb-3
                   = f.label :assignee_id, "Assign To", class: 'form-label fw-semibold'
-                  = f.collection_select :assignee_id, User.active.order(:name), :id, :name, { include_blank: '-- Select user --' }, class: 'form-select'
+                  = f.collection_select :assignee_id, assignable_users, :id, :name, { include_blank: '-- Select user --' }, class: 'form-select'
+                  .form-text Only users assigned to this project can be selected.
+
+                / Test Phase (testing activity workflow)
+                .mb-3
+                  = f.label :test_phase, "Test Phase", class: 'form-label fw-semibold'
+                  = f.select :test_phase, Task::TEST_PHASES.map { |p| [ Task::TEST_PHASE_LABELS[p], p ] }, {}, class: 'form-select'
+
+                / Testing Type
+                .mb-3
+                  = f.label :testing_type, "Testing Type", class: 'form-label fw-semibold'
+                  = f.select :testing_type, Task::TESTING_TYPES.map { |t| [ Task::TESTING_TYPE_LABELS[t], t ] }, { include_blank: '-- Select --' }, class: 'form-select'
 
               / Right Column
               .col-md-6
@@ -101,6 +113,17 @@
                       = f.date_field :due_date, class: 'form-control'
                       - if @task.errors[:due_date].any?
                         .invalid-feedback.d-block = @task.errors[:due_date].join(', ')
+
+            / KPI Targets (tester)
+            .border-top.pt-3.mt-2
+              h6.fw-semibold.text-muted.text-uppercase.small.mb-3 KPI Targets (tester)
+              .row.g-3
+                - Task::KPIS.each do |key, meta|
+                  .col-md-4
+                    label.form-label.small.fw-semibold.d-flex.align-items-center.gap-1
+                      span= "#{meta[:label]} (#{meta[:unit]})"
+                      i.bi.bi-exclamation-circle.text-muted data-controller="tooltip" data-bs-placement="top" title=meta[:hint] style="cursor: help;"
+                    = number_field_tag "task[kpi_targets][#{key}]", @task.kpi_target(key), class: 'form-control', step: 'any', min: 0
 
             / Buttons
             .d-flex.gap-2.mt-4

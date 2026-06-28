@@ -1,3 +1,7 @@
+- info = @project.product_info.is_a?(Hash) ? @project.product_info : {}
+- plan = @project.test_plan.is_a?(Hash) ? @project.test_plan : {}
+- schedule_text = Array(plan['schedule']).map { |m| "#{m['milestone']} | #{m['date']}" }.join("\n")
+
 .container-fluid.px-4.py-4
   / Header
   .row.mb-4
@@ -16,28 +20,91 @@
 
   / Form
   .row.justify-content-center
-    .col-lg-8
-      .card.border-0.shadow-sm
-        .card-body.p-4
-          = form_for @project, html: { class: 'needs-validation' } do |f|
-            / Name
+    .col-lg-9
+      = form_for @project, html: { class: 'needs-validation' } do |f|
+        / General
+        .card.border-0.shadow-sm.mb-4
+          .card-header.bg-white.fw-bold General
+          .card-body.p-4
             .mb-3
               = f.label :name, "Project Name *", class: 'form-label fw-semibold'
               = f.text_field :name, class: 'form-control form-control-lg', placeholder: 'Example: Project Management System', required: true, maxlength: 50
               - if @project.errors[:name].any?
                 .invalid-feedback.d-block = @project.errors[:name].join(', ')
-
-            / Description
-            .mb-4
+            .mb-0
               = f.label :description, "Description", class: 'form-label fw-semibold'
-              = f.text_area :description, class: 'form-control', rows: 6, placeholder: 'Detailed project description...', style: 'resize: none;'
+              = f.text_area :description, class: 'form-control', rows: 5, placeholder: 'Detailed project description...', style: 'resize: none;'
               .form-text Description of project purpose and scope
-              - if @project.errors[:description].any?
-                .invalid-feedback.d-block = @project.errors[:description].join(', ')
 
-            / Buttons
-            .d-flex.gap-2
-              = f.submit "Update", class: 'btn btn-primary btn-lg px-5'
-              = link_to "Cancel", project_path(@project), class: 'btn btn-outline-secondary btn-lg'
+        / Access & Members
+        .card.border-0.shadow-sm.mb-4
+          .card-header.bg-white.fw-bold Access & Members
+          .card-body.p-4
+            .form-check.form-switch.mb-3
+              = f.check_box :open_to_all_users, class: 'form-check-input'
+              = f.label :open_to_all_users, "Open to all users", class: 'form-check-label'
+              .form-text When enabled, every user can access this project. Otherwise only the members below.
+            .mb-0
+              = f.label :user_ids, "Assigned members", class: 'form-label fw-semibold'
+              = f.select :user_ids, User.active.order(:name).map { |u| [ member_display_name(u), u.id ] }, {}, multiple: true, class: 'form-select', size: 8
+              .form-text Hold Ctrl/Cmd to select multiple users.
 
+        / Product Information
+        .card.border-0.shadow-sm.mb-4
+          .card-header.bg-white.fw-bold Product Information
+          .card-body.p-4
+            .row.g-3
+              .col-md-4
+                = f.label :product_version, "Version", class: 'form-label fw-semibold'
+                = f.text_field :product_version, class: 'form-control', placeholder: 'e.g. v1.4.2'
+              .col-md-4
+                = f.label :development_status, "Development status", class: 'form-label fw-semibold'
+                = f.select :development_status, Project::DEVELOPMENT_STATUSES.map { |s| [ s.titleize, s ] }, { include_blank: '-- Select --' }, class: 'form-select'
+              .col-md-4
+                label.form-label.fw-semibold Owner
+                = text_field_tag 'project[product_info][owner]', info['owner'], class: 'form-control', placeholder: 'Product owner'
+              .col-md-4
+                label.form-label.fw-semibold Release date
+                = text_field_tag 'project[product_info][release_date]', info['release_date'], class: 'form-control', placeholder: 'e.g. 2026-07-01'
+              .col-md-4
+                label.form-label.fw-semibold Progress (%)
+                = number_field_tag 'project[product_info][progress]', info['progress'], class: 'form-control', min: 0, max: 100
+              .col-md-4
+                label.form-label.fw-semibold Tech stack
+                = text_field_tag 'project[product_info][tech_stack]', info['tech_stack'], class: 'form-control', placeholder: 'Rails, Hotwire, MySQL'
+              .col-12
+                label.form-label.fw-semibold Summary
+                = text_area_tag 'project[product_info][summary]', info['summary'], class: 'form-control', rows: 3, placeholder: 'Short product summary...'
 
+        / Test Plan
+        .card.border-0.shadow-sm.mb-4
+          .card-header.bg-white.fw-bold Test Plan
+          .card-body.p-4
+            .row.g-3
+              .col-md-6
+                label.form-label.fw-semibold Objective
+                = text_area_tag 'project[test_plan][objective]', plan['objective'], class: 'form-control', rows: 3
+              .col-md-6
+                label.form-label.fw-semibold Scope
+                = text_area_tag 'project[test_plan][scope]', plan['scope'], class: 'form-control', rows: 3
+              .col-md-6
+                label.form-label.fw-semibold Strategy
+                = text_area_tag 'project[test_plan][strategy]', plan['strategy'], class: 'form-control', rows: 3
+              .col-md-6
+                label.form-label.fw-semibold Schedule
+                = text_area_tag :schedule_text, schedule_text, class: 'form-control', rows: 3, placeholder: "One milestone per line:\nTest design | 2026-07-01"
+                .form-text Format per line: Milestone | Date
+              .col-md-4
+                label.form-label.fw-semibold Entry criteria
+                = text_area_tag 'project[test_plan][entry_criteria]', plan['entry_criteria'], class: 'form-control', rows: 2
+              .col-md-4
+                label.form-label.fw-semibold Exit criteria
+                = text_area_tag 'project[test_plan][exit_criteria]', plan['exit_criteria'], class: 'form-control', rows: 2
+              .col-md-4
+                label.form-label.fw-semibold Risks
+                = text_area_tag 'project[test_plan][risks]', plan['risks'], class: 'form-control', rows: 2
+
+        / Buttons
+        .d-flex.gap-2.mb-5
+          = f.submit "Update", class: 'btn btn-primary btn-lg px-5'
+          = link_to "Cancel", project_path(@project), class: 'btn btn-outline-secondary btn-lg'

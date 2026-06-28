@@ -1,4 +1,4 @@
-- users = User.active.order(:name)
+- users = local_assigns[:users] || User.active.order(:name)
 - bug = BugPresenter.new(bug)
 
 tr.bug-row id="bug-row-#{bug.id}" class=(bug.deleted? ? 'table-secondary opacity-75' : '') data-controller="editable-cell bug-field" data-bug-id=bug.id data-project-id=bug.task.project_id data-task-id=bug.task.id data-model="bug" data-bug-field-bug-id-value=bug.id data-bug-field-project-id-value=bug.task.project_id data-bug-field-task-id-value=bug.task.id data-history-url=cell_history_project_task_bug_path(bug.task.project, bug.task, bug) data-history-revert-url=revert_project_task_bug_path(bug.task.project, bug.task, bug)

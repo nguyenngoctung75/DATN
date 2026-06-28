@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+    .stat-card .ic { font-size: 18px; color: var(--accent); }
+    .stat-top { display: flex; align-items: center; justify-content: space-between; }
+
+    .panels { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+    .panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .panel-head h3 { font-size: 14px; }
+    .panel-body { padding: 6px 0; }
+
+    .task-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--border-subtle); }
+    .task-row:last-child { border-bottom: none; }
+    .task-row:hover { background: var(--bg-muted); }
+    .t-icon { width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--accent-subtle); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .t-body { flex: 1; min-width: 0; }
+    .t-title { font-size: 13px; color: var(--text-primary); }
+    .t-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .progress-mini { height: 5px; background: var(--bg-muted); border-radius: 3px; overflow: hidden; width: 90px; }
+    .progress-mini > span { display: block; height: 100%; background: var(--accent); }
+
+    .feed-item { display: flex; gap: 11px; padding: 11px 18px; border-bottom: 1px solid var(--border-subtle); font-size: 13px; }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+    .feed-time { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Dashboard người dùng — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item active"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+      <div class="nav-item"><i class="bi bi-folder2-open"></i> Projects</div>
+      <div class="nav-item"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item"><i class="bi bi-list-task"></i> Tasks</div>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-label">Actions</div>
+      <div class="nav-item"><i class="bi bi-folder-plus"></i> New Project</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="page-header">
+        <div class="page-eyebrow">Workspace</div>
+        <div class="page-title">Xin chào, Tung Nguyen 👋</div>
+        <div class="page-subtitle">Tổng quan nhanh các chỉ số kiểm thử và Task gần đây của bạn.</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Dự án</span><i class="bi bi-kanban ic"></i></div>
+          <div class="stat-value">8</div>
+          <div class="stat-change">2 đang hoạt động</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Test Case</span><i class="bi bi-list-check ic"></i></div>
+          <div class="stat-value">1.284</div>
+          <div class="stat-change">+46 tuần này</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Tỉ lệ Pass</span><i class="bi bi-check2-circle ic"></i></div>
+          <div class="stat-value">87%</div>
+          <div class="stat-change">+3% so với lần chạy trước</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><span class="stat-label">Bug mở</span><i class="bi bi-bug ic" style="color:var(--danger)"></i></div>
+          <div class="stat-value">14</div>
+          <div class="stat-change" style="color:var(--danger)">3 ưu tiên cao</div>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-head"><h3>Task gần đây</h3><a href="#" style="font-size:12px;">Xem tất cả</a></div>
+          <div class="panel-body">
+            <div class="task-row">
+              <span class="t-icon"><i class="bi bi-list-task"></i></span>
+              <div class="t-body"><div class="t-title">Login &amp; Authentication Flow</div><div class="t-meta">Mobile App QA · 48 test case</div></div>
+              <div class="progress-mini"><span style="width:87%"></span></div>
+              <span class="badge badge-running">Running</span>
+            </div>
+            <div class="task-row">
+              <span class="t-icon"><i class="bi bi-list-task"></i></span>
+              <div class="t-body"><div class="t-title">Payment Checkout Regression</div><div class="t-meta">E-commerce Web · 132 test case</div></div>
+              <div class="progress-mini"><span style="width:64%"></span></div>
+              <span class="badge badge-pending">Pending</span>
+            </div>
+            <div class="task-row">
+              <span class="t-icon"><i class="bi bi-list-task"></i></span>
+              <div class="t-body"><div class="t-title">Push Notification Suite</div><div class="t-meta">Mobile App QA · 27 test case</div></div>
+              <div class="progress-mini"><span style="width:100%"></span></div>
+              <span class="badge badge-pass">Done</span>
+            </div>
+            <div class="task-row">
+              <span class="t-icon"><i class="bi bi-list-task"></i></span>
+              <div class="t-body"><div class="t-title">Profile Settings UI</div><div class="t-meta">Mobile App QA · 19 test case</div></div>
+              <div class="progress-mini"><span style="width:42%"></span></div>
+              <span class="badge badge-fail">Blocked</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Hoạt động gần đây</h3></div>
+          <div class="panel-body">
+            <div class="feed-item">
+              <span class="feed-dot" style="background:var(--success)"></span>
+              <div><div>CI build <b>thành công</b> cho PR #142</div><div class="feed-time">2 phút trước</div></div>
+            </div>
+            <div class="feed-item">
+              <span class="feed-dot" style="background:var(--accent)"></span>
+              <div><div>Lan Pham cập nhật <b>TC-003</b></div><div class="feed-time">18 phút trước</div></div>
+            </div>
+            <div class="feed-item">
+              <span class="feed-dot" style="background:var(--accent)"></span>
+              <div><div>Đã nhập 48 test case từ Google Sheet</div><div class="feed-time">25 phút trước</div></div>
+            </div>
+            <div class="feed-item">
+              <span class="feed-dot" style="background:var(--danger)"></span>
+              <div><div>Bug <b>BUG-015</b> được gắn ưu tiên cao</div><div class="feed-time">1 giờ trước</div></div>
+            </div>
+            <div class="feed-item">
+              <span class="feed-dot" style="background:#c084fc"></span>
+              <div><div>Daily Redmine sync hoàn tất (12 issue)</div><div class="feed-time">5 giờ trước</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

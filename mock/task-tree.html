@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+
+    .stat-grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat-card .ic { font-size: 18px; color: var(--accent); }
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .filter-bar .form-control { max-width: 420px; }
+    .filter-bar .form-select { max-width: 200px; }
+
+    .task-card { padding: 16px 20px; margin-bottom: 14px; }
+    .task-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .task-title { font-size: 15px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+    .task-title .bi { color: var(--success); }
+    .task-meta { color: var(--text-muted); font-size: 12px; margin-top: 6px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .task-meta .sep { opacity: .5; }
+    .mini-badge { background: var(--bg-muted); color: var(--text-secondary); border-radius: 10px; padding: 1px 8px; font-size: 11px; }
+    .task-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 14px; }
+    .tstat { background: var(--bg-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 8px 10px; text-align: center; }
+    .tstat .k, .tstat-k { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+    .tstat-v { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+
+    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .sub-card { padding: 14px 16px; cursor: pointer; }
+    .sub-card .t { font-weight: 500; color: var(--text-primary); font-size: 13.5px; }
+    .sub-card .m { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Tasks — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item"><i class="bi bi-folder2-open"></i> Projects</div>
+      <div class="nav-item"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item active"><i class="bi bi-list-task"></i> Tasks</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="page-header">
+        <div class="page-eyebrow">Global Tasklist</div>
+        <div class="page-title">Centralized Task Management</div>
+        <div class="page-subtitle">Review and track all tasks from every active project.</div>
+      </div>
+
+      <!-- stats -->
+      <div class="stat-grid4">
+        <div class="stat-card"><div class="stat-label"><i class="bi bi-list-check ic"></i> Total Tasks</div><div class="stat-value">128</div></div>
+        <div class="stat-card"><div class="stat-label"><i class="bi bi-grid-3x3 ic"></i> Test Cases</div><div class="stat-value">1,204</div></div>
+        <div class="stat-card"><div class="stat-label"><i class="bi bi-diagram-3 ic"></i> Subtasks</div><div class="stat-value">86</div></div>
+        <div class="stat-card"><div class="stat-label"><i class="bi bi-check-circle ic"></i> Completed</div><div class="stat-value" style="color:var(--success)">73</div></div>
+      </div>
+
+      <!-- filter -->
+      <div class="filter-bar">
+        <input class="form-control" placeholder="Search tasks by title, description, or Redmine ID...">
+        <select class="form-select"><option>All Status</option><option>New</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select>
+        <button class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+        <button class="btn btn-secondary">Clear</button>
+      </div>
+
+      <!-- task cards -->
+      <div class="card task-card">
+        <div class="task-top">
+          <div>
+            <div class="task-title"><i class="bi bi-check-circle-fill"></i> Login &amp; Authentication Flow</div>
+            <div class="task-meta">
+              <span><i class="bi bi-link-45deg"></i> Redmine #4821</span><span class="sep">•</span>
+              <span>Mobile App QA</span><span class="sep">•</span>
+              <span>by Tung Nguyen</span><span class="sep">•</span>
+              <span class="mini-badge">3 subtasks</span>
+              <span class="mini-badge">48 test cases</span>
+            </div>
+          </div>
+          <span class="badge badge-running">IN PROGRESS</span>
+        </div>
+        <div class="task-stats">
+          <div class="tstat"><div class="tstat-k">Est.</div><div class="tstat-v">16h</div></div>
+          <div class="tstat"><div class="tstat-k">Spent</div><div class="tstat-v">11h</div></div>
+          <div class="tstat"><div class="tstat-k">Progress</div><div class="tstat-v" style="color:var(--success)">68%</div></div>
+          <div class="tstat"><div class="tstat-k">Tests</div><div class="tstat-v">48</div></div>
+          <div class="tstat"><div class="tstat-k">Subs</div><div class="tstat-v">3</div></div>
+        </div>
+      </div>
+
+      <div class="card task-card">
+        <div class="task-top">
+          <div>
+            <div class="task-title"><i class="bi bi-check-circle-fill"></i> Payment Processing &amp; Refunds</div>
+            <div class="task-meta">
+              <span><i class="bi bi-link-45deg"></i> Redmine #4910</span><span class="sep">•</span>
+              <span>Payment Gateway</span><span class="sep">•</span>
+              <span>by Lan Pham</span><span class="sep">•</span>
+              <span class="mini-badge">5 subtasks</span>
+              <span class="mini-badge">92 test cases</span>
+            </div>
+          </div>
+          <span class="badge badge-pending">PENDING</span>
+        </div>
+        <div class="task-stats">
+          <div class="tstat"><div class="tstat-k">Est.</div><div class="tstat-v">40h</div></div>
+          <div class="tstat"><div class="tstat-k">Spent</div><div class="tstat-v">9h</div></div>
+          <div class="tstat"><div class="tstat-k">Progress</div><div class="tstat-v" style="color:var(--warning)">22%</div></div>
+          <div class="tstat"><div class="tstat-k">Tests</div><div class="tstat-v">92</div></div>
+          <div class="tstat"><div class="tstat-k">Subs</div><div class="tstat-v">5</div></div>
+        </div>
+      </div>
+
+      <div class="card task-card">
+        <div class="task-top">
+          <div>
+            <div class="task-title"><i class="bi bi-check-circle-fill"></i> Analytics Report Export</div>
+            <div class="task-meta">
+              <span><i class="bi bi-link-45deg"></i> Redmine #4633</span><span class="sep">•</span>
+              <span>Internal Dashboard</span><span class="sep">•</span>
+              <span>by Tung Nguyen</span><span class="sep">•</span>
+              <span class="mini-badge">0 subtasks</span>
+              <span class="mini-badge">31 test cases</span>
+            </div>
+          </div>
+          <span class="badge badge-pass">CLOSED</span>
+        </div>
+        <div class="task-stats">
+          <div class="tstat"><div class="tstat-k">Est.</div><div class="tstat-v">12h</div></div>
+          <div class="tstat"><div class="tstat-k">Spent</div><div class="tstat-v">13h</div></div>
+          <div class="tstat"><div class="tstat-k">Progress</div><div class="tstat-v" style="color:var(--success)">100%</div></div>
+          <div class="tstat"><div class="tstat-k">Tests</div><div class="tstat-v">31</div></div>
+          <div class="tstat"><div class="tstat-k">Subs</div><div class="tstat-v">0</div></div>
+        </div>
+      </div>
+
+      <!-- subtasks grid (from task show) -->
+      <div style="margin-top:28px;">
+        <div class="flex between items-center" style="margin-bottom:12px;">
+          <h2>Subtasks <span class="muted" style="font-weight:400;">(3)</span></h2>
+          <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Subtask</button>
+        </div>
+        <div class="sub-grid">
+          <div class="card sub-card">
+            <div class="t">Email/password validation</div>
+            <div class="m"><span class="mini-badge">18 TC</span><span class="badge badge-pass">RESOLVED</span></div>
+          </div>
+          <div class="card sub-card">
+            <div class="t">OAuth & social login</div>
+            <div class="m"><span class="mini-badge">22 TC</span><span class="badge badge-running">IN PROGRESS</span></div>
+          </div>
+          <div class="card sub-card">
+            <div class="t">Session & token expiry</div>
+            <div class="m"><span class="mini-badge">8 TC</span><span class="badge badge-pending">NEW</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

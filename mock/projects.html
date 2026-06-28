@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .shell { display: flex; min-height: calc(100vh - var(--header-height)); }
+    .main { flex: 1; min-width: 0; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .bell { position: relative; color: var(--text-secondary); font-size: 18px; }
+    .bell .dot { position: absolute; top: -4px; right: -6px; background: var(--accent); color: var(--text-inverse); font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; }
+    .user-chip { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; }
+
+    .proj-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .proj-card { overflow: hidden; display: flex; flex-direction: column; }
+    .proj-head {
+      padding: 18px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .proj-icon { width: 40px; height: 40px; border-radius: var(--radius-md); background: var(--accent-subtle); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 19px; }
+    .proj-body { padding: 16px 20px; flex: 1; }
+    .proj-name { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-top: 12px; }
+    .proj-date { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+    .proj-desc { color: var(--text-secondary); font-size: 13px; margin: 12px 0 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .proj-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ps { background: var(--bg-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 12px; }
+    .ps .k { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .ps .v { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .proj-foot { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .proj-foot a { font-size: 13px; font-weight: 500; }
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-muted); border: 1px dashed var(--border-strong); border-radius: var(--radius-lg); }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Projects — Linear Dark Theme</div>
+
+  <header class="app-header" style="margin-top:28px;">
+    <i class="bi bi-list" style="font-size:20px; color:var(--text-secondary); margin-right:14px;"></i>
+    <div class="brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+    <div class="header-right">
+      <span class="bell"><i class="bi bi-bell"></i><span class="dot">3</span></span>
+      <div class="user-chip"><span class="avatar">TN</span><span>tungnguyenngoc</span><i class="bi bi-chevron-down" style="font-size:11px;"></i></div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="sidebar-label">Workspace</div>
+      <div class="nav-item active"><i class="bi bi-folder2-open"></i> Projects</div>
+      <div class="nav-item"><i class="bi bi-graph-up"></i> Test Analytics</div>
+      <div class="nav-item"><i class="bi bi-list-task"></i> Tasks</div>
+    </aside>
+
+    <main class="main content-wrap">
+      <div class="page-header flex between items-center">
+        <div>
+          <div class="page-eyebrow">Project Dashboard</div>
+          <div class="page-title">Workspace Projects</div>
+          <div class="page-subtitle">Manage and track all your software testing projects in one place.</div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary"><i class="bi bi-archive"></i> Archived</button>
+          <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> New Project</button>
+        </div>
+      </div>
+
+      <div class="proj-grid">
+        <!-- card 1 -->
+        <div class="card proj-card">
+          <div class="proj-head">
+            <div class="proj-icon"><i class="bi bi-folder-fill"></i></div>
+            <button class="btn-icon"><i class="bi bi-three-dots"></i></button>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Mobile App QA</div>
+            <div class="proj-date">Created May 20, 2026 · 2 weeks ago</div>
+            <div class="proj-desc">Kiểm thử ứng dụng di động cho iOS và Android, bao gồm regression và smoke test mỗi sprint.</div>
+            <div class="proj-stats">
+              <div class="ps"><div class="k">Tasks</div><div class="v">24</div></div>
+              <div class="ps"><div class="k">Progress</div><div class="v" style="color:var(--success)">78%</div></div>
+            </div>
+          </div>
+          <div class="proj-foot">
+            <span class="badge badge-running">ACTIVE</span>
+            <a href="task-tree.html">Explore Project <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- card 2 -->
+        <div class="card proj-card">
+          <div class="proj-head">
+            <div class="proj-icon"><i class="bi bi-folder-fill"></i></div>
+            <button class="btn-icon"><i class="bi bi-three-dots"></i></button>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Payment Gateway</div>
+            <div class="proj-date">Created Apr 02, 2026 · 2 months ago</div>
+            <div class="proj-desc">Tích hợp cổng thanh toán, kiểm thử bảo mật và xử lý giao dịch đồng thời.</div>
+            <div class="proj-stats">
+              <div class="ps"><div class="k">Tasks</div><div class="v">41</div></div>
+              <div class="ps"><div class="k">Progress</div><div class="v" style="color:var(--warning)">52%</div></div>
+            </div>
+          </div>
+          <div class="proj-foot">
+            <span class="badge badge-running">ACTIVE</span>
+            <a href="task-tree.html">Explore Project <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- card 3 -->
+        <div class="card proj-card">
+          <div class="proj-head">
+            <div class="proj-icon"><i class="bi bi-folder-fill"></i></div>
+            <button class="btn-icon"><i class="bi bi-three-dots"></i></button>
+          </div>
+          <div class="proj-body">
+            <div class="proj-name">Internal Dashboard</div>
+            <div class="proj-date">Created Jan 15, 2026 · 5 months ago</div>
+            <div class="proj-desc">Báo cáo nội bộ và analytics cho team QA, tích hợp Redmine và Google Sheets.</div>
+            <div class="proj-stats">
+              <div class="ps"><div class="k">Tasks</div><div class="v">12</div></div>
+              <div class="ps"><div class="k">Progress</div><div class="v" style="color:var(--success)">100%</div></div>
+            </div>
+          </div>
+          <div class="proj-foot">
+            <span class="badge badge-pass">DONE</span>
+            <a href="task-tree.html">Explore Project <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state preview -->
+      <div style="margin-top:28px;">
+        <div class="secondary" style="font-size:12px; margin-bottom:8px;">↓ Empty state (khi chưa có project)</div>
+        <div class="proj-grid">
+          <div class="empty-state">
+            <i class="bi bi-folder-x" style="font-size:34px; display:block; margin-bottom:12px;"></i>
+            <div style="color:var(--text-secondary); font-size:15px;">No projects yet</div>
+            <div style="margin-top:6px;">Tạo project đầu tiên để bắt đầu quản lý test case.</div>
+            <button class="btn btn-primary" style="margin-top:16px;"><i class="bi bi-plus-lg"></i> New Project</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

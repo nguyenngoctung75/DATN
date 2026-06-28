@@ -49,6 +49,14 @@ RSpec.describe 'TestCases clone', type: :request do
       expect(response).to have_http_status(:unprocessable_entity)
     end
 
+    it 'rejects a destination task past the creating_testcases phase' do
+      dest_task.update!(test_phase: 'executing')
+      post clone_bulk_project_task_test_cases_path(project, source_task),
+           params: { destination_task_id: dest_task.id, source_ids: [ tc.id ] }, as: :json
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body['error']).to match(/Not Started.*Creating Test Cases/)
+    end
+
     it 'rejects cross-project cloning' do
       other = create(:task, project: create(:project))
       post clone_bulk_project_task_test_cases_path(project, source_task),
@@ -65,5 +73,4 @@ RSpec.describe 'TestCases clone', type: :request do
       expect(response.parsed_body['import_run_id']).to be_present
     end
   end
-
 end

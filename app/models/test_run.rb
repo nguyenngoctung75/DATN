@@ -48,6 +48,10 @@ class TestRun < ApplicationRecord
     results_by_status['not_run'] || 0
   end
 
+  def result_count
+    test_results.active.count
+  end
+
   def pass_rate
     total = pass_count + fail_count + not_run_count
     return 0 if total.zero?
@@ -81,9 +85,9 @@ class TestRun < ApplicationRecord
 
   def results_by_status
     @results_by_status ||= if test_results.loaded?
-      test_results.group_by(&:status).transform_values(&:count)
+      test_results.select(&:active?).group_by(&:status).transform_values(&:count)
     else
-      test_results.group(:status).count
+      test_results.active.group(:status).count
     end
   end
 

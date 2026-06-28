@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập — Tool Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="assets/tokens.css">
+  <style>
+    .login-stage {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background:
+        radial-gradient(900px 500px at 50% -10%, rgba(6,182,212,0.10), transparent 60%),
+        var(--bg-base);
+      padding: 40px 20px;
+    }
+    .login-card {
+      width: 380px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: 32px 30px;
+    }
+    .login-brand { display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .login-brand .bi { color: var(--accent); font-size: 22px; }
+    .login-sub { text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 26px; }
+    .field { margin-bottom: 16px; }
+    .input-icon { position: relative; }
+    .input-icon .bi { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+    .input-icon .form-control { padding-left: 36px; }
+    .row-between { display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 22px; }
+    .check { display: flex; align-items: center; gap: 7px; color: var(--text-secondary); }
+    .check input { accent-color: var(--accent); width: 14px; height: 14px; }
+    .btn-block { width: 100%; justify-content: center; padding: 10px; font-size: 14px; }
+    .login-foot { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 20px; }
+    .domain-hint { display: flex; align-items: center; gap: 7px; justify-content: center; font-size: 11px; color: var(--text-muted); margin-top: 14px; }
+    .domain-hint .bi { color: var(--accent); }
+  </style>
+</head>
+<body class="has-crumb">
+  <div class="mock-crumb"><a href="index.html">← Index</a> &nbsp;·&nbsp; Mock: Đăng nhập — Linear Dark Theme</div>
+
+  <div class="login-stage">
+    <div class="login-card">
+      <div class="login-brand"><i class="bi bi-gear-fill"></i> Tool Test</div>
+      <div class="login-sub">Hệ thống quản lý ca kiểm thử nội bộ</div>
+
+      <div class="field">
+        <label class="form-label">Email</label>
+        <div class="input-icon">
+          <i class="bi bi-envelope"></i>
+          <input class="form-control" type="email" value="tungnguyenngoc@example.com">
+        </div>
+      </div>
+      <div class="field">
+        <label class="form-label">Mật khẩu</label>
+        <div class="input-icon">
+          <i class="bi bi-lock"></i>
+          <input class="form-control" type="password" value="************">
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="check"><input type="checkbox" checked> Ghi nhớ đăng nhập</label>
+        <a href="#">Quên mật khẩu?</a>
+      </div>
+
+      <button class="btn btn-primary btn-block"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</button>
+
+      <div class="domain-hint"><i class="bi bi-shield-check"></i> Chỉ chấp nhận tài khoản thuộc miền @example.com</div>
+    </div>
+  </div>
+</body>
+</html>

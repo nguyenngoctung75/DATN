@@ -1,0 +1,23 @@
+- actuals = task.kpi_actuals
+.card.border-0.shadow-sm.mb-4
+  .card-header.bg-white.border-bottom.d-flex.align-items-center.gap-2
+    i.bi.bi-speedometer2.text-primary
+    h5.fw-bold.mb-0 Tester KPIs
+    span.text-muted.small.ms-1 Target vs actual
+  .card-body
+    .row.g-3
+      - Task::KPIS.each do |key, meta|
+        - target = task.kpi_target(key)
+        - actual = actuals[key]
+        - met = actual.nil? ? nil : (meta[:higher_is_better] ? actual >= target : actual <= target)
+        .col-md-4
+          .border.rounded.p-3.h-100
+            .small.text-muted.mb-1.d-flex.align-items-center.gap-1
+              span= meta[:label]
+              i.bi.bi-exclamation-circle data-controller="tooltip" data-bs-placement="top" title=meta[:hint] style="cursor: help;"
+            .d-flex.align-items-baseline.gap-2
+              span.h4.fw-bold.mb-0= actual.nil? ? 'N/A' : "#{actual} #{meta[:unit]}"
+              - unless met.nil?
+                span.badge class=(met ? 'bg-success' : 'bg-danger')
+                  = met ? 'On target' : 'Below target'
+            .small.text-muted Target: #{target} #{meta[:unit]}

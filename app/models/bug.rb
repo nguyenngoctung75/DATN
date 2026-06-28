@@ -38,8 +38,4 @@ class Bug < ApplicationRecord
   def evidence_count
     bug_evidences.count
   end
-
-  def from_test_result?
-    test_result_id.present?
-  end
 end

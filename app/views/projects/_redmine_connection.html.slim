@@ -1,0 +1,24 @@
+- linked = project.redmine_project_id.present?
+.border.rounded.p-3.mb-3.mt-3 class=(linked ? 'border-success bg-success bg-opacity-10' : 'bg-light')
+  .d-flex.align-items-center.justify-content-between.flex-wrap.gap-2
+    .d-flex.align-items-center.gap-2
+      i.bi.bi-diagram-3.fs-4 class=(linked ? 'text-success' : 'text-muted')
+      div
+        .small.text-muted.text-uppercase.fw-bold Redmine Connection
+        - if linked
+          .fw-semibold= "Project: #{project.redmine_project_id}"
+        - else
+          .fw-semibold.text-muted Not linked to any Redmine project
+    .d-flex.align-items-center.gap-2
+      - if linked
+        span.badge.bg-success
+          i.bi.bi-check-circle.me-1
+          | Connected
+        = link_to redmine_project_url(project), target: "_blank", rel: "noopener", class: "btn btn-sm btn-outline-success" do
+          i.bi.bi-box-arrow-up-right.me-1
+          | Open in Redmine
+      - else
+        span.badge.bg-secondary Not linked
+  .small.text-muted.mt-2
+    i.bi.bi-link-45deg.me-1
+    = redmine_base_url

@@ -28,6 +28,10 @@
           i.bi.bi-bug-fill.me-1.text-danger
           | Bugs list
 
+        = link_to report_project_task_path(@project, @task), class: "btn btn-sm text-nowrap d-inline-flex align-items-center shadow-sm #{@task.test_phase.in?(%w[reporting completed]) ? 'btn-warning' : 'btn-light'}" do
+          i.bi.bi-clipboard-data.me-1.text-dark
+          | View Report
+
         button.btn.btn-light.btn-sm.text-nowrap.d-inline-flex.align-items-center.shadow-sm data-bs-toggle="modal" data-bs-target="#importTestCasesModal"
           i.bi.bi-cloud-download.me-1
           | Import from Sheet
@@ -82,6 +86,9 @@
         span •
         span Created by: #{@task.created_by_name || 'N/A'}
         span •
+        span Assigned to: #{@task.assignee&.name.presence || 'N/A'}
+        span •
+        / Task status (mirrors Redmine)
         .dropdown.d-inline-block data-controller="task-status"
           button.badge.rounded-pill.border-0.py-2.px-3.dropdown-toggle.status-badge-btn type="button" data-bs-toggle="dropdown" aria-expanded="false" class=task_status_bg_class(@task.status)
             = @task.status || 'N/A'
@@ -94,6 +101,26 @@
                   - else
                     i.bi.bi-circle.me-2
                   = s
+        span •
+        / Test phase (testing activity workflow)
+        .dropdown.d-inline-block data-controller="task-phase"
+          button.badge.rounded-pill.border-0.py-2.px-3.dropdown-toggle type="button" data-bs-toggle="dropdown" aria-expanded="false" class=test_phase_badge_class(@task.test_phase)
+            i.bi.bi-list-check.me-1
+            = @task.test_phase_label
+          ul.dropdown-menu.dropdown-menu-start.shadow
+            - Task::TEST_PHASES.each do |phase|
+              li
+                button.dropdown-item.d-flex.align-items-center type="button" data-action="click->task-phase#change" data-task-phase-value=phase data-task-phase-url-value=project_task_path(@project, @task)
+                  - if @task.test_phase == phase
+                    i.bi.bi-check-circle-fill.me-2.text-success
+                  - else
+                    i.bi.bi-circle.me-2
+                  = Task::TEST_PHASE_LABELS[phase]
+        - if @task.testing_type.present?
+          span •
+          span.badge.bg-light.text-dark.border
+            i.bi.bi-bookmark.me-1
+            = @task.testing_type_label
 
     / Task Stats
     .card-body.bg-light.border-bottom
@@ -230,12 +257,15 @@
             = render 'shared/pagination', page: @test_cases_page, total_pages: @total_tc_pages, param_name: 'tc_page', anchor: 'test-cases'
 
 
+  / Tester KPIs
+  = render 'kpi_panel', task: @task
+
   / Activity History Section
   div data-layout-toggle-target="section"
     = render 'shared/activity_timeline', logs: ActivityLog.where(trackable: @task).includes(:user).limit(50)
 
   / CI/CD History Section
-  = render 'ci_history_section', ci_builds: @ci_builds
+  = render 'ci_history_section', ci_builds: @ci_builds, task: @task
 
   / Import Test Cases Modal
   .modal.fade#importTestCasesModal tabindex="-1" aria-hidden="true" data-controller="import-progress"
@@ -403,7 +433,7 @@
   - if @task.test_cases.active.exists?
     = render 'test_cases/clone_modal', task: @task
 
-  / Auto-generate TC Modal (Placeholder)
+  / Auto-generate TC Modal
   .modal.fade#autoGenerateTCModal tabindex="-1" aria-hidden="true"
     .modal-dialog
       .modal-content
@@ -412,10 +442,17 @@
             i.bi.bi-magic.me-2
             | Auto-Generate Test Cases (AI)
           button.btn-close.btn-close-white type="button" data-bs-dismiss="modal" aria-label="Close"
-        .modal-body.py-4
-          .text-center
-            .display-4.mb-3 ✨
-            h5.fw-bold Feature in Development!
-            p.text-muted The system will soon support automatic Test Case generation based on Task descriptions and design files.
-        .modal-footer
-          button.btn.btn-secondary type="button" data-bs-dismiss="modal" Close
+        = form_with url: ai_generate_project_task_test_cases_path(@project, @task), method: :post, data: { turbo: false } do
+          .modal-body.py-4
+            .mb-3
+              label.form-label.fw-semibold for="ai_description" Description
+              = text_area_tag :description, nil, id: "ai_description", class: "form-control", rows: 5, required: true, placeholder: "Describe the feature/requirement (in English)..."
+            .mb-3
+              label.form-label.fw-semibold for="ai_github_url" GitHub issue/PR link (optional)
+              = text_field_tag :github_url, nil, id: "ai_github_url", class: "form-control", placeholder: "https://github.com/owner/repo/issues/123"
+            .mb-3
+              label.form-label.fw-semibold for="ai_count" Number of test cases (optional)
+              = number_field_tag :count, nil, id: "ai_count", class: "form-control", min: 1, max: 30, placeholder: "leave empty to let AI decide"
+          .modal-footer
+            button.btn.btn-secondary type="button" data-bs-dismiss="modal" Close
+            = submit_tag "Generate", class: "btn btn-info text-white"

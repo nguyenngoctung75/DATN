@@ -44,12 +44,26 @@
               - if @configuration.errors[:base].any?
                 .invalid-feedback.d-block = @configuration.errors[:base].join(', ')
 
+            hr.my-4
+            .mb-4
+              label.form-label.fw-semibold AI Test Case Generation
+              p.small.text-muted.mb-3 Configure the Gemini-powered auto-generation feature. The API key is read from the GEMINI_API_KEY environment variable.
+              .form-check.form-switch.mb-3
+                = f.check_box :ai_tc_enabled, class: 'form-check-input config-change', id: 'ai_tc_enabled'
+                label.form-check-label for="ai_tc_enabled" Enable AI test case generation
+              .mb-3
+                label.form-label.small.fw-semibold for="ai_model" Gemini model
+                = f.text_field :ai_model, class: 'form-control form-control-sm config-change', id: 'ai_model', placeholder: 'gemini-2.0-flash'
+              .mb-3
+                label.form-label.small.fw-semibold for="ai_tc_system_prompt" System prompt override (optional)
+                = f.text_area :ai_tc_system_prompt, class: 'form-control form-control-sm config-change', id: 'ai_tc_system_prompt', rows: 5, placeholder: 'Leave empty to use the built-in default prompt.'
+
             #config-actions.gap-2.mt-3 class=(@configuration.errors.any? ? 'd-flex' : 'd-none d-flex')
               = f.submit "Save Configuration", class: 'btn btn-primary btn-lg'
               = link_to "Cancel", root_path, class: 'btn btn-outline-secondary btn-lg'
 
   javascript:
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('turbo:load', function() {
       var form = document.querySelector('.config-form');
       var actions = document.getElementById('config-actions');
       if (!form) return;
