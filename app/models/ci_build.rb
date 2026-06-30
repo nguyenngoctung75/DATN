@@ -11,7 +11,6 @@ class CiBuild < ApplicationRecord
 
   scope :recent, -> { order(created_at: :desc) }
 
-  # Push the latest CI history to any open Task page (show / report) in realtime.
   after_commit :broadcast_history, if: -> { task_id.present? }
 
   def broadcast_history

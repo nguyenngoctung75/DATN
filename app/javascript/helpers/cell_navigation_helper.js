@@ -1,6 +1,3 @@
-// Pure functions for spreadsheet cell navigation (Tab / Enter / Arrow keys).
-// Stateless — no controller references, safe to unit-test independently.
-
 const DISPLAY_SELECTOR = "[data-editable-cell-target='display']"
 
 export function getAllEditableCells(table) {
@@ -13,8 +10,6 @@ export function getEditableCellsInRow(row) {
   return Array.from(row.querySelectorAll(DISPLAY_SELECTOR))
 }
 
-// Returns the next/previous editable cell in reading order (row-major).
-// direction: +1 = forward, -1 = backward
 export function findHorizontalNeighbor(currentCell, direction) {
   const table = currentCell.closest("table")
   if (!table) return null
@@ -25,8 +20,6 @@ export function findHorizontalNeighbor(currentCell, direction) {
   return next || null
 }
 
-// Returns the cell in the same column in the row above/below.
-// direction: +1 = down, -1 = up
 export function findVerticalNeighbor(currentCell, direction) {
   const currentRow = currentCell.closest("tr")
   const table = currentCell.closest("table")

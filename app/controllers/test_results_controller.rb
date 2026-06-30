@@ -3,7 +3,6 @@ class TestResultsController < ApplicationController
   before_action :set_test_result, except: %i[index new create]
   authorize_resource
 
-  # GET /test_results
   def index
     @test_results = TestResult.active.includes(:test_case, :test_run, :executed_by).order(executed_at: :desc)
     apply_filters
@@ -14,7 +13,6 @@ class TestResultsController < ApplicationController
     end
   end
 
-  # GET /test_cases/:test_case_id/test_results/:id
   def show
     respond_to do |format|
       format.html
@@ -36,16 +34,13 @@ class TestResultsController < ApplicationController
     end
   end
 
-  # GET /test_cases/:test_case_id/test_results/new
   def new
     @test_result = @test_case.test_results.build
     @test_result.device = params[:device] if params[:device].present?
   end
 
-  # GET /test_cases/:test_case_id/test_results/:id/edit
   def edit; end
 
-  # POST /test_cases/:test_case_id/test_results
   def create
     @test_result = @test_case.test_results.build(test_result_params)
     @test_result.executed_by = current_user
@@ -71,7 +66,6 @@ class TestResultsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /test_cases/:test_case_id/test_results/:id
   def update
     if @test_result.update(test_result_params)
       respond_to do |format|
@@ -92,7 +86,6 @@ class TestResultsController < ApplicationController
     end
   end
 
-  # DELETE /test_cases/:test_case_id/test_results/:id
   def destroy
     @test_result.destroy
     respond_to do |format|
@@ -104,7 +97,6 @@ class TestResultsController < ApplicationController
     end
   end
 
-  # PATCH /test_cases/:test_case_id/test_results/:id/soft_delete
   def soft_delete
     @test_result.soft_delete!
     respond_to do |format|

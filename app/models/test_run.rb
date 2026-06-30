@@ -4,7 +4,6 @@ class TestRun < ApplicationRecord
 
   has_many :test_results, foreign_key: 'run_id', dependent: :delete_all
 
-  # Canonical status values (lowercase). DB and code should use only these.
   STATUSES = %w[pending running completed aborted].freeze
   IN_PROGRESS_STATUSES = %w[pending running].freeze
   FINISHED_STATUSES = %w[completed aborted].freeze
@@ -59,7 +58,6 @@ class TestRun < ApplicationRecord
     (pass_count.to_f / total * 100).round(2)
   end
 
-  # Calculate execution time
   def execution_duration
     return nil if started_at.nil? || completed_at.nil?
 

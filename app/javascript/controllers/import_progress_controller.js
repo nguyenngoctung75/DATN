@@ -2,9 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 import { createConsumer } from "@rails/actioncable"
 import { csrfFetch } from "helpers/fetch_helper"
 
-// Subscribes to UserChannel for live import progress, with polling fallback.
-// Used both by the new import_runs/show page (full progress UI) and by the
-// legacy import modals (form submit shows spinner; redirect happens server-side).
 export default class extends Controller {
   static targets = [
     "form", "progress", "submitButton", "cancelButton",
@@ -34,8 +31,6 @@ export default class extends Controller {
     this.stopPolling()
   }
 
-  // Form submit handler — show spinner + disable buttons.
-  // Server-side redirect to import_runs/:id will take over from there.
   showProgress() {
     if (this.hasProgressTarget) {
       this.progressTarget.classList.remove("d-none")
@@ -95,7 +90,6 @@ export default class extends Controller {
         this.stopPolling()
       }
     } catch (_) {
-      // network blip; next tick will retry
     }
   }
 

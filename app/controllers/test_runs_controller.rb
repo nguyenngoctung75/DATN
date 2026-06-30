@@ -4,11 +4,9 @@ class TestRunsController < ApplicationController
   before_action :require_project_membership!
   authorize_resource
 
-  # GET /projects/:project_id/tasks/:task_id/test_runs
   def index
     @test_runs = @task.test_runs.active.includes(:executed_by, :test_results).order(created_at: :desc)
 
-    # Filters
     @test_runs = @test_runs.where(status: params[:status]) if params[:status].present?
 
     respond_to do |format|
@@ -29,7 +27,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # GET /projects/:project_id/tasks/:task_id/test_runs/:id
   def show
     respond_to do |format|
       format.html
@@ -52,18 +49,15 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # GET /projects/:project_id/tasks/:task_id/test_runs/new
   def new
     @test_run = @task.test_runs.build
     @test_cases = @task.test_cases.active
   end
 
-  # GET /projects/:project_id/tasks/:task_id/test_runs/:id/edit
   def edit
     @test_cases = @task.test_cases.active
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_runs
   def create
     @test_run = @task.test_runs.build(test_run_params)
     @test_run.executed_by = current_user
@@ -88,7 +82,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # PATCH/PUT /projects/:project_id/tasks/:task_id/test_runs/:id
   def update
     if @test_run.update(test_run_params)
       respond_to do |format|
@@ -109,7 +102,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # DELETE /projects/:project_id/tasks/:task_id/test_runs/:id
   def destroy
     @test_run.destroy
     respond_to do |format|
@@ -121,7 +113,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # PATCH /projects/:project_id/tasks/:task_id/test_runs/:id/soft_delete
   def soft_delete
     @test_run.soft_delete!
     respond_to do |format|
@@ -133,7 +124,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_runs/:id/start
   def start
     @test_run.start!
     respond_to do |format|
@@ -145,7 +135,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_runs/:id/complete
   def complete
     @test_run.complete!
     respond_to do |format|
@@ -157,7 +146,6 @@ class TestRunsController < ApplicationController
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_runs/:id/abort
   def abort
     @test_run.abort!
     respond_to do |format|

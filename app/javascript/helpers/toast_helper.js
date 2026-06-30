@@ -1,18 +1,9 @@
-/**
- * Show a toast notification
- * @param {string} message - The message to display
- * @param {string} type - The type of toast (success, error, warning, info)
- * @param {number} delay - Auto-hide delay in milliseconds (default: 5000)
- * @param {object} options - Optional: { link: url } to make toast clickable and redirect
- */
 export function showToast(message, type = 'info', delay = 5000, options = {}) {
-  // Check if Bootstrap is loaded
   if (typeof bootstrap === 'undefined' || !bootstrap.Toast) {
     console.error('Bootstrap Toast is not available')
     return null
   }
 
-  // Get or create toast container
   let container = document.querySelector('.toast-container')
   if (!container) {
     container = document.createElement('div')
@@ -21,7 +12,6 @@ export function showToast(message, type = 'info', delay = 5000, options = {}) {
     document.body.appendChild(container)
   }
 
-  // Define colors and icons based on type
   const typeConfig = {
     success: {
       bgClass: 'bg-success text-white',
@@ -52,7 +42,6 @@ export function showToast(message, type = 'info', delay = 5000, options = {}) {
 
   const config = typeConfig[type] || typeConfig.info
 
-  // Use DOM API and textContent for message to prevent XSS (no innerHTML for user content)
   const toastEl = document.createElement('div')
   toastEl.className = `toast align-items-center border-0 shadow-lg ${config.bgClass}`
   toastEl.setAttribute('role', 'alert')
@@ -90,10 +79,8 @@ export function showToast(message, type = 'info', delay = 5000, options = {}) {
     })
   }
 
-  // Add to container
   container.appendChild(toastEl)
 
-  // Initialize and show toast (using global bootstrap object from CDN)
   const toast = new bootstrap.Toast(toastEl, {
     autohide: true,
     delay: delay
@@ -101,7 +88,6 @@ export function showToast(message, type = 'info', delay = 5000, options = {}) {
 
   toast.show()
 
-  // Remove element after hidden
   toastEl.addEventListener('hidden.bs.toast', () => {
     toastEl.remove()
   })
@@ -109,18 +95,13 @@ export function showToast(message, type = 'info', delay = 5000, options = {}) {
   return toast
 }
 
-/**
- * Convenience methods
- */
 export const toastSuccess = (message, delay) => showToast(message, 'success', delay)
 export const toastError = (message, delay) => showToast(message, 'error', delay)
 export const toastWarning = (message, delay) => showToast(message, 'warning', delay)
 export const toastInfo = (message, delay) => showToast(message, 'info', delay)
 
-// Make it available globally if needed
 window.showToast = showToast
 window.toastSuccess = toastSuccess
 window.toastError = toastError
 window.toastWarning = toastWarning
 window.toastInfo = toastInfo
-

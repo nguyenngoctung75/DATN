@@ -1,7 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { createConsumer } from "@rails/actioncable"
 
-// Subscribes to UserChannel and updates notification dropdown in realtime.
 export default class extends Controller {
   static values = {
     readAndGoPath: { type: String, default: "/notifications" }
@@ -96,7 +95,6 @@ export default class extends Controller {
   showCronjobToast(title, message, link) {
     if (typeof window.showToast !== "function") return
     const fullMessage = message && message !== title ? title + " — " + message : title
-    // Gray style like notifications page, show only a few seconds
     window.showToast(fullMessage, "secondary", 2000, { link: link })
   }
 }

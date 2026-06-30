@@ -1,5 +1,4 @@
 module TestCaseImport
-  # Creates TestResult records for each device column parsed from a sheet row.
   class DeviceResultBuilder
     def initialize(test_case, device_results)
       @test_case = test_case

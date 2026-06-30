@@ -1,10 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Manages the Clone Test Cases modal state.
-// Receives a list of selected source TC IDs via setSelected(ids[]) before the
-// modal opens; renders hidden inputs and updates the count label. When called
-// with an empty array, the form submits with no source_ids and the backend
-// will clone every active test case in the source task.
 export default class extends Controller {
   static targets = ["form", "hiddenIds", "sourceCountLabel", "submitButton"]
   static values  = { taskLabel: String, taskId: String }
@@ -14,14 +9,12 @@ export default class extends Controller {
     this.element.addEventListener("hidden.bs.modal", this.onClose.bind(this))
   }
 
-  // Public API — call before opening the modal.
   setSelected(ids) {
     this.selectedIds = (ids || []).map(String).filter(Boolean)
     this.renderHidden()
     this.updateLabel()
   }
 
-  // Reset state on close so reopening from a different trigger is clean.
   onClose() {
     this.selectedIds = []
     if (this.hasHiddenIdsTarget) this.hiddenIdsTarget.innerHTML = ""

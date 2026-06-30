@@ -13,7 +13,6 @@ export default class extends Controller {
     const url = event.currentTarget.dataset.url
     const type = event.currentTarget.dataset.type
 
-    // Hide all content first
     this.modalImageTarget.classList.add('d-none')
     this.modalVideoTarget.classList.add('d-none')
     this.modalLinkTarget.classList.add('d-none')

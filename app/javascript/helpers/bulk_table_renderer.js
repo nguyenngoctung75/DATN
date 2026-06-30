@@ -1,4 +1,3 @@
-// Pure render helpers extracted from bulk_import_controller.js
 import { escapeHtml } from 'helpers/redmine_filter'
 
 export function renderTableRows(issues, filter) {

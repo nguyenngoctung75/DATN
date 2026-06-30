@@ -2,7 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 import { readRow, saveCell, pasteRow, pasteCellContent } from 'helpers/clipboard_helper'
 import { buildMenuHTML, positionMenu, getEditableCells, findEditableInCell, clickFormOrIcon, showSpreadsheetToast } from 'helpers/menu_renderer'
 
-// Right-click context menu for spreadsheet cells & rows.
 export default class extends Controller {
   connect() {
     this.menu = null
@@ -40,13 +39,9 @@ export default class extends Controller {
     const hasRowCopy  = this.resolveRowData() !== null
     const hasCellCopy = this.copiedCellText !== null || !!localStorage.getItem("spreadsheet_copied_cell_text")
 
-    // Detect merge/split availability from DOM — merge button exists on all function rows,
-    // split (scissors) only on group-head rows (rowspan > 1).
     const canMerge = !!row.querySelector('[data-action*="function-group#merge"]')
     const canSplit  = !!row.querySelector('[data-action*="function-group#split"]')
 
-    // Archived rows render a restore button instead of an archive one; in that
-    // view the destructive action permanently deletes the test case.
     const isArchived = !!row.querySelector(".bi-arrow-counterclockwise")
 
     this.menu = document.createElement("div")
@@ -212,7 +207,6 @@ export default class extends Controller {
       tcId = row.dataset.testCaseId
       projectId = row.dataset.projectId
       taskId = row.dataset.taskId
-      // Scan upward to find the nearest group header row
       let prevEl = row.previousElementSibling
       currentValue = ''
       while (prevEl) {
@@ -233,7 +227,6 @@ export default class extends Controller {
     const textarea = modalEl.querySelector('#groupDescriptionInput')
     textarea.value = currentValue
 
-    // Replace save button to clear old event listeners
     const oldSaveBtn = modalEl.querySelector('#groupDescriptionSave')
     const saveBtn = oldSaveBtn.cloneNode(true)
     oldSaveBtn.parentNode.replaceChild(saveBtn, oldSaveBtn)
@@ -307,7 +300,6 @@ export default class extends Controller {
 
     if (!window.confirm("Xoá vĩnh viễn test case này? Hành động này không thể hoàn tác.")) return
 
-    // Preserve the archived view + current page so the rebuilt table matches.
     const search = new URLSearchParams(window.location.search)
     const showArchived = search.get("show_archived") || "1"
     const tcPage = search.get("tc_page") || "1"

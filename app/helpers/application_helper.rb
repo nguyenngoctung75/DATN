@@ -1,11 +1,8 @@
 module ApplicationHelper
-  # Render a toast notification
-  # Usage: render_toast("Message", type: "success")
   def render_toast(message, type: 'info')
     render partial: 'shared/toast', locals: { message: message, type: type }
   end
 
-  # CI/CD status badge mapping for CiBuild
   CI_STATUS_BADGE = {
     'success' => 'bg-success',
     'failed'  => 'bg-danger',
@@ -49,17 +46,13 @@ module ApplicationHelper
     end
   end
 
-  # Convert Gyazo page URL back to direct image URL if needed
   def gyazo_to_image_url(url)
     return url if url.blank?
 
-    # Convert Gyazo page URL (https://gyazo.com/abc123) to direct image URL using /raw suffix
-    # This automatically redirects to the correct extension (.png, .jpg, .gif, etc.)
     if url.match?(%r{^https?://gyazo\.com/([a-zA-Z0-9]+)})
       image_id = url.match(%r{gyazo\.com/([a-zA-Z0-9]+)})[1]
       "https://gyazo.com/#{image_id}/raw"
     else
-      # Already a direct URL or other URLs, return as-is
       url
     end
   end
@@ -72,11 +65,9 @@ module ApplicationHelper
     url.present? && url.match?(/\.(mp4|webm|mov)$/i)
   end
 
-  # Render media from URL (Image or Video)
   def render_media(url, max_height: '400px')
     return if url.blank?
 
-    # Process potential rich text containing links
     return unless url.match?(%r{https?://[^\s<]+})
 
     processed_url = url.match(%r{https?://[^\s<]+})[0]

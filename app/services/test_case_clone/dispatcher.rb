@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 module TestCaseClone
-  # Decides whether to clone synchronously (small batches) or enqueue a background
-  # job via the existing ImportRun pattern (large batches).
   class Dispatcher
     SYNC_THRESHOLD = 50
 

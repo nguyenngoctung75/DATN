@@ -2,15 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 import { csrfFetch } from 'helpers/fetch_helper'
 import { toastError } from 'helpers/toast_helper'
 
-// Handles updating bug fields via PATCH requests with Turbo Stream responses.
-// Replaces the global inline `updateBugField()` function from bugs/index.html.slim.
-//
-// Usage in view:
-//   tr data-controller="bug-field" data-bug-field-bug-id-value="123"
-//       data-bug-field-project-id-value="1" data-bug-field-task-id-value="5"
-//
-//   button data-action="click->bug-field#update"
-//          data-bug-field-field-param="status" data-bug-field-value-param="done"
 export default class extends Controller {
   static values = {
     bugId: Number,

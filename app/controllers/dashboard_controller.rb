@@ -11,8 +11,6 @@ class DashboardController < ApplicationController
     authorize! :manage, :all
     @users_count = User.active.count
     @projects_count = Project.active.count
-    # "Root task" = top-level task per Project#root_tasks semantics (parent_id NULL, or
-    # parent outside this project). Matches the count shown on /projects and project show.
     @tasks_count = Task.active
                        .where('tasks.parent_id IS NULL OR NOT EXISTS (' \
                               'SELECT 1 FROM tasks p WHERE p.id = tasks.parent_id ' \

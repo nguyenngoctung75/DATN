@@ -44,7 +44,6 @@ class ImportRun < ApplicationRecord
     self.params_json = hash.is_a?(String) ? hash : hash.to_json
   end
 
-  # Atomic increment without callbacks; throttled broadcast.
   def increment_progress!(by: 1)
     self.class.where(id: id).update_all('processed_count = processed_count + ' + by.to_i.to_s)
     reload

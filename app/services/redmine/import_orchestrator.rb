@@ -26,7 +26,6 @@ module Redmine
       false
     end
 
-    # Used by RedmineBulkImportService to skip the fetch step when issue data is already available.
     def import_from_issue_data(issue_data)
       @redmine_id = issue_data['id'].to_s
       creator = Redmine::TaskCreator.new(@project)

@@ -1,5 +1,3 @@
-# Bulk import tasks from Redmine issues URL.
-# Only imports issues where subject matches "4. Testing" (tracker Test, subject starts with "4. Testing")
 class RedmineBulkImportService
   TESTING_SUBJECT_PATTERN = /\A4\.\s*Testing\s*-\s*#/i
 
@@ -112,7 +110,6 @@ class RedmineBulkImportService
                       "#{@skipped_count} skipped (already existed)"
   end
 
-  # Fetch all pages and collect only "4. Testing" issues
   def fetch_all_testing_issues(limit: 100, offset: 0)
     all_testing_issues = []
     current_offset = offset

@@ -9,11 +9,9 @@ class Project < ApplicationRecord
   has_many :daily_import_runs, dependent: :destroy
   has_many :import_runs, dependent: :destroy
 
-  # Project membership
   has_many :project_users, dependent: :destroy
   has_many :users, through: :project_users
 
-  # Override soft_delete! to cascade to tasks
   def soft_delete!
     transaction do
       super
@@ -21,7 +19,6 @@ class Project < ApplicationRecord
     end
   end
 
-  # Override restore! to cascade to tasks
   def restore!
     transaction do
       tasks.where(deleted_at: deleted_at).update_all(deleted_at: nil)
@@ -32,10 +29,6 @@ class Project < ApplicationRecord
   validates :name, presence: true, length: { maximum: 50 }, uniqueness: { case_sensitive: false }
   validates :development_status, inclusion: { in: DEVELOPMENT_STATUSES, allow_blank: true }
 
-  # redmine_project_id (string, optional): Redmine project identifier for daily import.
-  # When set and daily import is enabled, tasks are imported from this Redmine project into this local project.
-
-  # Count tasks (excluding subtasks)
   def task_count
     root_tasks.count
   end
@@ -45,7 +38,6 @@ class Project < ApplicationRecord
   end
 
   def root_tasks
-    # A task is a root if it has no parent or its parent doesn't exist in the same project
     tasks.active.where('parent_id IS NULL OR parent_id NOT IN (SELECT id FROM tasks WHERE project_id = ?)', id)
   end
 
@@ -63,7 +55,6 @@ class Project < ApplicationRecord
     if status.present?
       scope = scope.where('LOWER(status) = ?', status.to_s.downcase.tr('_', ' '))
     else
-      # Hide closed tasks by default; they are only shown when explicitly filtered.
       scope = scope.where("status IS NULL OR LOWER(status) <> 'closed'")
     end
     scope = scope.where(created_by_name: created_by) if created_by.present?
@@ -77,14 +68,11 @@ class Project < ApplicationRecord
          .includes(:project, :subtasks)
   end
 
-  # Count of root tasks grouped by each known status (always returns all
-  # statuses, defaulting missing ones to 0). Used by the status statistics UI.
   def task_status_counts
     counts = root_tasks.group(:status).count
     Task::STATUSES.index_with { |status| counts[status] || 0 }
   end
 
-  # True if the given user may access this project (admins always can).
   def accessible_to?(user)
     return false if user.nil?
     return true if user.admin?

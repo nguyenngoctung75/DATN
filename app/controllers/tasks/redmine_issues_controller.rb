@@ -3,7 +3,6 @@ class Tasks::RedmineIssuesController < ApplicationController
   before_action :authorize_read_project, only: %i[index projects]
   before_action :authorize_manage_project, only: %i[import_one import_url import_selected]
 
-  # GET /projects/:project_id/redmine_issues
   def index
     issues_url = params[:issues_url].presence || "#{RedmineService::BASE_URL}/issues.json"
     redmine_project_input = params[:redmine_project_id].to_s.strip.presence
@@ -31,7 +30,6 @@ class Tasks::RedmineIssuesController < ApplicationController
     }, status: list_service.errors.any? ? :unprocessable_entity : :ok
   end
 
-  # GET /projects/:project_id/redmine_issues/projects
   def projects
     list = Rails.cache.fetch('redmine_projects_list', expires_in: 10.minutes) do
       RedmineService.get_projects_list
@@ -39,7 +37,6 @@ class Tasks::RedmineIssuesController < ApplicationController
     render json: { projects: list }
   end
 
-  # POST /projects/:project_id/redmine_issues/import_one
   def import_one
     issue_id = params[:issue_id]
 
@@ -65,7 +62,6 @@ class Tasks::RedmineIssuesController < ApplicationController
     end
   end
 
-  # POST /projects/:project_id/redmine_issues/import_url
   def import_url
     issues_url = params[:issues_url].presence || "#{RedmineService::BASE_URL}/issues.json"
     issue_ids = params[:issue_ids].present? ? params[:issue_ids].reject(&:blank?) : nil
@@ -74,7 +70,6 @@ class Tasks::RedmineIssuesController < ApplicationController
     redirect_to_import_run(run, 'Redmine bulk import started.')
   end
 
-  # POST /projects/:project_id/redmine_issues/import_selected
   def import_selected
     issue_ids = params[:issue_ids].present? ? params[:issue_ids].reject(&:blank?) : nil
 

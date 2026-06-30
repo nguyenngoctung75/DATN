@@ -6,7 +6,6 @@ class TestCasesController < ApplicationController
 
   TC_HISTORY_FIELDS = %w[title test_type target note content_value group_description].freeze
 
-  # GET /projects/:project_id/tasks/:task_id/test_cases/:id/edit
   def edit
     set_existing_titles
     respond_to do |format|
@@ -15,7 +14,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases
   def create
     @test_case = @task.test_cases.build(test_case_params)
     @test_case.created_by = current_user
@@ -40,7 +38,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # PATCH/PUT /projects/:project_id/tasks/:task_id/test_cases/:id
   def update
     @test_case.skip_title_sync = true if params[:skip_title_sync].present?
     if @test_case.update(test_case_params)
@@ -67,7 +64,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # DELETE /projects/:project_id/tasks/:task_id/test_cases/:id
   def destroy
     @test_case.destroy
     set_spreadsheet_data
@@ -81,7 +77,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # PATCH /projects/:project_id/tasks/:task_id/test_cases/:id/soft_delete
   def soft_delete
     @test_case.soft_delete!
     set_spreadsheet_data
@@ -95,7 +90,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # PATCH /projects/:project_id/tasks/:task_id/test_cases/:id/restore
   def restore
     @test_case.restore!
     set_spreadsheet_data
@@ -109,7 +103,6 @@ class TestCasesController < ApplicationController
     end
   end
 
-  # GET /projects/:project_id/tasks/:task_id/test_cases/:id/cell_history
   def cell_history
     field = params[:field].to_s
     return render json: { error: 'Invalid field' },
@@ -132,7 +125,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     render json: CellHistorySerializer.call(logs, field)
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases/:id/revert
   def revert
     log = ActivityLog.where(trackable: @test_case).find(params[:log_id])
     result = RecordRevertService.new(activity_log: log, field: params[:field]).call
@@ -150,7 +142,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases/:id/clone
   def clone
     result = TestCaseClone::Dispatcher.new(
       source_task: @task,
@@ -162,7 +153,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     handle_clone_result(result)
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases/clone_bulk
   def clone_bulk
     result = TestCaseClone::Dispatcher.new(
       source_task: @task,
@@ -174,7 +164,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     handle_clone_result(result)
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases/import_from_sheet
   def import_from_sheet
     spreadsheet_id = extract_spreadsheet_id(params[:spreadsheet_id])
 
@@ -201,7 +190,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
     end
   end
 
-  # POST /projects/:project_id/tasks/:task_id/test_cases/ai_generate
   def ai_generate
     return respond_ai_unavailable unless ai_generation_available?
 
@@ -333,7 +321,6 @@ status: :unprocessable_entity unless TC_HISTORY_FIELDS.include?(field)
   def extract_spreadsheet_id(input)
     return input if input.blank?
 
-    # Extract ID from Google Sheets URL if present
     if input.include?('docs.google.com/spreadsheets/d/')
       match = input.match(%r{/d/([^/]+)})
       match ? match[1] : input

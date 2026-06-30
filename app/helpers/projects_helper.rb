@@ -7,9 +7,6 @@ module ProjectsHelper
     'maintenance'    => { label: 'Maintenance', class: 'bg-info text-dark' }
   }.freeze
 
-  # Browser-facing Redmine URL. REDMINE_BASE_URL is the in-container API host
-  # (e.g. http://redmine:3000) which a browser cannot resolve, so prefer
-  # REDMINE_PUBLIC_URL and fall back to mapping the local docker host port.
   def redmine_base_url
     ENV['REDMINE_PUBLIC_URL'].presence ||
       ENV.fetch('REDMINE_BASE_URL', 'https://redmine.example.com').sub('redmine:3000', 'localhost:3001')
@@ -28,7 +25,6 @@ module ProjectsHelper
     content_tag(:span, meta[:label], class: "badge #{meta[:class]}")
   end
 
-  # Display name for a user (falls back to email).
   def member_display_name(user)
     user.name.presence || user.email
   end

@@ -4,7 +4,6 @@ class TasksController < ApplicationController
   before_action :require_project_membership!
   authorize_resource
 
-  # GET /tasks or /projects/:project_id/tasks
   def index
     if params[:project_id]
       @project = Project.find(params[:project_id])
@@ -12,21 +11,18 @@ class TasksController < ApplicationController
     elsif current_user.admin?
       base_scope = Task.active.root_tasks
     else
-      # Global task list for a non-admin: limit to accessible projects only.
       base_scope = Task.active.root_tasks.where(project_id: current_user.accessible_project_ids)
     end
 
     @stats_subtasks_count = Task.active.where.not(parent_id: nil).count
     @stats_completed_count = Task.active.where(status: [ 'closed' ]).count
 
-    # Options for status filter
     @status_options = base_scope.distinct.pluck(:status).compact.sort
 
     @tasks = base_scope.includes(:project, :assignee, :test_cases)
     @tasks = @tasks.with_status(params[:status]) if params[:status].present?
     @tasks = @tasks.search(params[:q]) if params[:q].present?
 
-    # Pagination (10 per page)
     @per_page = 10
     @total_tasks = @tasks.count
     @current_page = (params[:page].presence || 1).to_i
@@ -35,7 +31,6 @@ class TasksController < ApplicationController
     @tasks = @tasks.order(updated_at: :desc).offset((@current_page - 1) * @per_page).limit(@per_page)
   end
 
-  # GET /tasks/:id or /projects/:project_id/tasks/:id
   def show
     @test_case = @task.test_cases.build
     @test_cases_page = (params[:tc_page] || 1).to_i
@@ -58,22 +53,18 @@ class TasksController < ApplicationController
     end
   end
 
-  # GET /projects/:project_id/tasks/:id/report
   def report
     @ci_builds = @task.ci_builds.recent.limit(20)
     @active_bugs_count = @task.bugs.active.count
     @total_test_cases = @task.total_test_cases_count
   end
 
-  # GET /projects/:project_id/tasks/new
   def new
     @task = @project.tasks.build
   end
 
-  # GET /tasks/:id/edit
   def edit; end
 
-  # POST /projects/:project_id/tasks
   def create
     @task = @project.tasks.build(task_params)
     @task.created_by_name = current_user.name || current_user.email
@@ -96,7 +87,6 @@ class TasksController < ApplicationController
     end
   end
 
-  # PATCH/PUT /tasks/:id
   def update
     if @task.update(task_params)
       respond_to do |format|
@@ -111,7 +101,6 @@ class TasksController < ApplicationController
     end
   end
 
-  # DELETE /tasks/:id
   def destroy
     @task.destroy
     respond_to do |format|
@@ -120,7 +109,6 @@ class TasksController < ApplicationController
     end
   end
 
-  # PATCH /tasks/:id/soft_delete
   def soft_delete
     @task.soft_delete!
     respond_to do |format|
@@ -129,7 +117,6 @@ class TasksController < ApplicationController
     end
   end
 
-  # PATCH /tasks/:id/restore
   def restore
     @task.restore!
     respond_to do |format|
@@ -138,7 +125,6 @@ class TasksController < ApplicationController
     end
   end
 
-  # POST /tasks/:id/create_subtask
   def create_subtask
     @subtask = @task.subtasks.build(task_params)
     @subtask.project = @project
@@ -152,7 +138,6 @@ alert: "Failed to create subtask: #{@subtask.errors.full_messages.join(', ')}"
     end
   end
 
-  # POST /tasks/:id/promote_to_subtask
   def promote_to_subtask
     function_name = params[:function]
 
@@ -175,7 +160,6 @@ alert: "Failed to create subtask: #{@subtask.errors.full_messages.join(', ')}"
     end
   end
 
-  # POST /tasks/:id/update_device_config
   def update_device_config
     if @task.update(device_config: params[:device_config])
       redirect_to project_task_path(@project, @task), notice: 'Device configuration has been updated successfully.'
@@ -184,7 +168,6 @@ alert: "Failed to create subtask: #{@subtask.errors.full_messages.join(', ')}"
     end
   end
 
-  # POST /tasks/:id/promote_all_to_subtask
   def promote_all_to_subtask
     subtask, count = @task.promote_all_to_subtask!(
       project: @project,

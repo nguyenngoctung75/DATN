@@ -1,6 +1,4 @@
 class ActivityTimelinePresenter
-  # Internal / auto-maintained fields that should NOT appear in the activity
-  # history. Everything else a user edits is shown.
   IGNORED_FIELDS = %w[
     created_at updated_at deleted_at
     number_of_test_cases subtasks_count subtask_id position redmine_id

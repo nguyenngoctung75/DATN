@@ -2,13 +2,8 @@ import { Controller } from "@hotwired/stimulus"
 import { csrfFetch } from "helpers/fetch_helper"
 import { toastError } from "helpers/toast_helper"
 
-// Manages merge/split of test case function groups.
-// merge() copies the title from the row above — no confirmation dialog needed.
-// split() shows an inline input directly in the cell instead of a native prompt().
 export default class extends Controller {
   static values = { testCaseId: Number, projectId: Number, taskId: Number }
-
-  // ── Public actions (buttons + context menu) ──────────────────────────────
 
   merge(event) {
     event.preventDefault()
@@ -33,11 +28,8 @@ export default class extends Controller {
     this._showSplitInput(titleEl, currentTitle)
   }
 
-  // Called by context_menu_controller via getControllerForElementAndIdentifier
   mergeExternal() { this.merge(new Event("click")) }
   splitExternal()  { this.split(new Event("click")) }
-
-  // ── Private ──────────────────────────────────────────────────────────────
 
   _findPreviousTitleEl(currentRow) {
     let prevRow = currentRow.previousElementSibling
@@ -91,10 +83,9 @@ export default class extends Controller {
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter")  { e.preventDefault(); e.stopPropagation(); commit() }
       if (e.key === "Escape") { e.stopPropagation(); cancel() }
-      e.stopPropagation() // prevent spreadsheet keyboard nav while typing
+      e.stopPropagation()
     })
 
-    // Delay so the Enter keydown fires before blur
     input.addEventListener("blur", () => setTimeout(() => { if (this._splitting) commit() }, 180))
   }
 
@@ -106,7 +97,6 @@ export default class extends Controller {
     csrfFetch(url, { method: "PATCH", body: JSON.stringify(body) })
       .then(r => {
         if (!r.ok) return r.json().then(d => toastError("Failed: " + (d.errors || []).join(", ")))
-        // Smooth Turbo reload to re-render rowspans — far less jarring than window.location.reload()
         Turbo.visit(window.location.href, { action: "replace" })
       })
       .catch(() => toastError("An error occurred while saving."))

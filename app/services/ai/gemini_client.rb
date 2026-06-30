@@ -15,7 +15,6 @@ module Ai
       @connection = connection || build_connection
     end
 
-    # Returns the parsed JSON value produced by the model (Array or Hash).
     def generate(system:, user:, response_schema: nil)
       raise GeminiError, 'Missing GEMINI_API_KEY' if @api_key.blank?
 
@@ -56,8 +55,6 @@ module Ai
       raise GeminiError, "Invalid JSON from Gemini: #{e.message}"
     end
 
-    # NOTE: the API key is in the query string per Gemini's API spec. Do NOT add
-    # `f.response :logger` to this connection — it would write the key to logs.
     def build_connection
       Faraday.new(url: BASE_URL) do |f|
         f.options.timeout = TIMEOUT_SECONDS

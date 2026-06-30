@@ -1,14 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { createConsumer } from "@rails/actioncable"
 
-// Subscribes to UserChannel (which streams `notifications`) and renders a
-// prominent top-right toast for CI/CD events. The header dropdown is still
-// updated by notifications_controller.js — this controller adds the extra
-// visual surface for CI events only.
-//
-// Filter contract: only handles messages whose data.kind === "ci". That field
-// is set by Notification#broadcast_payload when the title starts with "✅ CI "
-// or "❌ CI ".
 export default class extends Controller {
   static values = { dismissAfter: { type: Number, default: 7000 } }
 
@@ -47,7 +39,6 @@ export default class extends Controller {
          .addEventListener("click", () => this.dismiss(toast))
 
     this.element.appendChild(toast)
-    // Defer to next frame so the CSS transition has a "before" state to animate from.
     requestAnimationFrame(() => toast.classList.add("ci-toast--visible"))
 
     setTimeout(() => this.dismiss(toast), this.dismissAfterValue)
@@ -57,7 +48,6 @@ export default class extends Controller {
     if (!toast.isConnected) return
     toast.classList.remove("ci-toast--visible")
     toast.addEventListener("transitionend", () => toast.remove(), { once: true })
-    // Safety net: if for any reason transitionend never fires, force-remove.
     setTimeout(() => toast.remove(), 400)
   }
 

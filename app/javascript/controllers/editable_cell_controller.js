@@ -54,16 +54,14 @@ export default class extends Controller {
     const originalContent = target.innerHTML.trim()
     this.setActiveDisplay(target)
     
-    // Make the target itself editable to prevent double-boxing or layout jumps
     target.contentEditable = "true"
-    target.style.outline = "none" // Ensure browser doesn't add its own outline
+    target.style.outline = "none"
     target.dataset.editableCellActive = "true"
     target.focus()
     
-    // Place cursor at the end
     const range = document.createRange()
     range.selectNodeContents(target)
-    range.collapse(false) // false means to the end of the range
+    range.collapse(false)
     const sel = window.getSelection()
     sel.removeAllRanges()
     sel.addRange(range)
@@ -77,8 +75,6 @@ export default class extends Controller {
     }
 
     this.onBlur = (blurEvent) => {
-      // If focus moved to a toolbar element (e.g. the font-size input), keep editing.
-      // event.preventDefault() on mousedown already handles buttons; this covers inputs.
       if (blurEvent.relatedTarget?.closest?.('.spreadsheet-toolbar-sticky')) return
       document.dispatchEvent(new CustomEvent("spreadsheet-cell:blur", { detail: { element: target, display: target } }))
       save()
@@ -106,8 +102,8 @@ export default class extends Controller {
         }
       }
       if (e.key === "Escape") {
-        target.innerHTML = originalContent // Revert
-        target.blur() // Save fires but detects no change
+        target.innerHTML = originalContent
+        target.blur()
       }
     }
 
@@ -115,7 +111,6 @@ export default class extends Controller {
     target.addEventListener("paste", this.onPaste)
     target.addEventListener("keydown", this.onKeydown)
 
-    // Manually trigger focus dispatch
     document.dispatchEvent(new CustomEvent("spreadsheet-cell:focus", { detail: { element: target, display: target } }))
   }
 

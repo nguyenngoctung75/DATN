@@ -3,7 +3,6 @@ import { csrfFetch } from 'helpers/fetch_helper'
 import { getPresetRange, formatDate } from 'helpers/redmine_filter'
 import { renderTableRows } from 'helpers/bulk_table_renderer'
 
-// Bulk Import modal: load Redmine issues list with date filter, show table with imported/not imported status, import selected.
 export default class extends Controller {
   static targets = [
     "listTab",
@@ -77,7 +76,6 @@ export default class extends Controller {
     if (this.hasEndDateTarget) this.endDateTarget.value = formatDate(range.end)
     if (this.hasDatePresetTarget) this.datePresetTarget.value = preset
 
-    // Auto-reload if project is selected
     if (this.getRedmineProjectIdValue()) {
       this.loadList()
     }
@@ -105,7 +103,6 @@ export default class extends Controller {
 
     const listUrl = `${this.listUrlValue}?${params.toString()}`
 
-    // Hide table and show loader
     if (this.hasTableContainerTarget) this.tableContainerTarget.classList.add("d-none")
     if (this.hasLoadingIndicatorTarget) this.loadingIndicatorTarget.classList.remove("d-none")
 

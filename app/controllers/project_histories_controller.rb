@@ -3,8 +3,6 @@ class ProjectHistoriesController < ApplicationController
   before_action :authorize_admin
   before_action :set_project, if: -> { params[:project_id].present? }
 
-  # GET /project_histories
-  # Display all histories of all projects
   def index
     @project_histories = ActivityLog
                          .includes(:trackable, :user)
@@ -18,8 +16,6 @@ class ProjectHistoriesController < ApplicationController
     end
   end
 
-  # GET /project_histories/:id
-  # Display details of a single history
   def show
     @project_history = ActivityLog.find(params[:id])
     @project ||= @project_history.trackable

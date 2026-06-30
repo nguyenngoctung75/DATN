@@ -2,20 +2,9 @@
 
 module Api
   module V1
-    # Receives CI/CD result webhooks from GitHub Actions and turns them into
-    # a CiBuild row + realtime Notification.
-    #
-    # Auth: HMAC-SHA256 over the raw request body, header X-Hub-Signature-256
-    #       (same convention GitHub itself uses for webhooks).
-    #
-    # Side effects:
-    #   - Idempotent on workflow_run_id (CiBuild.find_or_initialize_by).
-    #   - If the PR's Redmine task is not yet imported into tooltest,
-    #     calls the existing RedmineImportService synchronously to create it.
     class GithubWebhooksController < ActionController::API
       before_action :verify_signature!
 
-      # POST /api/v1/github_webhooks/ci_result
       def ci_result
         payload = JSON.parse(request.raw_post)
 
@@ -30,7 +19,6 @@ module Api
         task = Task.find_by(redmine_id: redmine_id) || import_task_from_redmine(redmine_id)
 
         unless task
-          # Still persist the CI build for audit, but signal failure to GitHub.
           persist_ci_build!(payload, nil)
           return render json: { error: 'task import failed', errors: @import_errors },
                         status: :unprocessable_entity
@@ -52,7 +40,6 @@ module Api
 
       private
 
-      # HMAC-SHA256 verification, constant-time compare against timing attacks.
       def verify_signature!
         secret = ENV.fetch('CI_WEBHOOK_SECRET')
         header = request.headers['X-Hub-Signature-256'].to_s
@@ -64,14 +51,11 @@ module Api
         head(:unauthorized)
       end
 
-      # Pull <id> out of https://.../issues/<id> (rest of URL is ignored).
       def extract_redmine_id(link)
         m = link.to_s.match(%r{/issues/(\d+)})
         m && m[1].to_i.nonzero?
       end
 
-      # Re-uses the existing single-issue importer (Redmine::ImportOrchestrator,
-      # aliased as RedmineImportService).
       def import_task_from_redmine(redmine_id)
         project_id = default_project_id
         unless project_id

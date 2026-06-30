@@ -4,7 +4,6 @@ class ActivityLog < ApplicationRecord
 
   default_scope { order(created_at: :desc) }
 
-  # Scopes
   scope :by_action, ->(action) { where(action_type: action) }
   scope :by_trackable_type, ->(type) { where(trackable_type: type) }
   scope :for_projects, -> { where(trackable_type: 'Project') }

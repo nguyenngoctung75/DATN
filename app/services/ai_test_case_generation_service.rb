@@ -119,16 +119,11 @@ class AiTestCaseGenerationService
       @imported_count += 1
     end
   rescue ActiveRecord::RecordInvalid => e
-    # The savepoint rolled the row back in the DB, but the rolled-back record may
-    # still linger in @task.test_cases in-memory target. Drop it so the later
-    # @task.update! autosave does not re-insert the orphan.
     purge_unsaved_test_cases
     @errors << e.message
     skip!
   end
 
-  # Remove any rolled-back (now new_record) test cases from the in-memory
-  # association target so they are not autosaved when @task is saved.
   def purge_unsaved_test_cases
     @task.association(:test_cases).target.reject!(&:new_record?)
   end

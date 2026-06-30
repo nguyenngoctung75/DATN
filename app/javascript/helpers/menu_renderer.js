@@ -1,14 +1,9 @@
-// Pure DOM helpers extracted from context_menu_controller.js
-
-// groupOptions: { canMerge, canSplit, isArchived }
 export function buildMenuHTML(hasCellCopy, hasRowCopy, groupOptions = {}) {
   const pasteCellClass = hasCellCopy ? "" : "ctx-disabled"
   const pasteRowClass  = hasRowCopy  ? "" : "ctx-disabled"
   const mergeClass     = groupOptions.canMerge ? "" : "ctx-disabled"
   const splitClass     = groupOptions.canSplit  ? "" : "ctx-disabled"
 
-  // In the archived view the destructive action permanently deletes the row;
-  // otherwise it soft-deletes (archives) it.
   const dangerItem = groupOptions.isArchived
     ? `<div class="ctx-item ctx-danger" data-action-type="delete">
          <i class="bi bi-trash"></i><span>Delete Row</span>

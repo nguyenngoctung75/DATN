@@ -1,4 +1,3 @@
-// Returns { start: Date, end: Date } for a named date preset.
 export function getPresetRange(preset) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -26,7 +25,6 @@ export function getPresetRange(preset) {
   return ranges[preset] || ranges.last_30_days
 }
 
-// Formats a Date object as "YYYY-MM-DD".
 export function formatDate(d) {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -34,7 +32,6 @@ export function formatDate(d) {
   return `${y}-${m}-${day}`
 }
 
-// Escapes special HTML characters in a string.
 export function escapeHtml(text) {
   const div = document.createElement('div')
   div.textContent = text

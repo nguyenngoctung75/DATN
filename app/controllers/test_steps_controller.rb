@@ -4,14 +4,11 @@ class TestStepsController < ApplicationController
   before_action :require_project_membership!
   authorize_resource
 
-
-  # POST /projects/:project_id/tasks/:task_id/test_cases/:test_case_id/test_steps
   def create
     @test_step = @test_case.test_steps.build(
       step_number: @test_case.test_steps.count + 1
     )
 
-    # Initialize default contents with placeholder text to pass presence validation
     @test_step.test_step_contents.build(content_category: 'action', content_type: 'text',
 content_value: 'Click to enter action...', display_order: 1)
     @test_step.test_step_contents.build(content_category: 'expectation', content_type: 'text',
@@ -29,11 +26,8 @@ content_value: 'Click to enter expected result...', display_order: 1)
     end
   end
 
-
-  # DELETE /projects/:project_id/tasks/:task_id/test_cases/:test_case_id/test_steps/:id
   def destroy
     @test_step.destroy
-    # NOTE: Auto-renumbering is handled by after_destroy callback in TestStep model
     respond_to do |format|
       format.turbo_stream
       format.html { redirect_to project_task_test_case_path(@project, @task, @test_case),

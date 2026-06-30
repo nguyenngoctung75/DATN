@@ -7,7 +7,6 @@ class RedmineService
   USERNAME = ENV['REDMINE_USERNAME'].freeze
   PASSWORD = ENV['REDMINE_PASSWORD'].freeze
 
-  # GET /projects.json - list projects (id, name, identifier)
   def self.get_projects_list
     conn = connection
     response = conn.get('/projects.json?limit=1000')
@@ -21,7 +20,6 @@ class RedmineService
     []
   end
 
-  # GET /projects/:id_or_identifier.json - single project (id or identifier like "usedcar-ex")
   def self.get_project(id_or_identifier)
     return nil if id_or_identifier.blank?
 
@@ -37,7 +35,6 @@ class RedmineService
     nil
   end
 
-  # Resolve project id: if input is numeric return as-is, else fetch by identifier and return id.
   def self.resolve_project_id(id_or_identifier)
     return nil if id_or_identifier.blank?
 
@@ -72,8 +69,6 @@ class RedmineService
     nil
   end
 
-  # Build issues URL with optional filters: project_id, date range (created_on)
-  # Returns path + query (e.g. "/issues.json?limit=100&..."). Use with BASE_URL for full URL.
   def self.build_issues_url(base_url, limit: 100, offset: 0, project_id: nil, created_on_from: nil, created_on_to: nil)
     uri = URI(base_url)
     base_path = uri.path.presence || '/'
@@ -101,9 +96,6 @@ class RedmineService
     path + (path.include?('?') ? '&' : '?') + query_params.join('&')
   end
 
-  # Fetch issues list from URL (e.g. https://redmine.example.com/issues.json)
-  # Optional: project_id (Redmine project ID), created_on_from, created_on_to (Date or string YYYY-MM-DD).
-  # Returns { issues: [...], total_count:, offset:, limit: }
   def self.get_issues_list(url, limit: 100, offset: 0, project_id: nil, created_on_from: nil, created_on_to: nil)
     base_url = base_url_from_uri(URI(url))
     from_str = format_date_param(created_on_from)

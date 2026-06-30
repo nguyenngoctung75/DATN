@@ -147,8 +147,6 @@ async function restoreVersion(state, dispose) {
   fd.append("field", state.field)
   if (state.contentId) fd.append("content_id", state.contentId)
 
-  // Forward current pagination/filter params (tc_page, show_archived, page, etc.)
-  // so the server-rendered turbo_stream keeps the user on the same view.
   new URLSearchParams(window.location.search).forEach((value, key) => {
     if (!fd.has(key)) fd.append(key, value)
   })

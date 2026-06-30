@@ -2,7 +2,6 @@ import { Controller } from "@hotwired/stimulus"
 import { csrfFetch } from "helpers/fetch_helper"
 import { toastError } from "helpers/toast_helper"
 
-// Updates a task's test_phase (testing activity workflow) without a full form.
 export default class extends Controller {
   change(event) {
     event.preventDefault()

@@ -32,7 +32,6 @@ export default class extends Controller {
     document.addEventListener("spreadsheet-cell:blur",  this._onBlur)
     document.addEventListener("selectionchange", this._onSelChange)
 
-    // Allow font-size input to receive focus without losing cell selection
     if (this.hasFontSizeInputTarget) {
       this._onSizeInputFocus = () => this.saveSelection()
       this.fontSizeInputTarget.addEventListener("focus", this._onSizeInputFocus)
@@ -48,8 +47,6 @@ export default class extends Controller {
     }
   }
 
-  // ── Selection Management ──────────────────────────────────────────────
-
   saveSelection() {
     const sel = window.getSelection()
     if (sel.rangeCount > 0) {
@@ -62,16 +59,12 @@ export default class extends Controller {
 
   restoreSelection() {
     if (!this.savedSelection || !this.activeCell) return
-    // focus() MUST come before addRange() — calling focus() after addRange() clears the selection in Chrome
     this.activeCell.focus()
     const sel = window.getSelection()
     sel.removeAllRanges()
     try { sel.addRange(this.savedSelection) } catch (_) {}
   }
 
-  // Ensures the active cell is focused and in edit mode, with a non-empty selection.
-  // When no text is selected (collapsed cursor or no selection), selects all cell content
-  // so that formatting commands (bold, color, font…) apply visibly to existing text.
   _ensureEditableWithSelection() {
     if (!this.activeCell || this.activeCell.contentEditable !== "true") return false
     this.activeCell.focus()
@@ -89,8 +82,6 @@ export default class extends Controller {
     return true
   }
 
-  // Allow input/textarea elements inside the toolbar to receive focus normally
-  // (so the user can type font sizes, link URLs, etc.) while still saving selection.
   preventFocusLoss(event) {
     if (["INPUT", "TEXTAREA"].includes(event.target.tagName) || event.target.closest('[contenteditable="true"]')) {
       this.saveSelection()
@@ -99,8 +90,6 @@ export default class extends Controller {
     event.preventDefault()
     if (this.activeCell) this.restoreSelection()
   }
-
-  // ── Generic execCommand wrapper ───────────────────────────────────────
 
   _exec(command, value = null) {
     if (!this._ensureEditableWithSelection()) return false
@@ -118,8 +107,6 @@ export default class extends Controller {
     this._exec(event.currentTarget.dataset.command, event.currentTarget.dataset.value || null)
   }
 
-  // ── Undo / Redo ───────────────────────────────────────────────────────
-
   undo(event) {
     event.preventDefault()
     this.application.getControllerForElementAndIdentifier(this.element, "undo-redo")?.undo()
@@ -130,8 +117,6 @@ export default class extends Controller {
     this.application.getControllerForElementAndIdentifier(this.element, "undo-redo")?.redo()
   }
 
-  // ── Font Family ───────────────────────────────────────────────────────
-
   fontName(event) {
     event.preventDefault()
     const font = event.currentTarget.dataset.font
@@ -139,8 +124,6 @@ export default class extends Controller {
     this._exec("fontName", font)
     if (this.hasFontNameBtnTarget) this.fontNameBtnTarget.textContent = font
   }
-
-  // ── Font Size ─────────────────────────────────────────────────────────
 
   fontSizeMinus(event) {
     event.preventDefault()
@@ -166,7 +149,6 @@ export default class extends Controller {
     this._applyFontSize(next)
   }
 
-  // Uses the execCommand("fontSize","7") trick to inject a real px <span>.
   _applyFontSize(px) {
     if (!this._ensureEditableWithSelection()) return
     this.activeCell.dataset.formatting = "true"
@@ -183,8 +165,6 @@ export default class extends Controller {
     }, 50)
   }
 
-  // ── Text Color ────────────────────────────────────────────────────────
-
   applyTextColor(event) {
     event.preventDefault()
     const color = event.currentTarget.dataset.color
@@ -192,8 +172,6 @@ export default class extends Controller {
     if (this.hasTextColorBarTarget) this.textColorBarTarget.style.background = color
     this._exec("foreColor", color)
   }
-
-  // ── Fill (Highlight) Color ────────────────────────────────────────────
 
   applyFillColor(event) {
     event.preventDefault()
@@ -203,8 +181,6 @@ export default class extends Controller {
     if (this.hasFillColorBarTarget) this.fillColorBarTarget.style.background = bg
     this._exec("hiliteColor", bg)
   }
-
-  // ── Merge / Unmerge ───────────────────────────────────────────────────
 
   mergeRows(event) {
     event.preventDefault()
@@ -228,8 +204,6 @@ export default class extends Controller {
     return this.application.getControllerForElementAndIdentifier(fgEl, "function-group")
   }
 
-  // ── Horizontal Alignment ──────────────────────────────────────────────
-
   alignHorizontal(event) {
     event.preventDefault()
     const align = event.currentTarget.dataset.align
@@ -240,8 +214,6 @@ export default class extends Controller {
       if (icon) icon.className = `bi ${H_ALIGN_ICONS[align]}`
     }
   }
-
-  // ── Vertical Alignment ────────────────────────────────────────────────
 
   alignVertical(event) {
     event.preventDefault()
@@ -254,8 +226,6 @@ export default class extends Controller {
       if (icon) icon.className = `bi ${V_ALIGN_ICONS[align]}`
     }
   }
-
-  // ── Insert Link (inline popover, replaces prompt()) ───────────────────
 
   toggleLinkPopover(event) {
     event.preventDefault()
@@ -301,6 +271,5 @@ export default class extends Controller {
     this._exec("createLink", url)
   }
 
-  // backward-compat alias (old template used formatLink)
   formatLink(event) { this.toggleLinkPopover(event) }
 }

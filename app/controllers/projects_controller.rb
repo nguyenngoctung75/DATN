@@ -4,7 +4,7 @@ class ProjectsController < ApplicationController
   before_action :authorize_project_read, only: :show
 
   def index
-    projects_per_page = 12 # 12 projects for nice grid layout (3x4 or 4x3)
+    projects_per_page = 12
     page = (params[:page] || 1).to_i
 
     all_projects = Project.active.order(created_at: :desc)
@@ -13,7 +13,6 @@ class ProjectsController < ApplicationController
     @total_pages = (@total_projects.to_f / projects_per_page).ceil
     @current_page = page
 
-    # Paginate
     offset = (page - 1) * projects_per_page
     @projects = all_projects.limit(projects_per_page).offset(offset)
 
@@ -33,7 +32,6 @@ class ProjectsController < ApplicationController
     @total_pages = (@total_projects.to_f / projects_per_page).ceil
     @current_page = page
 
-    # Paginate
     offset = (page - 1) * projects_per_page
     @projects = all_archived.limit(projects_per_page).offset(offset)
 
@@ -220,8 +218,6 @@ class ProjectsController < ApplicationController
     authorize! :read, @project
   end
 
-  # Assigns permitted attributes, then merges the test-plan schedule which is
-  # edited as free text ("Milestone | YYYY-MM-DD" per line) into the json column.
   def apply_project_management_attributes
     @project.assign_attributes(project_params.to_h)
     return unless params[:schedule_text]

@@ -35,9 +35,6 @@ class SpreadsheetTablePresenter
 
     @test_cases.each_with_index do |tc, i|
       group = tc.group_description.to_s.strip
-      # A group-description header row is injected before this row when its
-      # group changes (see #rows). That header is a full-width (colspan) <tr>,
-      # so a title-merge rowspan must NOT span across it — break the run here.
       header_before = group.present? && group != prev_group
 
       if i.positive? && (tc.title.to_s.strip != @test_cases[i - 1].title.to_s.strip || header_before)

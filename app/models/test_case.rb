@@ -9,7 +9,6 @@ class TestCase < ApplicationRecord
   has_many :test_steps, foreign_key: 'case_id', dependent: :destroy, inverse_of: :test_case
   has_many :test_results, foreign_key: 'case_id', dependent: :delete_all
 
-  # Nested attributes for creating single test step
   accepts_nested_attributes_for :test_step, allow_destroy: true
 
   validates :title, presence: true
@@ -34,7 +33,6 @@ class TestCase < ApplicationRecord
 
   before_create :assign_default_position
 
-  # Insert TC at a specific position, shift subsequent TCs down
   def self.insert_at_position!(task, target_position)
     task.test_cases.active.where('position >= ?', target_position).update_all('position = position + 1')
   end
@@ -49,9 +47,7 @@ class TestCase < ApplicationRecord
 
   def latest_status_for(device_or_category)
     results = test_results.active.recent
-    # First try exact match
     match = results.find { |r| r.device == device_or_category }
-    # Then try category match
     match ||= results.find { |r| device_match?(r.device, device_or_category) }
     match&.status || 'not_run'
   end

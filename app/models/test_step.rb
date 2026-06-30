@@ -4,20 +4,17 @@ class TestStep < ApplicationRecord
   belongs_to :test_case, foreign_key: 'case_id', inverse_of: :test_steps
   has_many :test_step_contents, foreign_key: 'step_id', dependent: :destroy, inverse_of: :test_step
 
-  # Nested attributes for creating step contents - reject blank contents
   accepts_nested_attributes_for :test_step_contents, allow_destroy: true, reject_if: lambda { |attrs|
     attrs[:content_value].blank?
   }
 
   validates :step_number, presence: true, numericality: { greater_than: 0 }
 
-  # Auto-renumber siblings after destroy
   after_destroy :renumber_sibling_steps
 
   scope :ordered, -> { order(:step_number) }
   scope :active, -> { where(deleted_at: nil) }
 
-  # Add scopes to get contents by category
   def action_contents
     test_step_contents.where(content_category: 'action').order(:display_order)
   end
@@ -38,7 +35,6 @@ class TestStep < ApplicationRecord
     expected_contents.exists?
   end
 
-  # Create summary of step
   def action_summary
     actions = action_contents.pluck(:content_value).join(', ')
     actions.presence || 'No action defined'
@@ -49,14 +45,12 @@ class TestStep < ApplicationRecord
     expectations.presence || 'No expectation defined'
   end
 
-  # Full summary
   def summary
     "Step #{step_number}: #{action_summary} → Expected: #{expected_summary}"
   end
 
   private
 
-  # Renumber remaining steps in the same test case after deletion
   def renumber_sibling_steps
     return unless test_case
 

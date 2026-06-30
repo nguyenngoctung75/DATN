@@ -1,10 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Allows resizing columns by dragging the right edge of header cells.
-// Widths are saved to localStorage so they persist across page loads.
-//
-// Usage:
-//   table.spreadsheet-table data-controller="column-resize"
 export default class extends Controller {
   connect() {
     this.storageKey = `col-widths-${window.location.pathname}`
@@ -23,7 +18,6 @@ export default class extends Controller {
   addResizeHandles() {
     const headers = this.element.querySelectorAll("thead th")
     headers.forEach((th, index) => {
-      // Skip last column (no resize needed on right edge)
       if (index === headers.length - 1) return
 
       const handle = document.createElement("div")
@@ -81,7 +75,6 @@ export default class extends Controller {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(widths))
     } catch (e) {
-      // localStorage might be full or disabled
     }
   }
 
@@ -98,7 +91,6 @@ export default class extends Controller {
         }
       })
     } catch (e) {
-      // Ignore parse errors
     }
   }
 }

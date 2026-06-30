@@ -30,7 +30,6 @@ class UsersController < ApplicationController
   def edit; end
 
   def update
-    # Remove password params if blank
     params_to_update = user_params
     if params_to_update[:password].blank?
       params_to_update.delete(:password)

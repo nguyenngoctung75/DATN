@@ -1,8 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { csrfFetch } from 'helpers/fetch_helper'
 
-// Handles click on notification links: mark as read via API, update dropdown + index UI in realtime, then redirect.
-// Use event delegation so dropdown and index links (and dynamically added items) all work.
 export default class extends Controller {
   connect() {
     this.markingInProgress = false

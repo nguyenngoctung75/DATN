@@ -13,8 +13,6 @@ class GoogleSheetService
     @service.authorization = authorize
   end
 
-  # Returns raw rows (Array<Array>) or filtered rows when filter: is given.
-  # filter: { header_rows_count:, filter_column_index:, valid_filter_values: }
   def fetch_sheet(name:, range: nil, filter: nil)
     full_range = range ? "#{name}!#{range}" : name
     raw_rows = sheet_values(full_range)
@@ -28,7 +26,6 @@ class GoogleSheetService
     nil
   end
 
-  # Returns all sheets as [{ title: String, sheet_id: String }].
   def list_sheets
     response = with_quota_retry('list_sheets') do
       @service.get_spreadsheet(@spreadsheet_id, fields: 'sheets(properties(title,sheetId))')
@@ -51,8 +48,6 @@ class GoogleSheetService
     response.values || []
   end
 
-  # Retry block when Google Sheets quota is exceeded.
-  # Waits 65 seconds (quota resets per minute) then retries up to MAX_RETRIES times.
   def with_quota_retry(operation)
     retries = 0
     begin

@@ -1,17 +1,6 @@
 # frozen_string_literal: true
 
 module TestCaseClone
-  # Deep-copies TestCase records (with TestStep + TestStepContent) into a destination Task.
-  # Does NOT copy TestResult (status reset) or Bug (run-time data stays with origin).
-  #
-  # Usage:
-  #   TestCaseClone::CloneService.new(
-  #     source_test_cases: relation,
-  #     destination_task: dest_task,
-  #     options: { append_copy_suffix: false, place_at_top: false },
-  #     user: current_user,
-  #     import_run: optional_run
-  #   ).call
   class CloneService
     def initialize(source_test_cases:, destination_task:, options: {}, user:, import_run: nil)
       @source_relation = source_test_cases

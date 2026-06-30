@@ -1,6 +1,4 @@
 module TestCaseImport
-  # Maps a raw sheet row + column mapping to structured test case data.
-  # Handles cell extraction, normalization, and device result parsing.
   class RowMapper
     def initialize(row, mapping)
       @row = row
@@ -77,7 +75,6 @@ module TestCaseImport
       end
     end
 
-    # Import-only status normalizer — no 'blocked' variant.
     def normalize_status(value)
       return 'not_run' if value.blank?
 

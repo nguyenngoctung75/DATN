@@ -1,4 +1,3 @@
-# List Redmine "4. Testing" issues with optional date filter and mark already_imported for a project.
 class RedmineBulkListService
   TESTING_SUBJECT_PATTERN = /\A4\.\s*Testing\s*-\s*#/i
 
@@ -11,8 +10,6 @@ class RedmineBulkListService
     @issues = []
   end
 
-  # Returns array of hashes: { id, subject, created_on, updated_on, assigned_to_name, status, already_imported }
-  # redmine_project_id: Redmine project ID to filter issues (optional but recommended).
   def list(redmine_project_id: nil, created_on_from: nil, created_on_to: nil, limit: 100)
     Rails.logger.info "List Redmine 4. Testing issues for project #{@project.id}, " \
                       "redmine_project_id=#{redmine_project_id}, date range: #{created_on_from}..#{created_on_to}"
@@ -87,14 +84,11 @@ class RedmineBulkListService
   def filter_testing_issues(issues)
     issues.select do |issue|
       subject = ensure_utf8(issue['subject'].to_s)
-      # Check if this issue matches the pattern
       next false unless subject.match?(TESTING_SUBJECT_PATTERN)
 
-      # Check if parent also matches the pattern (if parent exists)
       parent_subject = ensure_utf8(issue.dig('parent', 'name').to_s)
       parent_matches = parent_subject.match?(TESTING_SUBJECT_PATTERN)
 
-      # Include only if parent doesn't match (excludes subtasks OF "4. Testing" tasks)
       !parent_matches
     end
   end

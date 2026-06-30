@@ -4,7 +4,6 @@ class TestResult < ApplicationRecord
   belongs_to :executed_by, class_name: 'User', foreign_key: 'executed_by_id', optional: true
   has_one :bug, dependent: :nullify
 
-  # UI (form, dropdown): only pass, fail, not_run. Import may also write unknown.
   STATUSES = %w[pass fail not_run].freeze
   ALL_STATUSES = %w[pass fail not_run unknown].freeze
 

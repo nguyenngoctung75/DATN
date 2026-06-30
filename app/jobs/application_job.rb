@@ -3,10 +3,9 @@ class ApplicationJob < ActiveJob::Base
   retry_on ActiveRecord::Deadlocked, attempts: 3, wait: :polynomially_longer
   discard_on ActiveJob::DeserializationError
 
-  # Notify by email AFTER all retries are exhausted (or for non-retryable errors).
   rescue_from(StandardError) do |exception|
     notify_exception_tracker(exception)
-    raise exception   # re-raise so Solid Queue still marks the job as failed
+    raise exception
   end
 
   private

@@ -10,7 +10,6 @@ class Notification < ApplicationRecord
 
   scope :recent, -> { order(created_at: :desc) }
 
-  # Notifications visible to this user (cronjob only for admins)
   scope :visible_for, ->(user) {
     base = recent
     return base if user&.admin?
@@ -20,7 +19,6 @@ class Notification < ApplicationRecord
 
   after_create_commit :broadcast_new_notification
 
-  # Notifications not yet read by this user
   scope :unread_for, ->(user) {
     where.not(id: NotificationRead.where(user: user).select(:notification_id))
   }
@@ -42,8 +40,6 @@ class Notification < ApplicationRecord
 
   private
 
-  # Returns "ci" when this notification was emitted by the CI webhook pipeline,
-  # nil otherwise. Used by the frontend to route to the toast UI vs the dropdown.
   def ci_kind?
     title.to_s.start_with?('✅ CI ', '❌ CI ') ? 'ci' : nil
   end

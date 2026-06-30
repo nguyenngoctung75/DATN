@@ -8,7 +8,6 @@ class ProfilesController < ApplicationController
 
     if @user.valid_password?(user_params[:current_password])
       if @user.update(password: user_params[:password], password_confirmation: user_params[:password_confirmation])
-        # Sign in the user by passing validation in case their password changed
         bypass_sign_in(@user)
         redirect_to root_path, notice: 'Password has been changed successfully.'
       else

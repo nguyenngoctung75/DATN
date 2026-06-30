@@ -13,7 +13,6 @@ module Github
       @connection = connection || build_connection
     end
 
-    # Returns a context string, or nil if nothing usable / on any error.
     def fetch(url)
       return nil if url.blank?
 

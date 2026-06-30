@@ -1,6 +1,4 @@
 module TestCaseImport
-  # Parses raw sheet data to determine column layout and data boundaries.
-  # Handles multi-row headers and device-names rows that precede data.
   class SheetMetadataParser
     def initialize(sheet_data)
       @sheet_data = sheet_data

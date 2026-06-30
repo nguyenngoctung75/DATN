@@ -1,4 +1,3 @@
-// Builds the save URL and params object from an editable-cell row element.
 export function buildSaveRequest(rowElement, field, contentId, value) {
   const model = rowElement.dataset.model || 'test_case'
   const isTestCase = model === 'test_case'
@@ -19,7 +18,6 @@ export function buildSaveRequest(rowElement, field, contentId, value) {
   }
 }
 
-// Extracts clean HTML from a paste ClipboardEvent, stripping scripts/styles.
 export function sanitizePastedHtml(clipboardData) {
   const html = clipboardData.getData('text/html')
   const plain = clipboardData.getData('text/plain')

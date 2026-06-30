@@ -1,11 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { csrfFetch } from 'helpers/fetch_helper'
 
-// Maintains an undo/redo history for spreadsheet cell edits.
-// Listens for custom events from editable-cell controller.
-//
-// Usage:
-//   div data-controller="undo-redo"
 export default class extends Controller {
   connect() {
     this.undoStack = []
@@ -30,24 +25,21 @@ export default class extends Controller {
 
     this.undoStack.push({ url, params, oldValue, newValue, display, method: method || "PATCH" })
     if (this.undoStack.length > this.maxHistory) this.undoStack.shift()
-    this.redoStack = [] // Clear redo on new change
+    this.redoStack = []
   }
 
   handleKeydown(event) {
     const activeElement = document.activeElement
     if (activeElement && activeElement.contentEditable === "true") return
 
-    // Ctrl+Z / Cmd+Z = Undo
     if ((event.ctrlKey || event.metaKey) && event.key === "z" && !event.shiftKey) {
       event.preventDefault()
       this.undo()
     }
-    // Ctrl+Shift+Z / Cmd+Shift+Z = Redo
     if ((event.ctrlKey || event.metaKey) && event.key === "z" && event.shiftKey) {
       event.preventDefault()
       this.redo()
     }
-    // Ctrl+Y / Cmd+Y = Redo (alternative)
     if ((event.ctrlKey || event.metaKey) && event.key === "y") {
       event.preventDefault()
       this.redo()
@@ -71,9 +63,7 @@ export default class extends Controller {
   }
 
   applyChange(url, originalParams, value, display, action) {
-    // Rebuild params with the target value
     const params = JSON.parse(JSON.stringify(originalParams))
-    // Find the nested field and update its value
     for (const key of Object.keys(params)) {
       if (typeof params[key] === "object") {
         for (const field of Object.keys(params[key])) {

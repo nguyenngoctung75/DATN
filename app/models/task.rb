@@ -12,7 +12,6 @@ class Task < ApplicationRecord
   ].freeze
   COMPLETED_STATUSES = %w[resolved closed].freeze
 
-  # Testing activity workflow (independent from `status`, which mirrors Redmine).
   TEST_PHASES = %w[not_started creating_testcases executing reporting completed].freeze
   TEST_PHASE_LABELS = {
     'not_started' => 'Not Started',
@@ -22,11 +21,8 @@ class Task < ApplicationRecord
     'completed' => 'Completed'
   }.freeze
 
-  # Test cases may only be cloned INTO a task still in an early test phase
-  # (before execution starts), so cloning never disturbs an in-progress run.
   CLONABLE_DEST_PHASES = %w[not_started creating_testcases].freeze
 
-  # Classification of the kind of testing this task represents.
   TESTING_TYPES = %w[new_feature regression retest smoke integration performance other].freeze
   TESTING_TYPE_LABELS = {
     'new_feature' => 'New Feature Testing',
@@ -38,8 +34,6 @@ class Task < ApplicationRecord
     'other' => 'Other'
   }.freeze
 
-  # KPI definitions for tester performance. Targets are stored in `kpi_targets`
-  # (json); actual values are computed on the fly from task data (#kpi_actuals).
   KPIS = {
     'test_execution_rate' => {
       label: 'Test Execution Rate', unit: '%', higher_is_better: true, default_target: 100,
@@ -209,7 +203,6 @@ class Task < ApplicationRecord
     own_count + sub_count
   end
 
-  # Number of test cases that have at least one recorded test result.
   def executed_test_cases_count
     TestResult.where(case_id: test_cases.active.select(:id)).distinct.count(:case_id)
   end
@@ -222,15 +215,12 @@ class Task < ApplicationRecord
     TESTING_TYPE_LABELS[testing_type]
   end
 
-  # Target value (number) for a given KPI key, falling back to its default.
   def kpi_target(key)
     stored = kpi_targets.is_a?(Hash) ? kpi_targets[key.to_s] : nil
     value = stored.presence || KPIS.dig(key.to_s, :default_target)
     value&.to_f
   end
 
-  # Actual (computed) values for each KPI. Returns a hash keyed by KPI key;
-  # a value of nil means there is not enough data to compute that KPI.
   def kpi_actuals
     total_tc = total_test_cases_count
     executed = executed_test_cases_count

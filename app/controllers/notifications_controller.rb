@@ -9,7 +9,6 @@ class NotificationsController < ApplicationController
     @read_ids = NotificationRead.where(user: current_user).pluck(:notification_id).to_set
   end
 
-  # GET /notifications/:id/read_and_go — mark as read then redirect to notification.link (for dropdown click)
   def read_and_go
     notification = Notification.find(params[:id])
     authorize! :read, notification
@@ -37,7 +36,6 @@ class NotificationsController < ApplicationController
     end
   end
 
-  # GET /notifications/unread_count — JSON only, for syncing badge after Turbo restore (e.g. Back button)
   def unread_count
     authorize! :read, Notification
     count = Notification.visible_for(current_user).unread_for(current_user).count

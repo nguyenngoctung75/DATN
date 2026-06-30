@@ -1,8 +1,6 @@
 import { csrfFetch } from 'helpers/fetch_helper'
 import { toastError, toastWarning } from 'helpers/toast_helper'
 
-// Reads all copyable column data from a row.
-// Returns { rowData, tabText, flatCount }.
 export function readRow(row) {
   const copyCols = Array.from(row.querySelectorAll('td[data-copy-col]'))
   const rowData = {}
@@ -21,7 +19,6 @@ export function readRow(row) {
   return { rowData, tabText: flatText.join('\t'), flatCount: flatText.length }
 }
 
-// Opens the cell editor and pastes HTML content into it.
 export function pasteCellContent(editableDisplay, htmlContent) {
   editableDisplay.click()
   setTimeout(() => {
@@ -33,8 +30,6 @@ export function pasteCellContent(editableDisplay, htmlContent) {
   }, 150)
 }
 
-// Saves a single cell directly via PATCH API.
-// Resolves to true on success, false on failure.
 export function saveCell(row, display, newValue) {
   return new Promise((resolve) => {
     const field = display.dataset.field
@@ -82,8 +77,6 @@ export function saveCell(row, display, newValue) {
   })
 }
 
-// Pastes a copied row into a target row via direct API calls.
-// Returns { pastedCount, totalToPaste }.
 export async function pasteRow(targetRow, copiedRowData) {
   let pastedCount = 0
   let totalToPaste = 0
