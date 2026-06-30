@@ -11,16 +11,14 @@
 /.env*
 !/.env.example
 
+# Ignore all markdown files (project docs are local-only)
 *.md
+
 # Ignore all logfiles and tempfiles.
 /log/*
 /tmp/*
 !/log/.keep
 !/tmp/.keep
-
-# Ignore all file markdown
-*.md
-README.md
 
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
@@ -46,9 +44,15 @@ README.md
 
 config/google_credentials.json
 
+# Editor and OS metadata
 /.vscode
+.DS_Store
 
 mise.toml
+
+# AI tool local artifacts (not project code)
+/.claude/settings.local.json
+/.superpowers/
 
 # DATN LaTeX project (local-only)
 /datn/
