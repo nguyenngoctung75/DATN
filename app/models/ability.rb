@@ -24,7 +24,7 @@ class Ability
     can :read, ImportRun, project_id: ids
 
     can %i[read create update destroy soft_delete restore report], Task, project_id: ids
-    can %i[read create update clone clone_bulk soft_delete restore ai_generate history], TestCase,
+    can %i[read create update clone clone_bulk import_from_sheet soft_delete restore ai_generate history], TestCase,
         task: { project_id: ids }
     can %i[read create update soft_delete restore history], Bug, task: { project_id: ids }
     can %i[create update], BugComment, bug: { task: { project_id: ids } }

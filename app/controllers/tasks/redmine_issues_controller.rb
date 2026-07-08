@@ -1,7 +1,7 @@
 class Tasks::RedmineIssuesController < ApplicationController
   before_action :set_project
   before_action :authorize_read_project, only: %i[index projects]
-  before_action :authorize_manage_project, only: %i[import_one import_url import_selected]
+  before_action :authorize_create_task, only: %i[import_one import_url import_selected]
 
   def index
     issues_url = params[:issues_url].presence || "#{RedmineService::BASE_URL}/issues.json"
@@ -95,8 +95,8 @@ class Tasks::RedmineIssuesController < ApplicationController
     authorize! :read, @project
   end
 
-  def authorize_manage_project
-    authorize! :manage, @project
+  def authorize_create_task
+    authorize! :create, @project.tasks.build
   end
 
   def enqueue_redmine_bulk_import(issues_url: nil, issue_ids: nil)

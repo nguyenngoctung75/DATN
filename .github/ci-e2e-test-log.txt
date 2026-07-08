@@ -1,0 +1,4 @@
+CI/CD end-to-end verification run test1
+branch: test/ci-cd-e2e-verify
+date: 2026-07-04
+purpose: verify GitHub Actions -> webhook -> tooltest -> realtime notification pipeline
